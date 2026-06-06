@@ -1,0 +1,391 @@
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <p class="text-[11px] text-winmart-slate font-semibold tracking-wider uppercase mb-1">Hệ Thống</p>
+        <h1 class="text-2xl font-black tracking-tight text-winmart-dark">Quản Lý Nhân Viên</h1>
+    </div>
+    <button onclick="toggleSlideOver()" class="bg-winmart-dark hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-gray-900/20">
+        <i data-lucide="plus" class="w-4 h-4 text-winmart-yellow"></i> Thêm Nhân Viên
+    </button>
+</div>
+
+<%- include('../../partials/flash-message') %>
+
+<!-- Lọc / Tìm kiếm -->
+<div class="bento-card p-4 mb-6">
+    <form action="/admin/users" method="GET" class="flex flex-col md:flex-row gap-4 items-center">
+        <div class="flex-1 w-full">
+            <input type="text" name="search" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all" placeholder="Tìm theo tên..." value="<%= filters.search || '' %>">
+        </div>
+        <div class="w-full md:w-48">
+            <select name="role" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all appearance-none">
+                <option value="">Tất cả vai trò</option>
+                <option value="ADMIN" <%= filters.role === 'ADMIN' ? 'selected' : '' %>>Quản trị viên</option>
+                <option value="STAFF" <%= filters.role === 'STAFF' ? 'selected' : '' %>>Nhân viên</option>
+            </select>
+        </div>
+        <div class="w-full md:w-48">
+            <select name="status" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all appearance-none">
+                <option value="">Tất cả trạng thái</option>
+                <option value="DangLam" <%= filters.status === 'DangLam' ? 'selected' : '' %>>Đang làm việc</option>
+                <option value="NghiViec" <%= filters.status === 'NghiViec' ? 'selected' : '' %>>Đã nghỉ việc</option>
+                <option value="KhoaTam" <%= filters.status === 'KhoaTam' ? 'selected' : '' %>>Đang bị khóa</option>
+            </select>
+        </div>
+        <div class="w-full md:w-32">
+            <button type="submit" class="w-full bg-gray-800 text-white hover:bg-gray-900 px-4 py-3 rounded-xl text-sm font-bold transition-all">
+                Lọc
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Data Table -->
+<div class="bento-card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left min-w-[1000px]">
+            <thead>
+                <tr class="bg-white border-b border-gray-100">
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider">Nhân Viên</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Liên Hệ</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Tài Khoản</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Vai Trò</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Trạng Thái</th>
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                <% if (users.length > 0) { %>
+                    <% users.forEach(nv => { %>
+                    <tr class="hover:bg-gray-50/50 transition bg-white group">
+                        <td class="py-4 px-5 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-sm shrink-0">
+                                <%= nv.HoTen.charAt(0).toUpperCase() %>
+                            </div>
+                            <div>
+                                <h4 class="font-black text-winmart-dark text-sm"><%= nv.HoTen %></h4>
+                                <span class="text-[10px] font-mono text-gray-400 font-bold mt-0.5 block"><%= nv.MaNhanVien %></span>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4">
+                            <div class="text-xs font-semibold text-gray-700 flex items-center gap-1"><i data-lucide="phone" class="w-3 h-3 text-gray-400"></i> <%= nv.SoDienThoai || 'N/A' %></div>
+                            <div class="text-[10px] text-gray-500 mt-1"><%= nv.Email || 'Không có Email' %></div>
+                        </td>
+                        <td class="py-4 px-4 text-sm font-semibold text-gray-600">
+                            <%= nv.TenDangNhap %>
+                        </td>
+                        <td class="py-4 px-4">
+                            <% if (nv.VaiTro === 'ADMIN') { %>
+                                <span class="bg-red-50 text-winmart-red text-[10px] font-black uppercase px-2.5 py-1 rounded-md border border-red-100">Quản trị viên</span>
+                            <% } else { %>
+                                <span class="bg-blue-50 text-blue-600 text-[10px] font-black uppercase px-2.5 py-1 rounded-md border border-blue-100">Nhân viên</span>
+                            <% } %>
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                            <% if (nv.TrangThai === 'DangLam') { %>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-green-600 bg-green-50 px-2 py-1 rounded-md">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Đang làm
+                                </span>
+                            <% } else if (nv.TrangThai === 'KhoaTam') { %>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-orange-600 bg-orange-50 px-2 py-1 rounded-md">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Khóa tạm
+                                </span>
+                            <% } else { %>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-gray-500 bg-gray-100 px-2 py-1 rounded-md">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Nghỉ việc
+                                </span>
+                            <% } %>
+                        </td>
+                        <td class="py-4 px-5">
+                            <div class="flex justify-end items-center gap-2">
+                                <a href="/admin/users/<%= nv.NhanVienId %>/edit" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition shrink-0" title="Chỉnh sửa">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </a>
+                                <% if (nv.NhanVienId !== user.id && nv.VaiTro !== 'ADMIN') { %>
+                                <form action="/admin/users/<%= nv.NhanVienId %>/delete" method="POST" class="m-0 shrink-0 flex" onsubmit="handleDelete(event, this)">
+                                    <button type="submit" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition" title="Nghỉ việc/Xóa">
+                                        <i data-lucide="user-x" class="w-4 h-4"></i>
+                                    </button>
+                                </form>
+                                <% } %>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-gray-400">
+                            <i data-lucide="users" class="w-12 h-12 mx-auto mb-3 opacity-20"></i>
+                            <p class="text-sm font-semibold">Không tìm thấy nhân viên nào</p>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Phân trang -->
+    <% if (meta && meta.totalPages > 1) { %>
+    <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-end">
+        <div class="flex items-center gap-2">
+            <a href="?page=<%= meta.currentPage - 1 %>" class="<%= meta.currentPage === 1 ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100' %> w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 font-bold text-xs transition">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </a>
+            <% for(let i=1; i <= meta.totalPages; i++) { %>
+                <a href="?page=<%= i %>" class="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition <%= meta.currentPage === i ? 'bg-winmart-red text-white border-transparent' : 'border border-gray-200 text-gray-600 hover:bg-gray-100' %>">
+                    <%= i %>
+                </a>
+            <% } %>
+            <a href="?page=<%= meta.currentPage + 1 %>" class="<%= meta.currentPage === meta.totalPages ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100' %> w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 font-bold text-xs transition">
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </a>
+        </div>
+    </div>
+    <% } %>
+</div>
+
+<!-- ============================================== -->
+<!-- SLIDE-OVER: Form Thêm/Sửa Nhân Viên (WIDE) -->
+<!-- ============================================== -->
+<% const isOpen = typeof openSlideOver !== 'undefined' && openSlideOver; %>
+<% const isEdit = typeof editEmployee !== 'undefined' && editEmployee; %>
+<% const currentOld = typeof old !== 'undefined' ? old : {}; %>
+
+<div id="slide-over-backdrop" onclick="closeSlideOver()" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40 <%= isOpen ? '' : 'hidden opacity-0' %> transition-opacity"></div>
+
+<div id="slide-over" class="fixed inset-y-0 right-0 w-full xl:w-[960px] lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200 transition-transform duration-300 ease-in-out <%= isOpen ? 'translate-x-0' : 'translate-x-full' %>">
+
+    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+        <div>
+            <h3 class="text-base font-black text-winmart-dark flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-winmart-red rounded-full"></span> <%= isEdit ? 'Cập Nhật Nhân Viên' : 'Thêm Mới Nhân Viên' %>
+            </h3>
+            <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5">
+                <%= isEdit ? 'Chỉnh sửa thông tin tài khoản' : 'Khởi tạo tài khoản nhân sự mới' %>
+            </p>
+        </div>
+        <button onclick="closeSlideOver()" class="p-2 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-winmart-dark transition shadow-sm">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 bg-gray-50/30">
+        <form action="/admin/users/<%= isEdit ? editEmployee.NhanVienId + '/edit' : 'create' %>" method="POST" class="space-y-8" id="user-form">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Cột trái -->
+                <div class="space-y-6">
+                    <div class="bento-card p-6 rounded-3xl bg-white border border-gray-100 shadow-sm">
+                        <h3 class="text-sm font-black text-winmart-dark mb-4 flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-winmart-red rounded-full"></span> Thông tin cá nhân
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-2">Họ và Tên <span class="text-red-500">*</span></label>
+                                <input type="text" name="HoTen" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" value="<%= currentOld.HoTen || (isEdit ? editEmployee.HoTen : '') %>" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-2">Tên Đăng Nhập <span class="text-red-500">*</span></label>
+                                <input type="text" name="TenDangNhap" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all <%= isEdit ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' %>" value="<%= currentOld.TenDangNhap || (isEdit ? editEmployee.TenDangNhap : '') %>" <%= isEdit ? 'readonly' : 'required' %>>
+                                <% if (isEdit) { %>
+                                    <p class="text-[10px] text-gray-400 mt-1.5 font-semibold">Tên đăng nhập không thể thay đổi sau khi tạo.</p>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bento-card p-6 rounded-3xl bg-white border border-gray-100 shadow-sm">
+                        <h3 class="text-sm font-black text-winmart-dark mb-4 flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-winmart-red rounded-full"></span> Thông tin liên hệ
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-2">Số Điện Thoại <span class="text-red-500">*</span></label>
+                                <input type="text" name="SoDienThoai" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" value="<%= currentOld.SoDienThoai || (isEdit ? editEmployee.SoDienThoai : '') %>" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-2">Email <span class="text-red-500">*</span></label>
+                                <input type="email" name="Email" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" value="<%= currentOld.Email || (isEdit ? editEmployee.Email : '') %>" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột phải -->
+                <div class="space-y-6">
+                    <div class="bento-card p-6 rounded-3xl bg-white border border-gray-100 shadow-sm">
+                        <h3 class="text-sm font-black text-winmart-dark mb-4 flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-winmart-red rounded-full"></span> Phân quyền & Trạng thái
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-2">Vai Trò <span class="text-red-500">*</span></label>
+                                <select name="VaiTro" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all appearance-none" required <%= (isEdit && editEmployee.NhanVienId === user.id) ? 'disabled' : '' %>>
+                                    <% if (isEdit && editEmployee.VaiTro === 'ADMIN') { %>
+                                        <option value="ADMIN" selected>Quản trị viên (ADMIN)</option>
+                                    <% } else { %>
+                                        <option value="STAFF" selected>Nhân viên (STAFF)</option>
+                                    <% } %>
+                                </select>
+                                <p class="text-[10px] text-gray-400 mt-1.5 font-semibold">Hệ thống chỉ cho phép 1 Quản trị viên duy nhất.</p>
+                            </div>
+                            
+                            <% if (!isEdit) { %>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-2">Ngày Vào Làm</label>
+                                <input type="date" name="NgayVaoLam" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" value="<%= currentOld.NgayVaoLam || new Date().toISOString().split('T')[0] %>">
+                            </div>
+                            <% } else { %>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 mb-2">Trạng Thái</label>
+                                <select name="TrangThai" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all appearance-none" <%= (editEmployee.NhanVienId === user.id) ? 'disabled' : '' %>>
+                                    <option value="DangLam" <%= editEmployee.TrangThai === 'DangLam' ? 'selected' : '' %>>Đang làm việc</option>
+                                    <option value="KhoaTam" <%= editEmployee.TrangThai === 'KhoaTam' ? 'selected' : '' %>>Khóa tạm thời</option>
+                                    <option value="NghiViec" <%= editEmployee.TrangThai === 'NghiViec' ? 'selected' : '' %>>Đã nghỉ việc</option>
+                                </select>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="bento-card p-6 rounded-3xl bg-white border border-gray-100 shadow-sm">
+                        <h3 class="text-sm font-black text-winmart-dark mb-4 flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-winmart-red rounded-full"></span> Bảo mật
+                        </h3>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-2">Mật Khẩu <%- isEdit ? '<span class="text-[10px] lowercase normal-case text-gray-400 font-semibold ml-1">(Chỉ nhập nếu muốn đổi)</span>' : '<span class="text-red-500">*</span>' %></label>
+                            <input type="password" name="<%= isEdit ? 'MatKhauMoi' : 'MatKhau' %>" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" <%= isEdit ? '' : 'required' %>>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="p-5 border-t border-gray-100 bg-white flex justify-end gap-3 shrink-0">
+        <button onclick="closeSlideOver()" class="px-8 py-3.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-2xl text-sm font-bold text-gray-600 transition shadow-sm">Thoát</button>
+        <button type="submit" form="user-form" class="px-8 py-3.5 bg-winmart-dark hover:bg-black text-white rounded-2xl text-sm font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-gray-900/20">
+            <i data-lucide="<%= isEdit ? 'save' : 'user-plus' %>" class="w-4 h-4 text-winmart-yellow"></i> <%= isEdit ? 'Lưu Thay Đổi' : 'Thêm Nhân Viên' %>
+        </button>
+    </div>
+</div>
+
+<script>
+    function toggleSlideOver() {
+        document.getElementById('user-form').reset();
+        document.getElementById('user-form').action = '/admin/users/create';
+        
+        const panel = document.getElementById('slide-over');
+        const backdrop = document.getElementById('slide-over-backdrop');
+        
+        backdrop.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('translate-x-full');
+            panel.classList.add('translate-x-0');
+        }, 10);
+    }
+    
+    function closeSlideOver() {
+        const panel = document.getElementById('slide-over');
+        const backdrop = document.getElementById('slide-over-backdrop');
+        
+        panel.classList.remove('translate-x-0');
+        panel.classList.add('translate-x-full');
+        backdrop.classList.add('opacity-0');
+        setTimeout(() => {
+            backdrop.classList.add('hidden');
+            if (window.location.pathname.includes('/edit') || window.location.pathname.includes('/create')) {
+                window.history.pushState({}, document.title, '/admin/users');
+            }
+        }, 300);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const userForm = document.getElementById('user-form');
+        if (userForm) {
+            userForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.querySelector('button[form="user-form"]');
+                if (btn) {
+                    btn.disabled = true;
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-winmart-yellow"></i> Đang xử lý...';
+                    lucide.createIcons();
+                }
+
+                try {
+                    const formData = new FormData(userForm);
+                    const data = Object.fromEntries(formData.entries());
+                    const formAction = userForm.action;
+
+                    const res = await fetch(formAction, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await res.json();
+                    
+                    if (result.success) {
+                        closeSlideOver();
+                        Swal.fire('Thành công', result.message, 'success').then(() => {
+                            window.location.href = result.redirectUrl || '/admin/users';
+                        });
+                    } else {
+                        Swal.fire('Lỗi', result.message, 'error');
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i data-lucide="save" class="w-4 h-4 text-winmart-yellow"></i> Lưu Thay Đổi';
+                            lucide.createIcons();
+                        }
+                    }
+                } catch (error) {
+                    Swal.fire('Lỗi', 'Có lỗi xảy ra, vui lòng thử lại', 'error');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i data-lucide="save" class="w-4 h-4 text-winmart-yellow"></i> Lưu Thay Đổi';
+                        lucide.createIcons();
+                    }
+                }
+            });
+        }
+    });
+
+    async function handleDelete(event, form) {
+        event.preventDefault();
+        
+        const result = await Swal.fire({
+            title: 'Xác nhận cho nghỉ việc?',
+            text: "Tài khoản nhân viên này sẽ bị vô hiệu hóa (Đã nghỉ việc). Lịch sử thao tác và đơn hàng vẫn được giữ nguyên.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#E21E26',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    Swal.fire('Thành công', data.message, 'success').then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Lỗi', data.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Lỗi', 'Có lỗi xảy ra, vui lòng thử lại', 'error');
+            }
+        }
+    }
+</script>

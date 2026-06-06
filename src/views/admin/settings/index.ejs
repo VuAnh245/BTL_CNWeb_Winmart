@@ -1,0 +1,452 @@
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <p class="text-[11px] text-winmart-slate font-semibold tracking-wider uppercase mb-1">Hệ Thống</p>
+        <h1 class="text-2xl font-black tracking-tight text-winmart-dark">Cài Đặt Cửa Hàng</h1>
+    </div>
+</div>
+
+<!-- Tabs Navigation -->
+<div class="mb-6 flex gap-2 border-b border-gray-100 dark:border-gray-800">
+    <button onclick="switchTab('basic')" id="tab-basic" class="px-6 py-3 text-sm font-bold border-b-2 border-winmart-red text-winmart-red transition-all">Thông Tin Cơ Bản</button>
+    <button onclick="switchTab('advanced')" id="tab-advanced" class="px-6 py-3 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all">Cấu Hình Mở Rộng</button>
+    <button onclick="switchTab('shipping')" id="tab-shipping" class="px-6 py-3 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all">Cấu Hình Vận Chuyển</button>
+</div>
+
+<!-- Tab Content: Basic -->
+<div id="panel-basic" class="bento-card overflow-hidden block">
+    <form id="settings-form" class="p-6 md:p-8 space-y-6">
+        <input type="hidden" name="CuaHangId" id="CuaHangId" value="<%= store.CuaHangId %>">
+        
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Tên Cửa Hàng <span class="text-red-500">*</span></label>
+            <input type="text" name="TenCuaHang" id="TenCuaHang" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-winmart-dark focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all" value="<%= store.TenCuaHang %>" required>
+            <p class="text-[10px] text-gray-400 mt-1.5 font-medium">Tên hiển thị trên hóa đơn và giao diện khách hàng.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Số Điện Thoại</label>
+                <input type="text" name="SoDienThoai" id="SoDienThoai" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all" value="<%= store.SoDienThoai || '' %>">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Email Quản Trị</label>
+                <input type="email" name="Email" id="Email" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all" value="<%= store.Email || '' %>">
+            </div>
+        </div>
+        
+        <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Địa Chỉ Chi Tiết <span class="text-red-500">*</span></label>
+            <textarea name="DiaChi" id="DiaChi" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all" required><%= store.DiaChi %></textarea>
+        </div>
+
+        <div class="pt-4 flex justify-end">
+            <button type="submit" id="saveBtn" class="bg-winmart-red text-white hover:bg-red-700 px-8 py-3.5 rounded-xl text-sm font-black tracking-wide transition-all shadow-lg shadow-red-500/30 flex items-center gap-2">
+                <i data-lucide="save" class="w-5 h-5"></i> Cập Nhật Thay Đổi
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Tab Content: Advanced -->
+<div id="panel-advanced" class="bento-card overflow-hidden hidden">
+    <div class="p-6 md:p-8 space-y-4 max-w-2xl">
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
+            <div>
+                <h4 class="text-sm font-black text-gray-700 mb-0.5">Bảo trì hệ thống</h4>
+                <p class="text-xs text-gray-400 font-medium">Khách hàng sẽ không thể truy cập web</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="BaoTriHeThong" class="sr-only peer auto-save-toggle" <%= store.BaoTriHeThong ? 'checked' : '' %>>
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-winmart-red"></div>
+            </label>
+        </div>
+
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
+            <div>
+                <h4 class="text-sm font-black text-gray-700 mb-0.5">Âm báo đơn hàng mới</h4>
+                <p class="text-xs text-gray-400 font-medium">Phát ra âm thanh khi có người đặt hàng từ Website</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="AmBaoDonHang" class="sr-only peer auto-save-toggle" <%= store.AmBaoDonHang ? 'checked' : '' %>>
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-winmart-red"></div>
+            </label>
+        </div>
+        
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors">
+            <div>
+                <h4 class="text-sm font-black text-gray-700 mb-0.5">Gửi Email tự động cho khách</h4>
+                <p class="text-xs text-gray-400 font-medium">Tự động gửi email thông báo thành công và tích điểm</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="GuiEmailTuDong" class="sr-only peer auto-save-toggle" <%= store.GuiEmailTuDong ? 'checked' : '' %>>
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-winmart-red"></div>
+            </label>
+        </div>
+
+        <div class="mt-4 flex items-start gap-2 text-xs font-semibold text-gray-400">
+            <i data-lucide="info" class="w-4 h-4 shrink-0"></i>
+            <p>Các cấu hình ở tab này sẽ được tự động lưu ngay khi bạn thay đổi (Auto-save).</p>
+        </div>
+    </div>
+</div>
+
+<!-- Tab Content: Shipping -->
+<div id="panel-shipping" class="bento-card overflow-hidden hidden">
+    <div class="p-6 md:p-8 space-y-6">
+        <!-- Cấu hình Giao Hàng Nhanh (GHN) -->
+        <div>
+            <h3 class="text-sm font-black text-winmart-dark mb-4 flex items-center gap-2">
+                <span class="w-1.5 h-4 bg-winmart-red rounded-full"></span> Kết nối Giao Hàng Nhanh (GHN)
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">API Token</label>
+                    <input type="text" id="GHNToken" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all" value="<%= store.GHNToken || '' %>" placeholder="Nhập API Token của GHN...">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Mã cửa hàng (Shop ID)</label>
+                    <input type="text" id="GHNShopId" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all" value="<%= store.GHNShopId || '' %>" placeholder="Nhập Shop ID của GHN...">
+                </div>
+            </div>
+            <div class="mt-4 flex gap-3">
+                <button type="button" id="btn-test-ghn" class="bg-gray-800 text-white hover:bg-black px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="zap" class="w-4 h-4 text-winmart-yellow"></i> Kiểm tra kết nối GHN
+                </button>
+            </div>
+        </div>
+
+        <hr class="border-gray-100">
+
+        <!-- Cấu hình Vị trí gửi hàng (Cửa hàng) -->
+        <div>
+            <h3 class="text-sm font-black text-winmart-dark mb-4 flex items-center gap-2">
+                <span class="w-1.5 h-4 bg-winmart-red rounded-full"></span> Địa chỉ gửi hàng của Cửa hàng (GHN Origin)
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Tỉnh / Thành phố</label>
+                    <select id="GHNProvinceId" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all">
+                        <option value="">Đang tải...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Quận / Huyện</label>
+                    <select id="GHNDistrictId" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all">
+                        <option value="">Chọn Quận/Huyện...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Phường / Xã</label>
+                    <select id="GHNWardCode" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all">
+                        <option value="">Chọn Phường/Xã...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-gray-100">
+
+        <!-- Cấu hình Phụ phí WinMart -->
+        <div>
+            <h3 class="text-sm font-black text-winmart-dark mb-4 flex items-center gap-2">
+                <span class="w-1.5 h-4 bg-winmart-red rounded-full"></span> Cấu hình Phụ phí của WinMart
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Ngưỡng đơn hàng Free Ship (VNĐ)</label>
+                    <input type="number" id="FreeShipThreshold" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all" value="<%= store.FreeShipThreshold || 300000 %>">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Phụ thu Đóng gói đặc biệt (VNĐ / sản phẩm)</label>
+                    <input type="number" id="PackagingFee" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all" value="<%= store.PackagingFee || 5000 %>">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Phụ thu Tươi sống Bậc 1 (VNĐ - Đơn dưới ngưỡng tươi sống)</label>
+                    <input type="number" id="FreshTier1Fee" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all" value="<%= store.FreshTier1Fee || 15000 %>">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Phụ thu Tươi sống Bậc 2 (VNĐ - Đơn đạt ngưỡng tươi sống)</label>
+                    <input type="number" id="FreshTier2Fee" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all" value="<%= store.FreshTier2Fee || 25000 %>">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Ngưỡng giá trị đơn tươi sống để nâng bậc phụ thu (VNĐ)</label>
+                    <input type="number" id="FreshTier2Threshold" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red focus:ring-1 focus:ring-winmart-red transition-all" value="<%= store.FreshTier2Threshold || 200000 %>">
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-4 flex justify-end">
+            <button type="button" id="saveShippingBtn" class="bg-winmart-red text-white hover:bg-red-700 px-8 py-3.5 rounded-xl text-sm font-black tracking-wide transition-all shadow-lg shadow-red-500/30 flex items-center gap-2">
+                <i data-lucide="save" class="w-5 h-5"></i> Cập Nhật Cấu Hình Giao Hàng
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function switchTab(tabId) {
+        document.getElementById('panel-basic').classList.add('hidden');
+        document.getElementById('panel-advanced').classList.add('hidden');
+        document.getElementById('panel-shipping').classList.add('hidden');
+        
+        document.getElementById('tab-basic').className = 'px-6 py-3 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all';
+        document.getElementById('tab-advanced').className = 'px-6 py-3 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all';
+        document.getElementById('tab-shipping').className = 'px-6 py-3 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all';
+
+        document.getElementById('panel-' + tabId).classList.remove('hidden');
+        document.getElementById('tab-' + tabId).className = 'px-6 py-3 text-sm font-bold border-b-2 border-winmart-red text-winmart-red transition-all';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dropdown elements for GHN Origin
+        const provinceSelect = document.getElementById('GHNProvinceId');
+        const districtSelect = document.getElementById('GHNDistrictId');
+        const wardSelect = document.getElementById('GHNWardCode');
+        const savedProvinceId = "<%= store.GHNProvinceId || '' %>";
+        const savedDistrictId = "<%= store.GHNDistrictId || '' %>";
+        const savedWardCode = "<%= store.GHNWardCode || '' %>";
+
+        async function loadProvinces() {
+            try {
+                const res = await fetch('/api/ghn/provinces');
+                const result = await res.json();
+                if (result.success) {
+                    provinceSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố...</option>';
+                    result.data.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.ProvinceID;
+                        option.textContent = p.ProvinceName;
+                        if (savedProvinceId && p.ProvinceID.toString() === savedProvinceId.toString()) {
+                            option.selected = true;
+                        }
+                        provinceSelect.appendChild(option);
+                    });
+                    if (savedProvinceId) {
+                        await loadDistricts(savedProvinceId);
+                    }
+                } else {
+                    provinceSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+                }
+            } catch(e) {
+                provinceSelect.innerHTML = '<option value="">Lỗi kết nối</option>';
+            }
+        }
+
+        async function loadDistricts(provinceId) {
+            if (!provinceId) {
+                districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện...</option>';
+                wardSelect.innerHTML = '<option value="">Chọn Phường/Xã...</option>';
+                return;
+            }
+            districtSelect.innerHTML = '<option value="">Đang tải...</option>';
+            try {
+                const res = await fetch(`/api/ghn/districts/${provinceId}`);
+                const result = await res.json();
+                if (result.success) {
+                    districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện...</option>';
+                    result.data.forEach(d => {
+                        const option = document.createElement('option');
+                        option.value = d.DistrictID;
+                        option.textContent = d.DistrictName;
+                        if (savedDistrictId && d.DistrictID.toString() === savedDistrictId.toString()) {
+                            option.selected = true;
+                        }
+                        districtSelect.appendChild(option);
+                    });
+                    if (savedDistrictId) {
+                        await loadWards(savedDistrictId);
+                    }
+                } else {
+                    districtSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+                }
+            } catch(e) {
+                districtSelect.innerHTML = '<option value="">Lỗi kết nối</option>';
+            }
+        }
+
+        async function loadWards(districtId) {
+            if (!districtId) {
+                wardSelect.innerHTML = '<option value="">Chọn Phường/Xã...</option>';
+                return;
+            }
+            wardSelect.innerHTML = '<option value="">Đang tải...</option>';
+            try {
+                const res = await fetch(`/api/ghn/wards/${districtId}`);
+                const result = await res.json();
+                if (result.success) {
+                    wardSelect.innerHTML = '<option value="">Chọn Phường/Xã...</option>';
+                    result.data.forEach(w => {
+                        const option = document.createElement('option');
+                        option.value = w.WardCode;
+                        option.textContent = w.WardName;
+                        if (savedWardCode && w.WardCode.toString() === savedWardCode.toString()) {
+                            option.selected = true;
+                        }
+                        wardSelect.appendChild(option);
+                    });
+                } else {
+                    wardSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+                }
+            } catch(e) {
+                wardSelect.innerHTML = '<option value="">Lỗi kết nối</option>';
+            }
+        }
+
+        provinceSelect.addEventListener('change', (e) => {
+            loadDistricts(e.target.value);
+        });
+
+        districtSelect.addEventListener('change', (e) => {
+            loadWards(e.target.value);
+        });
+
+        // Initialize provinces dropdown
+        loadProvinces();
+
+        // Save settings API
+        async function saveSettings(showSuccessAlert = true) {
+            const data = {
+                CuaHangId: document.getElementById('CuaHangId').value,
+                TenCuaHang: document.getElementById('TenCuaHang').value.trim(),
+                DiaChi: document.getElementById('DiaChi').value.trim(),
+                SoDienThoai: document.getElementById('SoDienThoai').value.trim(),
+                Email: document.getElementById('Email').value.trim(),
+                BaoTriHeThong: document.getElementById('BaoTriHeThong').checked,
+                AmBaoDonHang: document.getElementById('AmBaoDonHang').checked,
+                GuiEmailTuDong: document.getElementById('GuiEmailTuDong').checked,
+                
+                // New shipping & GHN fields
+                FreeShipThreshold: document.getElementById('FreeShipThreshold').value,
+                FreshTier1Fee: document.getElementById('FreshTier1Fee').value,
+                FreshTier2Fee: document.getElementById('FreshTier2Fee').value,
+                FreshTier2Threshold: document.getElementById('FreshTier2Threshold').value,
+                PackagingFee: document.getElementById('PackagingFee').value,
+                GHNToken: document.getElementById('GHNToken').value.trim(),
+                GHNShopId: document.getElementById('GHNShopId').value.trim(),
+                GHNProvinceId: document.getElementById('GHNProvinceId').value,
+                GHNDistrictId: document.getElementById('GHNDistrictId').value,
+                GHNWardCode: document.getElementById('GHNWardCode').value
+            };
+
+            try {
+                const res = await fetch('/admin/settings/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    if (showSuccessAlert) {
+                        Swal.fire({
+                            title: 'Thành công!',
+                            text: result.message,
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            window.location.reload(); // Reload to update saved values in UI script variable
+                        });
+                    } else {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+                        Toast.fire({ icon: 'success', title: 'Đã tự động lưu cấu hình' });
+                    }
+                    return true;
+                } else {
+                    Swal.fire('Lỗi', result.message, 'error');
+                    return false;
+                }
+            } catch (err) {
+                Swal.fire('Lỗi', 'Lỗi kết nối server', 'error');
+                return false;
+            }
+        }
+
+        // Submit listener for basic info form
+        const settingsForm = document.getElementById('settings-form');
+        if (settingsForm) {
+            settingsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('saveBtn');
+                const originalHTML = btn.innerHTML;
+                
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Đang xử lý...';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+
+                await saveSettings(true);
+
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            });
+        }
+
+        // Save listener for Shipping configuration button
+        const saveShippingBtn = document.getElementById('saveShippingBtn');
+        if (saveShippingBtn) {
+            saveShippingBtn.addEventListener('click', async () => {
+                saveShippingBtn.disabled = true;
+                saveShippingBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Đang xử lý...';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+
+                await saveSettings(true);
+
+                saveShippingBtn.disabled = false;
+                saveShippingBtn.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Cập Nhật Cấu Hình Giao Hàng';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            });
+        }
+
+        // Auto-save toggles for Advanced tab
+        const toggles = document.querySelectorAll('.auto-save-toggle');
+        toggles.forEach(toggle => {
+            toggle.addEventListener('change', async (e) => {
+                await saveSettings(false);
+            });
+        });
+
+        // Test GHN connection button
+        const btnTestGhn = document.getElementById('btn-test-ghn');
+        if (btnTestGhn) {
+            btnTestGhn.addEventListener('click', async () => {
+                const token = document.getElementById('GHNToken').value.trim();
+                if (!token) {
+                    return Swal.fire('Cảnh báo', 'Vui lòng nhập API Token trước khi test!', 'warning');
+                }
+                
+                btnTestGhn.disabled = true;
+                btnTestGhn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Đang test...';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+
+                try {
+                    const res = await fetch('/api/ghn/test-connection', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        Swal.fire('Thành công', data.message, 'success');
+                    } else {
+                        Swal.fire('Thất bại', data.message, 'error');
+                    }
+                } catch (e) {
+                    Swal.fire('Lỗi', 'Lỗi kết nối server', 'error');
+                } finally {
+                    btnTestGhn.disabled = false;
+                    btnTestGhn.innerHTML = '<i data-lucide="zap" class="w-4 h-4 text-winmart-yellow"></i> Kiểm tra kết nối GHN';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            });
+        }
+    });
+</script>

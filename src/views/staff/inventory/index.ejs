@@ -1,0 +1,204 @@
+<!-- Inventory Lookup for Staff -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-full flex flex-col">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h2 class="text-2xl font-black text-winmart-dark tracking-tight">Tra cứu tồn kho</h2>
+            <p class="text-sm text-gray-500 font-medium mt-1">Kiểm tra số lượng sản phẩm nhanh chóng</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <form action="/staff/inventory" method="GET" class="relative">
+                <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input type="text" name="keyword" value="<%= query.keyword || '' %>" placeholder="Tìm tên SP, mã vạch..." 
+                       class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-winmart-red/20 focus:border-winmart-red transition-all w-80 font-medium">
+                <button type="submit" class="hidden"></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="flex-1 overflow-auto rounded-xl border border-gray-100">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-100">
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Sản phẩm</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Mã SP / Mã vạch</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Giá bán</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Tồn kho</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                <% if (products && products.length > 0) { %>
+                    <% products.forEach(p => { %>
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="py-3 px-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                                        <% if (p.HinhAnh) { %>
+                                            <% const imgSrc = p.HinhAnh.startsWith('/') || p.HinhAnh.startsWith('http') ? p.HinhAnh : '/uploads/' + p.HinhAnh; %>
+                                            <img src="<%= imgSrc %>" alt="<%= p.TenSanPham %>" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<%= encodeURIComponent(p.TenSanPham.charAt(0)) %>&background=f1f5f9&color=94a3b8&size=100';">
+                                        <% } else { %>
+                                            <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(p.TenSanPham.charAt(0)) %>&background=f1f5f9&color=94a3b8&size=100" class="w-full h-full object-cover">
+                                        <% } %>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-sm text-winmart-dark"><%= p.TenSanPham %></div>
+                                        <div class="text-[10px] text-gray-400 font-bold uppercase mt-0.5"><%= p.TenDanhMuc || 'Khác' %></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3 px-6">
+                                <div class="font-mono text-sm font-bold text-winmart-dark"><%= p.MaSanPham %></div>
+                                <div class="font-mono text-[10px] text-gray-400 mt-0.5 tracking-wider"><%= p.Barcode || 'N/A' %></div>
+                            </td>
+                            <td class="py-3 px-6 font-black text-winmart-red"><%= Number(p.GiaBan).toLocaleString('vi-VN') %>đ</td>
+                            <td class="py-3 px-6">
+                                <% if (p.TongTonKho > 10) { %>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100 text-xs font-black">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Sẵn hàng (<%= p.TongTonKho %>)
+                                    </span>
+                                <% } else if (p.TongTonKho > 0) { %>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-yellow-50 text-yellow-600 border border-yellow-100 text-xs font-black">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div> Sắp hết (<%= p.TongTonKho %>)
+                                    </span>
+                                <% } else { %>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 text-red-600 border border-red-100 text-xs font-black">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div> Hết hàng (0)
+                                    </span>
+                                <% } %>
+                            </td>
+                            <td class="py-3 px-6 text-right">
+                                <button onclick="viewProductDetails('<%= p.SanPhamId %>')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs hover:bg-blue-100 transition shadow-sm">
+                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i> Chi tiết
+                                </button>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-gray-500">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                                    <i data-lucide="package-search" class="w-8 h-8 text-gray-400"></i>
+                                </div>
+                                <p class="font-bold">Không tìm thấy sản phẩm nào.</p>
+                            </div>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Product Detail Modal -->
+<div id="productDetailModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden flex justify-end" onclick="if(event.target === this) closeProductModal()">
+    <div class="bg-white w-full max-w-md h-full shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300" id="productDetailContent">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 shrink-0">
+            <h3 class="text-lg font-black text-winmart-dark">Chi tiết Tồn Kho</h3>
+            <button onclick="closeProductModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6" id="productDetailBody">
+            <div class="flex justify-center items-center h-32 text-gray-400">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function viewProductDetails(id) {
+        const modal = document.getElementById('productDetailModal');
+        const content = document.getElementById('productDetailContent');
+        const body = document.getElementById('productDetailBody');
+        
+        modal.classList.remove('hidden');
+        setTimeout(() => content.classList.remove('translate-x-full'), 10);
+        
+        body.innerHTML = `
+            <div class="flex justify-center items-center h-32 text-gray-400">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+            </div>
+        `;
+        lucide.createIcons();
+        
+        try {
+            const res = await fetch(`/staff/api/inventory/${id}`);
+            const data = await res.json();
+            
+            if (data.success && data.product) {
+                const p = data.product;
+                
+                let batchesHtml = '';
+                if (p.batches && p.batches.length > 0) {
+                    batchesHtml = p.batches.map(b => {
+                        const isExpiringSoon = new Date(b.expiry) <= new Date(Date.now() + 30*24*60*60*1000);
+                        return `
+                        <div class="flex justify-between py-2 border-b border-gray-50 last:border-0 items-center">
+                            <div>
+                                <p class="text-xs font-bold text-gray-700">Lô: <span class="text-winmart-dark font-mono">${b.maLo}</span></p>
+                                <p class="text-[10px] font-bold ${isExpiringSoon ? 'text-red-500' : 'text-gray-400'}">HSD: ${new Date(b.expiry).toLocaleDateString('vi-VN')}</p>
+                            </div>
+                            <div class="text-sm font-black ${isExpiringSoon ? 'text-red-600' : 'text-emerald-600'}">
+                                ${b.soLuong}
+                            </div>
+                        </div>
+                    `}).join('');
+                } else {
+                    batchesHtml = `<p class="text-sm text-gray-500 italic py-2">Không có hàng trong kho</p>`;
+                }
+                
+                body.innerHTML = `
+                    <div class="flex items-center gap-4 mb-6">
+                        <img src="${p.HinhAnh ? (p.HinhAnh.startsWith('/') || p.HinhAnh.startsWith('http') ? p.HinhAnh : '/uploads/'+p.HinhAnh) : `https://ui-avatars.com/api/?name=${p.TenSanPham.charAt(0)}`}" 
+                             class="w-20 h-20 rounded-xl object-cover bg-gray-50 border border-gray-100" onerror="this.src='https://ui-avatars.com/api/?name=${p.TenSanPham.charAt(0)}'">
+                        <div>
+                            <h4 class="font-black text-winmart-dark text-lg leading-tight mb-1">${p.TenSanPham}</h4>
+                            <span class="inline-block bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded uppercase font-bold">${p.TenDanhMuc || 'Khác'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50/50 rounded-xl border border-gray-100 p-4 space-y-3 mb-6">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500">Mã sản phẩm:</span>
+                            <span class="text-sm font-mono font-bold text-winmart-dark">${p.MaSanPham}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500">Mã vạch (Barcode):</span>
+                            <span class="text-sm font-mono font-bold text-gray-700 tracking-widest">${p.Barcode || 'N/A'}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500">Giá bán:</span>
+                            <span class="text-base font-black text-winmart-red">${Number(p.GiaBan).toLocaleString('vi-VN')}đ</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500">Trạng thái:</span>
+                            <span class="text-xs font-black ${p.TrangThai === 'DangBan' ? 'text-emerald-600' : 'text-red-500'}">
+                                ${p.TrangThai === 'DangBan' ? 'Đang bán' : 'Ngừng bán'}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <h5 class="text-xs font-black text-gray-500 uppercase tracking-wider mb-3">Thông tin Lô hàng</h5>
+                    <div class="bg-white rounded-xl border border-gray-100 px-4 py-2">
+                        ${batchesHtml}
+                    </div>
+                `;
+            } else {
+                body.innerHTML = `<div class="text-center text-red-500 font-bold p-6">Lỗi: ${data.message || 'Không tải được'}</div>`;
+            }
+        } catch (e) {
+            body.innerHTML = `<div class="text-center text-red-500 font-bold p-6">Lỗi kết nối máy chủ</div>`;
+        }
+    }
+    
+    function closeProductModal() {
+        const modal = document.getElementById('productDetailModal');
+        const content = document.getElementById('productDetailContent');
+        content.classList.add('translate-x-full');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+</script>

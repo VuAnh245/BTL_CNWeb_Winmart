@@ -1,0 +1,14 @@
+<%- include('../../layouts/pos') %>
+
+<div class="success-screen text-center">
+    <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+    <h2 class="mt-4">Thanh toán thành công!</h2>
+    <h4>Hóa đơn <strong id="successInvoice"></strong></h4>
+    
+    <div class="mt-4">
+        <a href="/staff/pos" class="btn btn-primary btn-lg">Bán hàng mới</a>
+        <button onclick="printInvoice()" class="btn btn-outline-light btn-lg ms-3">
+            <i class="fas fa-print"></i> In hóa đơn
+        </button>
+    </div>
+</div>

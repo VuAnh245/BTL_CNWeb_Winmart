@@ -1,0 +1,210 @@
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <p class="text-[11px] text-winmart-slate font-semibold tracking-wider uppercase mb-1">Quản lý Đơn hàng</p>
+        <h1 class="text-2xl font-black tracking-tight text-winmart-dark">Danh Sách Đơn Hàng</h1>
+    </div>
+</div>
+
+<%- include('../../partials/flash-message') %>
+
+<!-- Data Table Container -->
+<div class="bento-card overflow-hidden">
+    <!-- Filters -->
+    <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+        <form method="GET" action="/admin/orders" class="flex flex-col sm:flex-row gap-4 items-center w-full">
+            <div class="relative flex-1 w-full">
+                <input type="text" name="search" placeholder="Tìm mã đơn hàng..." value="<%= typeof search !== 'undefined' ? search : '' %>"
+                       class="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-xs font-semibold focus:outline-none focus:border-winmart-red shadow-sm">
+                <i data-lucide="search" class="absolute left-3.5 top-3 w-4 h-4 text-gray-400"></i>
+            </div>
+            
+            <div class="w-full sm:w-64">
+                <select name="status" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-winmart-red shadow-sm appearance-none">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="Pending" <%= currentStatus === 'Pending' ? 'selected' : '' %>>Chờ xử lý</option>
+                    <option value="Paid" <%= currentStatus === 'Paid' ? 'selected' : '' %>>Đã thanh toán</option>
+                    <option value="Delivering" <%= currentStatus === 'Delivering' ? 'selected' : '' %>>Đang giao hàng</option>
+                    <option value="Completed" <%= currentStatus === 'Completed' ? 'selected' : '' %>>Hoàn thành</option>
+                    <option value="Cancelled" <%= currentStatus === 'Cancelled' ? 'selected' : '' %>>Đã hủy</option>
+                    <option value="Cancelled_Return" <%= currentStatus === 'Cancelled_Return' ? 'selected' : '' %>>Hủy & Hoàn hàng</option>
+                    <option value="Refunded" <%= currentStatus === 'Refunded' ? 'selected' : '' %>>Đã hoàn tiền</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="w-full sm:w-auto bg-winmart-dark text-white px-6 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
+                <i data-lucide="filter" class="w-3.5 h-3.5"></i> Lọc
+            </button>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left min-w-[1000px]">
+            <thead>
+                <tr class="bg-white border-b border-gray-100">
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider">Mã đơn</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Khách hàng</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Ngày lập</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Tổng tiền</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Trạng thái</th>
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                <% if (typeof orders !== 'undefined' && orders.length > 0) { %>
+                    <% orders.forEach(order => { %>
+                    <tr class="hover:bg-gray-50/50 transition group bg-white">
+                        <td class="py-4 px-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                    <i data-lucide="receipt" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-winmart-dark text-sm flex items-center gap-2">
+                                        <%= order.MaHoaDon %>
+                                        <% if (order.MaLoaiHinh === 'POS') { %>
+                                            <span class="bg-purple-50 text-purple-600 text-[9px] px-1.5 py-0.5 rounded font-black tracking-wider border border-purple-100">POS</span>
+                                        <% } else { %>
+                                            <span class="bg-blue-50 text-blue-500 text-[9px] px-1.5 py-0.5 rounded font-black tracking-wider border border-blue-100">ONLINE</span>
+                                        <% } %>
+                                    </h4>
+                                    <span class="text-[10px] text-gray-400 font-bold mt-0.5 block"><%= order.soMatHang %> mặt hàng</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4">
+                            <div class="text-xs font-bold text-gray-700"><%= order.tenKhachHang || 'Khách vãng lai' %></div>
+                            <% if (order.SoDienThoai) { %>
+                                <div class="text-[10px] text-gray-400 font-semibold mt-1"><%= order.SoDienThoai %></div>
+                            <% } %>
+                        </td>
+                        <td class="py-4 px-4">
+                            <div class="text-xs font-semibold text-gray-600">
+                                <%= new Date(order.NgayLap).toLocaleDateString('vi-VN') %>
+                            </div>
+                            <div class="text-[10px] text-gray-400 font-medium">
+                                <%= new Date(order.NgayLap).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) %>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4 text-right">
+                            <span class="text-sm font-black text-winmart-red"><%= Number(order.TongTienSauKM).toLocaleString('vi-VN') %>đ</span>
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                            <% if (order.TrangThai === 'Pending') { %>
+                                <span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-600 px-3 py-1.5 rounded-full text-[10px] font-black border border-amber-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Chờ xử lý
+                                </span>
+                            <% } else if (order.TrangThai === 'Paid') { %>
+                                <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full text-[10px] font-black border border-blue-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Đã thanh toán
+                                </span>
+                            <% } else if (order.TrangThai === 'Delivering') { %>
+                                <span class="inline-flex items-center gap-1.5 bg-purple-50 text-purple-600 px-3 py-1.5 rounded-full text-[10px] font-black border border-purple-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-550 animate-pulse"></span> Đang giao hàng
+                                </span>
+                            <% } else if (order.TrangThai === 'Completed') { %>
+                                <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-full text-[10px] font-black border border-emerald-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Hoàn thành
+                                </span>
+                            <% } else if (order.TrangThai === 'Cancelled') { %>
+                                <span class="inline-flex items-center gap-1.5 bg-red-50 text-red-650 px-3 py-1.5 rounded-full text-[10px] font-black border border-red-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Đã hủy
+                                </span>
+                            <% } else if (order.TrangThai === 'Cancelled_Return') { %>
+                                <span class="inline-flex items-center gap-1.5 bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full text-[10px] font-black border border-orange-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Hủy & Hoàn hàng
+                                </span>
+                            <% } else if (order.TrangThai === 'Refunded') { %>
+                                <span class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-650 px-3 py-1.5 rounded-full text-[10px] font-black border border-slate-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Đã hoàn tiền
+                                </span>
+                            <% } %>
+                        </td>
+                        <td class="py-4 px-5 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <% if (order.TrangThai === 'Pending') { %>
+                                    <% if (order.PhuongThucTT === 'TienMat') { %>
+                                        <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline">
+                                            <input type="hidden" name="status" value="Delivering">
+                                            <button type="submit" class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center hover:bg-purple-600 hover:text-white transition" title="Giao cho ĐVVC">
+                                                <i data-lucide="truck" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    <% } else { %>
+                                        <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline">
+                                            <input type="hidden" name="status" value="Paid">
+                                            <button type="submit" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition" title="Xác nhận thanh toán">
+                                                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    <% } %>
+                                    <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
+                                        <input type="hidden" name="status" value="Cancelled">
+                                        <button type="submit" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition" title="Hủy đơn">
+                                            <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                        </button>
+                                    </form>
+                                <% } else if (order.TrangThai === 'Paid') { %>
+                                    <% if (order.LoaiGiao === 'Ship') { %>
+                                        <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline">
+                                            <input type="hidden" name="status" value="Delivering">
+                                            <button type="submit" class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center hover:bg-purple-600 hover:text-white transition" title="Giao cho ĐVVC">
+                                                <i data-lucide="truck" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    <% } else { %>
+                                        <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline">
+                                            <input type="hidden" name="status" value="Completed">
+                                            <button type="submit" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition" title="Hoàn thành đơn">
+                                                <i data-lucide="package-check" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    <% } %>
+                                <% } else if (order.TrangThai === 'Delivering') { %>
+                                    <% if (order.GHNOrderCode) { %>
+                                        <form action="/admin/orders/<%= order.HoaDonId %>/ghn/sync" method="POST" class="inline">
+                                            <button type="submit" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition" title="Đồng bộ trạng thái GHN">
+                                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    <% } else { %>
+                                        <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline">
+                                            <input type="hidden" name="status" value="Completed">
+                                            <button type="submit" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition" title="Hoàn thành đơn">
+                                                <i data-lucide="package-check" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    <% } %>
+                                <% } %>
+                                
+                                <!-- Nút in hóa đơn luôn hiển thị -->
+                                <a href="/admin/orders/<%= order.HoaDonId %>" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition shadow-sm" title="Xem chi tiết">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </a>
+                                <a href="/admin/orders/<%= order.HoaDonId %>/print" target="_blank" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 hover:text-winmart-dark transition shadow-sm" title="In hóa đơn">
+                                    <i data-lucide="printer" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-gray-400">
+                            <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-20"></i>
+                            <p class="text-sm font-semibold">Chưa có đơn hàng nào</p>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Placeholder (có thể tích hợp sau) -->
+    <% if (typeof meta !== 'undefined' && meta.totalPages > 1) { %>
+    <div class="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-center">
+        <!-- Pagination logic here -->
+    </div>
+    <% } %>
+</div>

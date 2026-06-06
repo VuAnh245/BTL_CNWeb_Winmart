@@ -1,0 +1,88 @@
+<div class="container mx-auto px-4 py-16 mb-20">
+    <div class="max-w-2xl mx-auto bento-card p-8 lg:p-12 text-center">
+        
+        <h1 class="text-2xl font-black text-winmart-dark tracking-tight mb-2">Thanh toán Chuyển khoản</h1>
+        <p class="text-gray-500 font-semibold mb-8 text-sm">Vui lòng quét mã QR dưới đây bằng ứng dụng ngân hàng của bạn để thanh toán.</p>
+        
+        <div class="bg-gray-50 border border-gray-100 rounded-3xl p-8 mb-8 inline-block max-w-sm w-full relative overflow-hidden">
+            <div class="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">Mã QR Thanh Toán (MBBank)</div>
+            
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 mb-6 inline-block w-48 h-48 relative">
+                <% 
+                   const bankBin = '970422'; // MBBank BIN
+                   const accountNo = '123456789'; // Mock Account
+                   const amount = order.TongTienSauKM;
+                   const addInfo = order.MaHoaDon;
+                   const accountName = 'WINMART';
+                   const qrUrl = `https://img.vietqr.io/image/${bankBin}-${accountNo}-compact2.png?amount=${amount}&addInfo=${addInfo}&accountName=${accountName}`;
+                %>
+                <img src="<%= qrUrl %>" alt="QR Code" class="w-full h-full object-contain relative z-10">
+                <div class="absolute inset-0 flex items-center justify-center text-gray-300 z-0">
+                    <i data-lucide="qr-code" class="w-16 h-16 opacity-20"></i>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-left bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-gray-400">Số tiền:</span>
+                    <span class="text-lg font-black text-winmart-red"><%= Number(order.TongTienSauKM).toLocaleString('vi-VN') %>đ</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-gray-400">Nội dung CK:</span>
+                    <span class="text-sm font-bold text-winmart-dark bg-gray-100 px-2 py-0.5 rounded"><%= order.MaHoaDon %></span>
+                </div>
+            </div>
+            
+            <!-- decorative circles -->
+            <div class="absolute -top-10 -left-10 w-20 h-20 bg-blue-50 rounded-full blur-xl opacity-70 pointer-events-none"></div>
+            <div class="absolute -bottom-10 -right-10 w-20 h-20 bg-winmart-red/5 rounded-full blur-xl opacity-70 pointer-events-none"></div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button type="button" id="btn-confirm-payment" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black px-8 py-4 rounded-xl transition-all shadow-lg shadow-emerald-500/30 inline-flex items-center justify-center gap-2">
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                ĐÃ THANH TOÁN THÀNH CÔNG
+            </button>
+        </div>
+        <p class="text-[10px] font-bold text-gray-400 mt-4">*Lưu ý: Nút bấm trên dùng để giả lập xác nhận đã nhận được tiền chuyển khoản.</p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('btn-confirm-payment');
+    if (btn) {
+        btn.addEventListener('click', async () => {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> ĐANG XỬ LÝ...';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            try {
+                const res = await fetch('/checkout/payment/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderCode: '<%= order.MaHoaDon %>' })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showWmToast(data.message);
+                    setTimeout(() => {
+                        window.location.href = data.redirectUrl;
+                    }, 1000);
+                } else {
+                    showWmToast(data.message || 'Lỗi xử lý', 'error');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    lucide.createIcons();
+                }
+            } catch(e) {
+                showWmToast('Lỗi kết nối', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        });
+    }
+});
+</script>

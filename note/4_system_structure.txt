@@ -1,0 +1,269 @@
+HỆ THỐNG WEB BÁN HÀNG WINMART - CẤU TRÚC HỆ THỐNG CHUẨN HÓA (EXPRESSJS + MYSQL)
+================================================================================
+
+1. CÂY THƯ MỤC CHI TIẾT (FILE-BY-FILE)
+────────────────────────────────────────────────────────────────────────────
+winmart-web/
+├── package.json                  # Dependencies & scripts (start, dev, seed, test)
+├── package-lock.json             # Lock dependency versions
+├── .env                          # Environment variables (DB, SECRET, PORT, MODE)
+├── .gitignore                    # Ignore node_modules, .env, uploads, logs
+├── README.md                     # Project overview, setup, run, deploy guide
+│
+├── server.js                     # Entry: load env, require app, listen port
+├── app.js                        # Express config: middleware, routes, view engine, error handler
+│
+├── src/
+│   ├── config/
+│   │   ├── db.js                 # mysql2 pool, utf8mb4, connection test
+│   │   ├── session.js            # express-session config, store, cookie settings
+│   │   ├── cloudinary.js         # Optional: image upload service (dev fallback to local)
+│   │   └── app.config.js         # Runtime constants: upload limits, timezone, default VAT
+│   │
+│   ├── constants/
+│   │   ├── roles.js              # Enum: CUSTOMER, STAFF, ADMIN
+│   │   ├── orderStatus.js        # Enum: PENDING, PAID, COMPLETED, CANCELLED
+│   │   ├── paymentStatus.js      # Enum: UNPAID, PAID, REFUNDED
+│   │   ├── loyaltyTier.js        # Enum: THUONG, VIP1, VIP2, VIP3 + thresholds
+│   │   ├── fulfillmentType.js    # Enum: DELIVERY, PICKUP
+│   │   └── messages.js           # Centralized success/error/warning strings (VI)
+│   │
+│   ├── middlewares/
+│   │   ├── auth.middleware.js    # Check session/token, redirect to login if missing
+│   │   ├── role.middleware.js    # RBAC guard: allow/deny by role
+│   │   ├── storeContext.js       # Inject store_id/region from session to req
+│   │   ├── validate.middleware.js# Wrap Joi/Zod, return 400 on fail
+│   │   ├── upload.middleware.js  # Multer config: dest, limits, fileFilter
+│   │   ├── error.middleware.js   # Global 500 catcher, log stack, render 500.ejs
+│   │   └── notFound.middleware.js# 404 handler, render errors/404.ejs
+│   │
+│   ├── models/                   # DAL: mysql2 queries, DTO mapping, raw SQL/params
+│   │   ├── role.model.js
+│   │   ├── user.model.js
+│   │   ├── category.model.js
+│   │   ├── supplier.model.js     # Replaces 'brand' for FMCG context
+│   │   ├── product.model.js
+│   │   ├── productImage.model.js
+│   │   ├── batch.model.js        # FEFO inventory, expiry, reserve/release
+│   │   ├── promotion.model.js
+│   │   ├── productPromotion.model.js
+│   │   ├── cart.model.js
+│   │   ├── cartItem.model.js
+│   │   ├── order.model.js        # Pre-payment cart checkout
+│   │   ├── orderItem.model.js
+│   │   ├── invoice.model.js      # Post-payment accounting document
+│   │   ├── importReceipt.model.js
+│   │   ├── importReceiptItem.model.js
+│   │   ├── customer.model.js
+│   │   ├── loyalty.model.js      # DiemTichLuy transaction history
+│   │   ├── contact.model.js
+│   │   └── shift.model.js        # POS shift open/close, cash reconcile
+│   │
+│   ├── services/                 # BLL: Business rules, transaction orchestration
+│   │   ├── auth.service.js
+│   │   ├── user.service.js
+│   │   ├── category.service.js
+│   │   ├── supplier.service.js
+│   │   ├── product.service.js
+│   │   ├── promotion.service.js
+│   │   ├── cart.service.js
+│   │   ├── order.service.js
+│   │   ├── checkout.service.js   # Cart → Reserve → Pay → Invoice → Loyalty
+│   │   ├── invoice.service.js
+│   │   ├── importReceipt.service.js
+│   │   ├── batch.service.js      # FEFO deduction, expiry alerts
+│   │   ├── customer.service.js
+│   │   ├── loyalty.service.js    # Calc points, tier upgrade, manual adjust
+│   │   ├── contact.service.js
+│   │   ├── shift.service.js
+│   │   └── statistics.service.js # Aggregate queries, dashboard metrics, export
+│   │
+│   ├── controllers/              # Presentation: req → service → res.render/json
+│   │   ├── client/
+│   │   │   ├── home.controller.js
+│   │   │   ├── product.controller.js
+│   │   │   ├── cart.controller.js
+│   │   │   ├── checkout.controller.js
+│   │   │   ├── order.controller.js
+│   │   │   ├── auth.controller.js
+│   │   │   ├── profile.controller.js
+│   │   │   ├── promotion.controller.js
+│   │   │   ├── contact.controller.js
+│   │   │   └── page.controller.js      # Static pages: about, policy, help
+│   │   │
+│   │   ├── admin/
+│   │   │   ├── dashboard.controller.js
+│   │   │   ├── product.controller.js
+│   │   │   ├── category.controller.js
+│   │   │   ├── supplier.controller.js
+│   │   │   ├── receipt.controller.js   # Import receipts
+│   │   │   ├── customer.controller.js
+│   │   │   ├── promotion.controller.js
+│   │   │   ├── user.controller.js
+│   │   │   ├── order.controller.js
+│   │   │   ├── invoice.controller.js
+│   │   │   ├── statistics.controller.js
+│   │   │   └── settings.controller.js  # System config, loyalty rules, backup
+│   │   │
+│   │   └── staff/
+│   │       ├── dashboard.controller.js
+│   │       ├── pos.controller.js       # ⭐ Core: barcode, quick checkout, shortcuts
+│   │       ├── invoice.controller.js
+│   │       ├── shift.controller.js
+│   │       ├── lookup.controller.js    # Quick product/customer search
+│   │       └── receipt.controller.js   # View/confirm daily imports
+│   │
+│   ├── routes/                   # URL mapping, prefix mount, middleware chain
+│   │   ├── index.js
+│   │   ├── client/               # Mirrors client/ controllers
+│   │   ├── admin/                # Mirrors admin/ controllers + role('admin')
+│   │   └── staff/                # Mirrors staff/ controllers + role('staff','admin')
+│   │
+│   ├── validators/               # Joi/Zod input schemas
+│   │   ├── auth.validator.js
+│   │   ├── product.validator.js
+│   │   ├── checkout.validator.js
+│   │   ├── category.validator.js
+│   │   ├── supplier.validator.js
+│   │   ├── promotion.validator.js
+│   │   ├── receipt.validator.js
+│   │   ├── loyalty.validator.js
+│   │   └── contact.validator.js
+│   │
+│   ├── utils/                    # Pure helpers, format, calc, transaction wrapper
+│   │   ├── hash.js               # bcrypt wrap
+│   │   ├── generateCode.js       # HD, PN, VC, SP code generators
+│   │   ├── formatCurrency.js     # vi-VN currency format
+│   │   ├── pagination.js         # OFFSET/LIMIT, meta calc
+│   │   ├── queryBuilder.js       # Dynamic WHERE builder for filters
+│   │   ├── invoicePdf.js         # PDFKit/HTML-to-PDF wrapper
+│   │   ├── response.js           # Standard API/View response formatter
+│   │   ├── barcode.js            # Scanner input parser (EAN-13, strip Enter)
+│   │   ├── expiryChecker.js      # Batch <30 days filter
+│   │   ├── loyaltyCalc.js        # Point rate, tier bonus, threshold engine
+│   │   └── transaction.js        # pool.getConnection() + BEGIN/COMMIT/ROLLBACK
+│   │
+│   ├── views/                    # EJS templates (server-rendered)
+│   │   ├── layouts/
+│   │   │   ├── main.ejs          # Client layout
+│   │   │   ├── admin.ejs         # Admin layout
+│   │   │   └── pos.ejs           # Staff POS layout (full-screen, high contrast)
+│   │   ├── partials/
+│   │   │   ├── header.ejs
+│   │   │   ├── footer.ejs
+│   │   │   ├── navbar.ejs
+│   │   │   ├── admin-sidebar.ejs
+│   │   │   ├── staff-sidebar.ejs
+│   │   │   ├── flash-message.ejs
+│   │   │   ├── modal-confirm.ejs
+│   │   │   ├── pagination.ejs
+│   │   │   └── product-card.ejs
+│   │   ├── client/
+│   │   │   ├── home.ejs
+│   │   │   ├── about.ejs
+│   │   │   ├── contact.ejs
+│   │   │   ├── promotions.ejs
+│   │   │   ├── products/
+│   │   │   │   ├── list.ejs
+│   │   │   │   └── detail.ejs
+│   │   │   ├── cart/
+│   │   │   │   └── index.ejs
+│   │   │   ├── checkout/
+│   │   │   │   ├── index.ejs
+│   │   │   │   └── success.ejs
+│   │   │   ├── auth/
+│   │   │   │   ├── login.ejs
+│   │   │   │   └── register.ejs
+│   │   │   ├── profile/
+│   │   │   │   ├── index.ejs
+│   │   │   │   ├── orders.ejs
+│   │   │   │   └── order-detail.ejs
+│   │   │   └── errors/
+│   │   │       ├── 404.ejs
+│   │   │       └── 500.ejs
+│   │   ├── admin/
+│   │   │   ├── dashboard.ejs
+│   │   │   ├── products/
+│   │   │   │   ├── list.ejs
+│   │   │   │   ├── create.ejs
+│   │   │   │   └── edit.ejs
+│   │   │   ├── categories/
+│   │   │   │   ├── list.ejs
+│   │   │   │   ├── create.ejs
+│   │   │   │   └── edit.ejs
+│   │   │   ├── suppliers/
+│   │   │   │   ├── list.ejs
+│   │   │   │   ├── create.ejs
+│   │   │   │   └── edit.ejs
+│   │   │   ├── customers/
+│   │   │   │   ├── list.ejs
+│   │   │   │   ├── detail.ejs
+│   │   │   │   └── point-adjust.ejs
+│   │   │   ├── promotions/
+│   │   │   │   ├── list.ejs
+│   │   │   │   ├── create.ejs
+│   │   │   │   └── edit.ejs
+│   │   │   ├── users/
+│   │   │   │   ├── list.ejs
+│   │   │   │   ├── create.ejs
+│   │   │   │   └── edit.ejs
+│   │   │   ├── orders/
+│   │   │   │   ├── list.ejs
+│   │   │   │   └── detail.ejs
+│   │   │   ├── invoices/
+│   │   │   │   ├── list.ejs
+│   │   │   │   ├── detail.ejs
+│   │   │   │   └── print.ejs
+│   │   │   ├── imports/
+│   │   │   │   ├── list.ejs
+│   │   │   │   ├── create.ejs
+│   │   │   │   └── detail.ejs
+│   │   │   ├── statistics/
+│   │   │   │   └── index.ejs
+│   │   │   └── settings.ejs
+│   │   └── staff/
+│   │       ├── dashboard.ejs
+│   │       ├── pos/
+│   │       │   ├── index.ejs
+│   │       │   └── success.ejs
+│   │       ├── invoices/
+│   │       │   ├── list.ejs
+│   │       │   └── print.ejs
+│   │       ├── shifts/
+│   │       │   ├── open.ejs
+│   │       │   └── close.ejs
+│   │       ├── lookup/
+│   │       │   ├── product.ejs
+│   │       │   └── customer.ejs
+│   │       └── imports/
+│   │           ├── list.ejs
+│   │           └── detail.ejs
+│   │
+│   └── public/                   # Static assets (served by express.static)
+│       ├── css/
+│       │   ├── style.css         # Client
+│       │   ├── admin.css         # Admin panel
+│       │   ├── pos.css           # POS UI (large fonts, high contrast)
+│       │   └── print-thermal.css # @media print 80mm
+│       ├── js/
+│       │   ├── main.js
+│       │   ├── cart.js
+│       │   ├── checkout.js
+│       │   ├── admin.js
+│       │   ├── pos-offline.js    # IndexedDB queue, sync logic
+│       │   ├── sync-queue.js     # Background retry handler
+│       │   └── chart.js          # Chart.js init for stats
+│       ├── images/
+│       │   ├── banners/
+│       │   ├── products/
+│       │   └── icons/
+│       └── uploads/              # User uploaded files (gitignore)
+│
+├── database/
+│   ├── schema.sql                # Full DDL: tables, FK, CHECK, INDEX, utf8mb4
+│   ├── seeders/                  # Initial data: roles, admin, sample SP, config
+│   └── migrations/               # Versioned ALTER TABLE scripts
+│
+└── tests/
+    ├── unit/                     # Service & utility tests
+    └── integration/              # Route + DB + Middleware flow tests

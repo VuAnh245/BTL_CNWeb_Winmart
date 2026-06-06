@@ -1,0 +1,602 @@
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <p class="text-[11px] text-winmart-slate font-semibold tracking-wider uppercase mb-1">Quản lý Sản phẩm</p>
+        <h1 class="text-2xl font-black tracking-tight text-winmart-dark">Danh Sách Sản Phẩm</h1>
+    </div>
+    <button onclick="toggleSlideOver()" class="bg-winmart-dark hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-gray-900/20">
+        <i data-lucide="plus" class="w-4 h-4 text-winmart-yellow"></i> Thêm sản phẩm
+    </button>
+</div>
+
+<!-- Data Table Container -->
+<div class="bento-card overflow-hidden">
+
+    <!-- Filters -->
+    <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+        <form method="GET" action="/admin/products" class="flex flex-col sm:flex-row gap-4 items-center w-full">
+            <div class="relative flex-1 w-full">
+                <input type="text" name="search" placeholder="Tìm tên sản phẩm..." value="<%= typeof search !== 'undefined' ? search : '' %>"
+                       class="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-xs font-semibold focus:outline-none focus:border-winmart-red shadow-sm">
+                <i data-lucide="search" class="absolute left-3.5 top-3 w-4 h-4 text-gray-400"></i>
+            </div>
+            
+            <div class="w-full sm:w-64">
+                <select name="category" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-winmart-red shadow-sm appearance-none">
+                    <option value="">Tất cả danh mục</option>
+                    <% if (typeof categories !== 'undefined') { %>
+                        <% categories.forEach(cat => { %>
+                            <option value="<%= cat.DanhMucId %>" <%= typeof currentCategory !== 'undefined' && currentCategory == cat.DanhMucId ? 'selected' : '' %>>
+                                <%= cat.TenDanhMuc %>
+                            </option>
+                        <% }) %>
+                    <% } %>
+                </select>
+            </div>
+            
+            <button type="submit" class="w-full sm:w-auto bg-winmart-dark text-white px-6 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
+                <i data-lucide="filter" class="w-3.5 h-3.5"></i> Lọc
+            </button>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left min-w-[1000px]">
+            <thead>
+                <tr class="bg-white border-b border-gray-100">
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider">Sản phẩm</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Danh mục</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Giá bán</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Tồn kho</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Trạng thái</th>
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                <% if (typeof products !== 'undefined' && products.length > 0) { %>
+                    <% products.forEach(p => { %>
+                    <tr class="hover:bg-gray-50/50 transition group bg-white">
+                        <td class="py-3 px-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden">
+                                    <% if (p.HinhAnh) { %>
+                                        <% const imgSrc = p.HinhAnh.startsWith('/') || p.HinhAnh.startsWith('http') ? p.HinhAnh : '/uploads/' + p.HinhAnh; %>
+                                        <img src="<%= imgSrc %>" alt="<%= p.TenSanPham %>" class="w-full h-full object-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<%= encodeURIComponent(p.TenSanPham.charAt(0)) %>&background=f1f5f9&color=94a3b8&size=100';">
+                                    <% } else { %>
+                                        <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(p.TenSanPham.charAt(0)) %>&background=f1f5f9&color=94a3b8&size=100" class="w-full h-full object-cover">
+                                    <% } %>
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-winmart-dark text-sm"><%= p.TenSanPham %></h4>
+                                    <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                        <span class="text-[10px] text-gray-400 font-bold uppercase"><%= p.MaSanPham %></span>
+                                        <span class="text-gray-300 text-[10px] font-bold">•</span>
+                                        <span class="text-[10px] text-winmart-slate font-bold"><%= p.CanNang || 500 %>g</span>
+                                        <% if (p.CanDongGoiDacBiet) { %>
+                                            <span class="text-gray-300 text-[10px] font-bold">•</span>
+                                            <span class="inline-flex items-center gap-0.5 px-1 bg-amber-50 text-amber-600 border border-amber-200 rounded text-[9px] font-extrabold uppercase tracking-wide">
+                                                <i data-lucide="package" class="w-2.5 h-2.5"></i> Đặc biệt
+                                            </span>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="inline-flex items-center bg-gray-50 text-gray-600 border border-gray-200 px-2.5 py-1 rounded-lg text-[10px] font-bold">
+                                <%= p.TenDanhMuc || 'Không có' %>
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="text-sm font-black text-winmart-red"><%= Number(p.GiaBan).toLocaleString('vi-VN') %>đ</span>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <% if (p.TongTonKho > (p.MucCanDat || 0)) { %>
+                                <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg text-[11px] font-bold">
+                                    <%= p.TongTonKho %> <%= p.DonViTinh %>
+                                </span>
+                            <% } else { %>
+                                <span class="inline-flex items-center gap-1 bg-red-50 text-winmart-red px-2 py-1 rounded-lg text-[11px] font-bold" title="Sắp hết hàng">
+                                    <i data-lucide="alert-triangle" class="w-3 h-3"></i> <%= p.TongTonKho || 0 %> <%= p.DonViTinh %>
+                                </span>
+                            <% } %>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <% if (p.TrangThai === 'DangBan') { %>
+                                <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full text-[10px] font-black border border-emerald-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Đang bán
+                                </span>
+                            <% } else { %>
+                                <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full text-[10px] font-black border border-gray-200">
+                                    Ngừng bán
+                                </span>
+                            <% } %>
+                        </td>
+                        <td class="py-3 px-5 text-right">
+                            <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <a href="/admin/products/<%= p.SanPhamId %>" title="Xem chi tiết" class="p-1.5 bg-white border border-gray-200 text-indigo-500 hover:bg-indigo-50 rounded-lg transition shadow-sm">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </a>
+                                <a href="/admin/products/<%= p.SanPhamId %>/edit" title="Chỉnh sửa" class="p-1.5 bg-white border border-gray-200 text-blue-500 hover:bg-blue-50 rounded-lg transition shadow-sm">
+                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                </a>
+                                <button type="button" onclick="deleteProduct('<%= p.SanPhamId %>')" title="Xóa" class="p-1.5 bg-white border border-gray-200 text-gray-400 hover:text-winmart-red hover:bg-red-50 rounded-lg transition shadow-sm">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6" class="py-16 text-center">
+                            <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i data-lucide="package" class="w-7 h-7 text-gray-400"></i>
+                            </div>
+                            <p class="text-sm font-bold text-gray-500 mb-1">Không tìm thấy sản phẩm nào</p>
+                            <p class="text-xs text-gray-400">Hãy thử thay đổi điều kiện tìm kiếm hoặc thêm mới.</p>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <% if (typeof meta !== 'undefined' && meta && meta.totalPages > 1) { %>
+        <div class="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-center">
+            <div class="flex gap-1">
+                <a href="?page=<%= meta.currentPage - 1 %>&search=<%= typeof search !== 'undefined' ? search : '' %>&category=<%= typeof currentCategory !== 'undefined' ? currentCategory : '' %>" 
+                   class="px-3 py-1.5 rounded-lg text-xs font-bold <%= meta.currentPage === 1 ? 'text-gray-400 pointer-events-none' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' %>">
+                    Trước
+                </a>
+                
+                <% for(let i = 1; i <= meta.totalPages; i++) { %>
+                    <a href="?page=<%= i %>&search=<%= typeof search !== 'undefined' ? search : '' %>&category=<%= typeof currentCategory !== 'undefined' ? currentCategory : '' %>" 
+                       class="px-3 py-1.5 rounded-lg text-xs font-bold <%= meta.currentPage === i ? 'bg-winmart-dark text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' %>">
+                        <%= i %>
+                    </a>
+                <% } %>
+                
+                <a href="?page=<%= meta.currentPage + 1 %>&search=<%= typeof search !== 'undefined' ? search : '' %>&category=<%= typeof currentCategory !== 'undefined' ? currentCategory : '' %>" 
+                   class="px-3 py-1.5 rounded-lg text-xs font-bold <%= meta.currentPage === meta.totalPages ? 'text-gray-400 pointer-events-none' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' %>">
+                    Sau
+                </a>
+            </div>
+    <% } %>
+</div>
+
+<!-- ============================================== -->
+<!-- SLIDE-OVER: Form Thêm/Sửa Sản Phẩm (WIDE) -->
+<!-- ============================================== -->
+<% const isOpen = typeof openSlideOver !== 'undefined' && openSlideOver; %>
+<% const product = typeof editProduct !== 'undefined' ? editProduct : null; %>
+
+<div id="slide-over-backdrop" onclick="closeSlideOver()" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40 <%= isOpen ? '' : 'hidden opacity-0' %> transition-opacity"></div>
+
+<div id="slide-over" class="fixed inset-y-0 right-0 w-full xl:w-[960px] lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200 transition-transform duration-300 ease-in-out <%= isOpen ? 'translate-x-0' : 'translate-x-full' %>">
+
+    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+        <div>
+            <h3 class="text-base font-black text-winmart-dark flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-winmart-red rounded-full"></span> <%= product ? 'Cập Nhật Sản Phẩm' : 'Thêm Mới Sản Phẩm' %>
+            </h3>
+            <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5">
+                <%= product ? 'Chỉnh sửa thông tin chi tiết' : 'Khởi tạo mã hàng hóa mới' %>
+            </p>
+        </div>
+        <button onclick="closeSlideOver()" class="p-2 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-winmart-dark transition shadow-sm">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 bg-gray-50/30">
+        <form action="<%= product ? '/admin/products/' + product.SanPhamId + '/edit' : '/admin/products/create' %>" method="POST" enctype="multipart/form-data" id="product-form">
+            <% if (product) { %>
+                <input type="hidden" name="oldImage" value="<%= product.HinhAnh %>">
+            <% } %>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left Column: Main info -->
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="bento-card p-7 sm:p-8 rounded-3xl shadow-sm border border-gray-100 bg-white">
+                        <h3 class="text-sm font-black text-winmart-dark mb-6 flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-winmart-red rounded-full"></span> Thông tin cơ bản
+                        </h3>
+                        
+                        <div class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-extrabold text-gray-700 mb-2">Tên sản phẩm <span class="text-winmart-red">*</span></label>
+                                <input type="text" name="TenSanPham" placeholder="Nhập tên sản phẩm..." value="<%= product ? product.TenSanPham : '' %>" required
+                                       class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-winmart-dark focus:bg-white focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition-all">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs font-extrabold text-gray-700 mb-2">Danh mục <span class="text-winmart-red">*</span></label>
+                                    <select name="DanhMucId" required class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-winmart-dark focus:bg-white focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition-all appearance-none cursor-pointer">
+                                        <option value="">Chọn danh mục...</option>
+                                        <% categories.forEach(cat => { %>
+                                            <option value="<%= cat.DanhMucId %>" <%= (product && product.DanhMucId == cat.DanhMucId) ? 'selected' : '' %>>
+                                                <%= cat.TenDanhMuc %>
+                                            </option>
+                                        <% }) %>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-extrabold text-gray-700 mb-2">Nhà cung cấp <span class="text-winmart-red">*</span></label>
+                                    <select name="NhaCungCapId" required class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-winmart-dark focus:bg-white focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition-all appearance-none cursor-pointer">
+                                        <option value="">Chọn nhà cung cấp...</option>
+                                        <% suppliers.forEach(sup => { %>
+                                            <option value="<%= sup.NhaCungCapId %>" <%= (product && product.NhaCungCapId == sup.NhaCungCapId) ? 'selected' : '' %>>
+                                                <%= sup.TenNhaCungCap %>
+                                            </option>
+                                        <% }) %>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                                <div>
+                                    <label class="block text-xs font-extrabold text-gray-700 mb-2">Đơn vị tính <span class="text-winmart-red">*</span></label>
+                                    <input type="text" name="DonViTinh" placeholder="Ví dụ: Cái, Hộp, Chai" value="<%= product ? product.DonViTinh : 'Cái' %>" required
+                                           class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-winmart-dark focus:bg-white focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition-all">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-extrabold text-gray-700 mb-2">Mã vạch (Barcode)</label>
+                                    <input type="text" name="Barcode" placeholder="Hệ thống tự động tạo" value="<%= product ? product.Barcode : '' %>" readonly
+                                           class="w-full bg-gray-100 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-gray-500 cursor-not-allowed focus:outline-none transition-all font-mono tracking-wider">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bento-card p-7 sm:p-8 rounded-3xl shadow-sm border border-gray-100 bg-white">
+                        <h3 class="text-sm font-black text-winmart-dark mb-6 flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-winmart-red rounded-full"></span> Giá & Thuế
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-xs font-extrabold text-gray-700 mb-2">Giá bán (VNĐ) <span class="text-winmart-red">*</span></label>
+                                <input type="number" name="GiaBan" placeholder="0" value="<%= product ? product.GiaBan : '' %>" required min="1"
+                                       class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-winmart-dark focus:bg-white focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-extrabold text-gray-700 mb-2">Giá nhập (VNĐ) <span class="text-winmart-red">*</span></label>
+                                <input type="number" name="GiaNhapGoc" placeholder="0" value="<%= product ? product.GiaNhapGoc : '' %>" required min="1"
+                                       class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-winmart-dark focus:bg-white focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-extrabold text-gray-700 mb-2">Thuế VAT (%)</label>
+                                <select name="ThueVAT" class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-winmart-dark focus:bg-white focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition-all appearance-none cursor-pointer">
+                                    <option value="8" <%= (product && product.ThueVAT == 8) ? 'selected' : '' %>>8%</option>
+                                    <option value="10" <%= (product && product.ThueVAT == 10) ? 'selected' : '' %>>10%</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                </div>
+
+                <!-- Right Column: Settings & Image -->
+                <div class="space-y-8">
+                    <div class="bento-card p-7 sm:p-8 rounded-3xl shadow-sm border border-gray-100 bg-white">
+                        <h3 class="text-sm font-black text-winmart-dark mb-6 flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-winmart-red rounded-full"></span> Hình ảnh sản phẩm
+                        </h3>
+                        
+                        <div class="w-full">
+                            <label class="relative flex flex-col items-center justify-center w-full h-48 border-2 border-gray-200 border-dashed rounded-2xl cursor-pointer bg-gray-50 hover:bg-gray-100 overflow-hidden transition-all group" id="image-upload-area">
+                                <% if (product && product.HinhAnh) { %>
+                                    <% const previewSrc = product.HinhAnh.startsWith('/') || product.HinhAnh.startsWith('http') ? product.HinhAnh : '/uploads/' + product.HinhAnh; %>
+                                    <img src="<%= previewSrc %>" id="image-preview" class="absolute inset-0 w-full h-full object-cover z-10" />
+                                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 z-20 transition-opacity">
+                                        <span class="text-white text-xs font-bold flex items-center gap-1"><i data-lucide="upload" class="w-4 h-4"></i> Đổi ảnh khác</span>
+                                    </div>
+                                <% } else { %>
+                                    <img src="" id="image-preview" class="absolute inset-0 w-full h-full object-cover z-10 hidden" />
+                                    <div class="flex flex-col items-center justify-center pt-5 pb-6 z-0" id="upload-placeholder">
+                                        <i data-lucide="image-plus" class="w-10 h-10 text-gray-400 mb-3 group-hover:text-winmart-red transition-colors"></i>
+                                        <p class="mb-1 text-xs text-gray-500 font-bold"><span class="text-winmart-red">Tải lên</span> hoặc kéo thả</p>
+                                        <p class="text-[10px] text-gray-400 font-semibold uppercase">Tối đa 5MB</p>
+                                    </div>
+                                <% } %>
+                                <input id="HinhAnh" name="HinhAnh" type="file" class="hidden" accept="image/*" onchange="previewImage(event)" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="bento-card p-6 bg-white shadow-sm border border-gray-100 rounded-3xl">
+                        <h3 class="text-sm font-black text-winmart-dark mb-5 flex items-center gap-2">
+                            <span class="w-1.5 h-4 bg-winmart-red rounded-full"></span> Thiết lập bán hàng
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-extrabold text-gray-700 mb-2">Trạng thái hiển thị</label>
+                                <select name="TrangThai" class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-winmart-dark focus:bg-white focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition-all appearance-none cursor-pointer">
+                                    <option value="DangBan" <%= (product && product.TrangThai === 'DangBan') ? 'selected' : '' %>>Đang bán</option>
+                                    <option value="NgungBan" <%= (product && product.TrangThai === 'NgungBan') ? 'selected' : '' %>>Ngừng bán (Ẩn)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-extrabold text-gray-700 mb-2">Mức tồn kho cảnh báo</label>
+                                <input type="number" name="MucCanDat" placeholder="Ví dụ: 10" value="<%= product ? product.MucCanDat : '10' %>" min="0"
+                                       class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-winmart-dark focus:bg-white focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition-all">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-extrabold text-gray-700 mb-2">Trọng lượng (gram)</label>
+                                <input type="number" name="CanNang" placeholder="Ví dụ: 500" value="<%= product ? product.CanNang : '500' %>" min="0" required
+                                       class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-3 text-sm font-bold text-winmart-dark focus:bg-white focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition-all">
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-200">
+                                <div>
+                                    <label class="block text-xs font-extrabold text-gray-700 mb-0.5">Đóng gói đặc biệt</label>
+                                    <span class="text-[10px] text-gray-400 font-bold">Hàng dễ vỡ, cồng kềnh...</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="CanDongGoiDacBiet" value="1" class="sr-only peer" <%= (product && product.CanDongGoiDacBiet) ? 'checked' : '' %>>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-winmart-red"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="p-5 border-t border-gray-100 bg-white flex justify-end gap-3 shrink-0">
+        <button onclick="closeSlideOver()" class="px-8 py-3.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-2xl text-sm font-bold text-gray-600 transition shadow-sm">Thoát</button>
+        <button type="submit" form="product-form" id="submitBtn" class="px-8 py-3.5 bg-winmart-dark hover:bg-black text-white rounded-2xl text-sm font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-gray-900/20">
+            <i data-lucide="save" class="w-4 h-4 text-winmart-yellow"></i> <%= product ? 'Lưu Thay Đổi' : 'Lưu Sản Phẩm Mới' %>
+        </button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('image-preview');
+            const placeholder = document.getElementById('upload-placeholder');
+            
+            preview.src = e.target.result;
+            preview.classList.remove('hidden');
+            
+            if (placeholder) {
+                placeholder.classList.add('hidden');
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function toggleSlideOver() {
+        // Reset form for fresh Create action
+        document.getElementById('product-form').reset();
+        document.getElementById('product-form').action = '/admin/products/create';
+        
+        // Reset image preview if any
+        const preview = document.getElementById('image-preview');
+        const placeholder = document.getElementById('upload-placeholder');
+        if (preview) preview.classList.add('hidden');
+        if (placeholder) placeholder.classList.remove('hidden');
+
+        // Reset check box and weight field defaults
+        const specialPkg = document.querySelector('input[name="CanDongGoiDacBiet"]');
+        if (specialPkg) specialPkg.checked = false;
+        const weightField = document.querySelector('input[name="CanNang"]');
+        if (weightField) weightField.value = '500';
+
+        // Open panel
+        const panel = document.getElementById('slide-over');
+        const backdrop = document.getElementById('slide-over-backdrop');
+        
+        backdrop.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('translate-x-full');
+            panel.classList.add('translate-x-0');
+        }, 10);
+    }
+    
+    function closeSlideOver() {
+        const panel = document.getElementById('slide-over');
+        const backdrop = document.getElementById('slide-over-backdrop');
+        
+        panel.classList.remove('translate-x-0');
+        panel.classList.add('translate-x-full');
+        backdrop.classList.add('opacity-0');
+        setTimeout(() => {
+            backdrop.classList.add('hidden');
+            // Clean URL if we are closing from an edit or failed create attempt
+            if (window.location.pathname.includes('/edit') || window.location.pathname.includes('/create')) {
+                window.history.pushState({}, document.title, '/admin/products');
+            }
+        }, 300);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('product-form');
+        
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const giaBan = Number(form.elements['GiaBan'].value);
+                const giaNhap = Number(form.elements['GiaNhapGoc'].value);
+                const tenSP = form.elements['TenSanPham'].value;
+                const nccId = form.elements['NhaCungCapId'].value;
+
+                if (!tenSP) {
+                    return Swal.fire('Cảnh báo', 'Vui lòng nhập Tên sản phẩm!', 'warning');
+                }
+                
+                if (!nccId) {
+                    return Swal.fire('Cảnh báo', 'Vui lòng chọn Nhà cung cấp!', 'warning');
+                }
+
+                if (giaBan <= 0 || giaNhap <= 0) {
+                    return Swal.fire('Lỗi nhập liệu', 'Giá bán và Giá nhập phải lớn hơn 0!', 'error');
+                }
+
+                if (giaBan < giaNhap) {
+                    const result = await Swal.fire({
+                        title: 'Cảnh báo Bán Lỗ',
+                        text: 'Giá bán hiện tại đang nhỏ hơn Giá nhập. Bạn có chắc chắn muốn lưu?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Đồng ý lưu',
+                        cancelButtonText: 'Kiểm tra lại'
+                    });
+                    if (!result.isConfirmed) return;
+                }
+
+                const btn = document.getElementById('submitBtn');
+                const btnOriginalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 text-winmart-yellow animate-spin"></i> Đang xử lý...';
+                lucide.createIcons();
+
+                try {
+                    const formData = new FormData(form);
+                    
+                    // Prevent uploading empty 0-byte file if user didn't select an image
+                    const fileInput = form.querySelector('input[type="file"]');
+                    if (fileInput && fileInput.files.length === 0) {
+                        formData.delete('HinhAnh');
+                    }
+
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        await Swal.fire('Thành công', data.message, 'success');
+                        window.location.href = '/admin/products';
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = btnOriginalText;
+                        lucide.createIcons();
+                    }
+                } catch (err) {
+                    Swal.fire('Lỗi', 'Có lỗi kết nối máy chủ', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = btnOriginalText;
+                    lucide.createIcons();
+                }
+            });
+        }
+    });
+
+    // ==============================================
+    // AJAX Real-time Search Logic
+    // ==============================================
+    const filterForm = document.querySelector('form[action="/admin/products"]');
+    const searchInput = filterForm.querySelector('input[name="search"]');
+    let searchTimeout;
+
+    function performAjaxSearch() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('search', searchInput.value);
+        url.searchParams.set('category', filterForm.querySelector('select[name="category"]').value);
+        
+        // Show loading state
+        const tableBody = document.querySelector('table tbody');
+        if (tableBody) {
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-10"><i data-lucide="loader-2" class="w-8 h-8 text-winmart-red animate-spin mx-auto mb-2"></i><span class="text-gray-500 font-bold text-sm">Đang tìm kiếm...</span></td></tr>';
+            lucide.createIcons();
+        }
+
+        fetch(url)
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Replace tbody
+                const newTbody = doc.querySelector('table tbody');
+                if (newTbody && tableBody) {
+                    tableBody.innerHTML = newTbody.innerHTML;
+                }
+                
+                // Replace pagination (assuming it's the element after the table container)
+                const newPagination = doc.querySelector('.bento-card > div:last-child');
+                const oldPagination = document.querySelector('.bento-card > div:last-child');
+                if (newPagination && oldPagination && !newPagination.querySelector('table')) { // Ensure it's not the table itself
+                    oldPagination.innerHTML = newPagination.innerHTML;
+                }
+
+                lucide.createIcons();
+                window.history.pushState({}, '', url);
+            });
+    }
+
+    searchInput.addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            performAjaxSearch();
+        }, 500); // Debounce 500ms
+    });
+
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(searchTimeout);
+            performAjaxSearch();
+        }
+    });
+
+    filterForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearTimeout(searchTimeout);
+        performAjaxSearch();
+    });
+
+    function deleteProduct(id) {
+        Swal.fire({
+            title: 'Xóa sản phẩm này?',
+            text: "Sản phẩm sẽ được chuyển sang trạng thái ngừng bán / xóa mềm.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#9ca3af',
+            confirmButtonText: 'Đồng ý xóa',
+            cancelButtonText: 'Đóng'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const res = await fetch(`/admin/products/${id}/delete`, {
+                        method: 'POST'
+                    });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Lỗi', 'Không thể kết nối máy chủ', 'error');
+                }
+            }
+        });
+    }
+</script>

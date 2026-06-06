@@ -1,0 +1,944 @@
+<div class="container mx-auto px-4 py-8 mb-20 max-w-6xl">
+    
+    <!-- Breadcrumb -->
+    <nav class="flex text-sm text-gray-500 mb-8" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="/" class="hover:text-winmart-red transition-colors flex items-center gap-1.5">
+                    <i data-lucide="home" class="w-4 h-4"></i> Trang chủ
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i data-lucide="chevron-right" class="w-4 h-4 mx-1"></i>
+                    <a href="/cart" class="hover:text-winmart-red transition-colors">Giỏ hàng</a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <i data-lucide="chevron-right" class="w-4 h-4 mx-1"></i>
+                    <span class="font-bold text-winmart-dark">Thanh toán</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <h1 class="text-2xl font-black text-winmart-dark tracking-tight mb-8">Thanh toán an toàn</h1>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+        
+        <!-- Form Thông tin giao hàng -->
+        <div class="flex-1 space-y-6">
+            <form id="checkout-form" class="space-y-6">
+                <!-- Địa chỉ giao hàng -->
+                <div class="bento-card p-6 lg:p-8">
+                    <h2 class="text-lg font-black text-winmart-dark mb-6 flex items-center gap-2">
+                        <div class="w-1.5 h-5 bg-winmart-red rounded-full"></div>
+                        Thông tin nhận hàng
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <!-- Họ tên & SĐT -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Họ và tên Người nhận <span class="text-winmart-red">*</span></label>
+                                <input type="text" id="fullName" name="fullName" required placeholder="Nhập tên người nhận..." value="<%= typeof user !== 'undefined' && user ? (user.name || user.HoTen || '') : '' %>"
+                                       class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Số điện thoại nhận hàng <span class="text-winmart-red">*</span></label>
+                                <input type="tel" id="phone" name="phone" required placeholder="Nhập số điện thoại..." value="<%= typeof user !== 'undefined' && user ? (user.phone || user.SoDienThoai || '') : '' %>"
+                                       class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                            </div>
+                        </div>
+
+                        <!-- 3 Dropdown Tỉnh Quận Phường -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Tỉnh / Thành phố <span class="text-winmart-red">*</span></label>
+                                <select id="toProvinceId" name="toProvinceId" required class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all appearance-none cursor-pointer">
+                                    <option value="">Đang tải...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Quận / Huyện <span class="text-winmart-red">*</span></label>
+                                <select id="toDistrictId" name="toDistrictId" required class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all appearance-none cursor-pointer">
+                                    <option value="">Chọn Quận/Huyện...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Phường / Xã <span class="text-winmart-red">*</span></label>
+                                <select id="toWardCode" name="toWardCode" required class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all appearance-none cursor-pointer">
+                                    <option value="">Chọn Phường/Xã...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Địa chỉ chi tiết -->
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Số nhà, Tên đường (Địa chỉ chi tiết) <span class="text-winmart-red">*</span></label>
+                            <div class="relative input-group-wm">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i data-lucide="map-pin" class="w-5 h-5 text-gray-400 transition-colors"></i>
+                                </div>
+                                <input type="text" id="address" name="address" required placeholder="Ví dụ: Số 10, ngõ 191..." class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all" autocomplete="off">
+                            </div>
+                        </div>
+                        
+                        <!-- Map Container -->
+                        <div id="checkout-map" class="h-64 w-full bg-gray-100 rounded-2xl border border-gray-200 z-10 relative"></div>
+                        <p class="text-[11px] text-gray-500 text-center font-medium"><i data-lucide="info" class="w-3.5 h-3.5 inline"></i> Bản đồ tự động định vị theo Phường/Xã được chọn. Bạn có thể di chuyển <b class="text-winmart-red">Ghim màu đỏ</b> để Shipper định vị chính xác.</p>
+
+                        <!-- Hidden select for Single Store mapping -->
+                        <input type="hidden" id="store-select" name="storeSelect" value="<%= cuaHangs[0] ? cuaHangs[0].CuaHangId : '1' %>">
+
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Ghi chú cho tài xế (Không bắt buộc)</label>
+                            <textarea id="note" name="note" rows="3" placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao..." class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phương thức thanh toán -->
+                <div class="bento-card p-6 lg:p-8">
+                    <h2 class="text-lg font-black text-winmart-dark mb-6 flex items-center gap-2">
+                        <div class="w-1.5 h-5 bg-winmart-red rounded-full"></div>
+                        Phương thức thanh toán
+                    </h2>
+                    
+                    <div class="space-y-3" id="payment-options-container">
+                        <label class="payment-label flex items-center gap-4 p-4 border border-winmart-red bg-red-50 rounded-2xl cursor-pointer relative transition-all">
+                            <input type="radio" name="paymentMethodGroup" value="COD" checked class="w-5 h-5 text-winmart-red focus:ring-winmart-red border-gray-300">
+                            <input type="hidden" name="paymentMethod" value="TienMat" id="actualPaymentMethod">
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-winmart-dark">Thanh toán khi nhận hàng (COD)</p>
+                                <p class="text-xs text-gray-500 font-medium mt-1">Giao hàng và thu tiền tận nơi</p>
+                            </div>
+                            <i data-lucide="banknote" class="w-8 h-8 text-winmart-red opacity-80 payment-icon"></i>
+                            <div class="selection-ring absolute inset-0 border-2 border-winmart-red rounded-2xl pointer-events-none"></div>
+                        </label>
+                        
+                        <label class="payment-label flex items-center gap-4 p-4 border border-gray-200 hover:border-gray-300 bg-white rounded-2xl cursor-pointer relative transition-all">
+                            <input type="radio" name="paymentMethodGroup" value="ONLINE" class="w-5 h-5 text-winmart-red focus:ring-winmart-red border-gray-300">
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-winmart-dark">Chuyển khoản VNPay / MoMo</p>
+                                <p class="text-xs text-gray-500 font-medium mt-1">Thanh toán qua ví điện tử hoặc thẻ ATM/Visa</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center border border-blue-100">
+                                    <i data-lucide="qr-code" class="w-5 h-5 text-blue-600 payment-icon"></i>
+                                </div>
+                            </div>
+                            <div class="selection-ring absolute inset-0 border-2 border-winmart-red rounded-2xl pointer-events-none hidden"></div>
+                        </label>
+
+                        <!-- Sub-options for Online Payment -->
+                        <div id="online-payment-suboptions" class="hidden pl-12 pr-4 py-2 space-y-3 animate-fade-in">
+                            <label class="flex items-center gap-3 p-3 border border-gray-200 hover:border-blue-300 rounded-xl cursor-pointer transition-all bg-white shadow-sm sub-payment-label">
+                                <input type="radio" name="onlineMethod" value="VNPay" class="w-4 h-4 text-blue-500 focus:ring-blue-500">
+                                <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/6/0oxhzjmxbksr1686814746087.png" class="h-6 w-auto object-contain bg-white rounded p-1 border border-gray-100" alt="VNPay">
+                                <span class="text-sm font-bold text-gray-700">Thanh toán qua VNPAY-QR</span>
+                            </label>
+                            
+                            <label class="flex items-center gap-3 p-3 border border-gray-200 hover:border-pink-300 rounded-xl cursor-pointer transition-all bg-white shadow-sm sub-payment-label">
+                                <input type="radio" name="onlineMethod" value="MoMo" class="w-4 h-4 text-pink-500 focus:ring-pink-500">
+                                <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-MoMo-Square.png" class="h-6 w-6 object-contain bg-white rounded p-0.5 border border-gray-100" alt="MoMo">
+                                <span class="text-sm font-bold text-gray-700">Thanh toán qua Ví MoMo</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tổng kết giỏ hàng (Cột phải) -->
+        <div class="w-full lg:w-96 shrink-0">
+            <div class="bento-card p-6 lg:p-8 sticky top-24">
+                <h2 class="text-lg font-black text-winmart-dark mb-6 flex items-center gap-2">
+                    <div class="w-1.5 h-5 bg-winmart-red rounded-full"></div>
+                    Đơn hàng của bạn (<%= cart.length %> sản phẩm)
+                </h2>
+                
+                <div class="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                    <% cart.forEach(item => { %>
+                        <div class="flex gap-4">
+                            <div class="w-16 h-16 rounded-xl bg-gray-50 shrink-0 overflow-hidden border border-gray-100 flex items-center justify-center p-2">
+                                <img src="<%= item.image %>" alt="<%= item.name %>" class="w-full h-full object-contain">
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="text-sm font-bold text-winmart-dark line-clamp-2"><%= item.name %></h3>
+                                <div class="flex justify-between items-center mt-1">
+                                    <span class="text-xs text-gray-500 font-semibold">x<%= item.quantity %></span>
+                                    <span class="text-sm font-black text-winmart-red"><%= (item.price * item.quantity).toLocaleString('vi-VN') %>đ</span>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+
+                <!-- Promo Code -->
+                <div class="mb-6 pt-6 border-t border-gray-100">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Mã Giảm Giá</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="promoCodeInput" placeholder="Nhập mã..." class="uppercase flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-winmart-red transition text-sm font-semibold">
+                        <button type="button" id="btn-apply-promo" class="bg-winmart-dark text-white px-4 py-2.5 rounded-xl font-bold shadow-md hover:bg-black transition text-sm">Áp dụng</button>
+                    </div>
+                    <div id="promoCodeMsg" class="text-[11px] font-bold mt-2 hidden"></div>
+                </div>
+
+                <div class="space-y-4 mb-6 pt-6 border-t border-gray-100">
+                    <div class="flex justify-between items-center text-sm font-bold text-gray-500">
+                        <span>Tạm tính (chưa VAT):</span>
+                        <span class="text-winmart-dark"><%= totalAmount.toLocaleString('vi-VN') %>đ</span>
+                    </div>
+                    <% if (typeof totalVat !== 'undefined' && totalVat > 0) { %>
+                    <div class="flex justify-between items-center text-sm font-bold text-blue-600">
+                        <span>Thuế GTGT (VAT):</span>
+                        <span><%= totalVat.toLocaleString('vi-VN') %>đ</span>
+                    </div>
+                    <% } %>
+                    <div class="flex justify-between items-center text-sm font-bold text-gray-500">
+                        <span class="flex items-center gap-1">Phí nền giao hàng GHN <span id="distance-text" class="text-winmart-red font-black">(Chọn địa chỉ)</span>:</span>
+                        <span id="fee-distance" class="text-winmart-dark">0đ</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center text-sm font-bold text-gray-500 <%= hasFreshFood ? '' : 'hidden' %>">
+                        <span>Phụ phí hàng tươi sống:</span>
+                        <span id="fresh-fee-display" class="text-winmart-dark">0đ</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-sm font-bold text-gray-500" id="packaging-fee-row">
+                        <span>Phụ phí đóng gói đặc biệt:</span>
+                        <span id="packaging-fee-display" class="text-winmart-dark">0đ</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center text-sm font-bold text-emerald-600 hidden" id="shipping-discount-row">
+                        <span>Miễn phí giao hàng:</span>
+                        <span id="shipping-discount-amount">-0đ</span>
+                    </div>
+
+                    <div class="flex justify-between items-center text-sm font-bold text-emerald-600 hidden" id="discount-row">
+                        <span class="flex items-center gap-1.5">
+                            Giảm giá (<span id="discount-code-text"></span>)
+                            <button type="button" id="btn-remove-promo" class="text-red-500 hover:bg-red-50 p-1 rounded-md transition cursor-pointer" title="Hủy mã giảm giá">
+                                <i data-lucide="x" class="w-3 h-3"></i>
+                            </button>:
+                        </span>
+                        <span id="discount-amount">-0đ</span>
+                    </div>
+                    
+                    <div id="routing-info" class="text-right text-[11px] text-gray-500 mt-1">
+                        <!-- Sẽ điền js -->
+                    </div>
+                    
+                    <!-- Hidden inputs for backend processing -->
+                    <input type="hidden" id="final-shipping-fee" name="shippingFee" value="15000">
+                    <input type="hidden" id="final-distance" name="distance" value="0">
+                    <input type="hidden" id="final-cuahang-id" name="cuaHangId" value="1">
+                    <input type="hidden" id="final-promo-code" name="maGiamGia" value="">
+                    <input type="hidden" id="final-promo-discount" value="0">
+                    <input type="hidden" id="final-province-id" name="toProvinceId" value="">
+                    <input type="hidden" id="final-district-id" name="toDistrictId" value="">
+                    <input type="hidden" id="final-ward-code" name="toWardCode" value="">
+                </div>
+
+                <div class="pt-6 border-t border-dashed border-gray-200 mb-8">
+                    <div class="flex justify-between items-end mb-1">
+                        <span class="text-sm font-black text-gray-400 uppercase tracking-widest">Tổng cộng</span>
+                        <span id="total-display" class="text-3xl font-black text-winmart-red tracking-tight"><%= (totalAmount + (typeof totalVat !== 'undefined' ? totalVat : 0) + 15000 + (hasFreshFood ? 15000 : 0)).toLocaleString('vi-VN') %>đ</span>
+                    </div>
+                    <div class="text-right text-[10px] text-gray-400 font-bold italic">(Đã bao gồm thuế VAT)</div>
+                </div>
+
+                <button type="submit" form="checkout-form" id="btn-submit-order" class="w-full bg-winmart-dark hover:bg-gray-800 text-white font-black px-6 py-4 rounded-xl transition-all shadow-lg shadow-gray-900/20 flex items-center justify-center gap-2 text-sm">
+                    XÁC NHẬN ĐẶT HÀNG <i data-lucide="check-circle" class="w-4 h-4"></i>
+                </button>
+                
+                <a href="/cart" class="w-full block text-center text-sm font-bold text-gray-400 hover:text-winmart-dark transition-colors mt-4 flex items-center justify-center gap-1.5">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Quay lại giỏ hàng
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9; 
+        border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1; 
+        border-radius: 4px;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Tự động điền địa chỉ nếu user đã chọn ở header
+    const hasFreshFood = <%= hasFreshFood ? 'true' : 'false' %>;
+    const cartTotalAmount = <%= totalAmount + (typeof totalVat !== 'undefined' ? totalVat : 0) %>;
+    
+    // Multi-store Data
+    const stores = <%- JSON.stringify(cuaHangs || []) %>;
+    
+    // Default Map Center (Hanoi)
+    const map = L.map('checkout-map').setView([21.0285, 105.8542], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Ghim tất cả cửa hàng lên bản đồ
+    const storeMarkers = [];
+    stores.forEach(store => {
+        const sm = L.marker([parseFloat(store.Lat), parseFloat(store.Lng)], {
+            icon: L.divIcon({className: 'bg-winmart-red w-4 h-4 rounded-full border-2 border-white shadow-xl'})
+        }).addTo(map);
+        storeMarkers.push(sm);
+    });
+    let userMarker = null;
+
+    // Dropdown elements for GHN Destination
+    const provinceSelect = document.getElementById('toProvinceId');
+    const districtSelect = document.getElementById('toDistrictId');
+    const wardSelect = document.getElementById('toWardCode');
+    const addressInput = document.getElementById('address');
+
+    async function loadProvinces() {
+        try {
+            const res = await fetch('/api/ghn/provinces');
+            const result = await res.json();
+            if (result.success) {
+                provinceSelect.innerHTML = '<option value="">Chọn Tỉnh/Thành phố...</option>';
+                result.data.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.ProvinceID;
+                    option.textContent = p.ProvinceName;
+                    provinceSelect.appendChild(option);
+                });
+            } else {
+                provinceSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+            }
+        } catch(e) {
+            provinceSelect.innerHTML = '<option value="">Lỗi kết nối</option>';
+        }
+    }
+
+    async function loadDistricts(provinceId) {
+        if (!provinceId) {
+            districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện...</option>';
+            wardSelect.innerHTML = '<option value="">Chọn Phường/Xã...</option>';
+            return;
+        }
+        districtSelect.innerHTML = '<option value="">Đang tải...</option>';
+        try {
+            const res = await fetch(`/api/ghn/districts/${provinceId}`);
+            const result = await res.json();
+            if (result.success) {
+                districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện...</option>';
+                result.data.forEach(d => {
+                    const option = document.createElement('option');
+                    option.value = d.DistrictID;
+                    option.textContent = d.DistrictName;
+                    districtSelect.appendChild(option);
+                });
+            } else {
+                districtSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+            }
+        } catch(e) {
+            districtSelect.innerHTML = '<option value="">Lỗi kết nối</option>';
+        }
+    }
+
+    async function loadWards(districtId) {
+        if (!districtId) {
+            wardSelect.innerHTML = '<option value="">Chọn Phường/Xã...</option>';
+            return;
+        }
+        wardSelect.innerHTML = '<option value="">Đang tải...</option>';
+        try {
+            const res = await fetch(`/api/ghn/wards/${districtId}`);
+            const result = await res.json();
+            if (result.success) {
+                wardSelect.innerHTML = '<option value="">Chọn Phường/Xã...</option>';
+                result.data.forEach(w => {
+                    const option = document.createElement('option');
+                    option.value = w.WardCode;
+                    option.textContent = w.WardName;
+                    wardSelect.appendChild(option);
+                });
+            } else {
+                wardSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+            }
+        } catch(e) {
+            wardSelect.innerHTML = '<option value="">Lỗi kết nối</option>';
+        }
+    }
+
+    provinceSelect.addEventListener('change', (e) => {
+        document.getElementById('final-province-id').value = e.target.value;
+        loadDistricts(e.target.value);
+        resetPricing();
+    });
+
+    districtSelect.addEventListener('change', (e) => {
+        document.getElementById('final-district-id').value = e.target.value;
+        loadWards(e.target.value);
+        resetPricing();
+    });
+
+    wardSelect.addEventListener('change', async (e) => {
+        const wardCode = e.target.value;
+        document.getElementById('final-ward-code').value = wardCode;
+        if (wardCode) {
+            await calculateShipping();
+            await geocodeAndCenterMap();
+        } else {
+            resetPricing();
+        }
+    });
+
+    // Auto fill from local storage if address was chosen in the header
+    async function autoFillFromLocalStorage() {
+        const savedLocStr = localStorage.getItem('winmart_location_json');
+        if (!savedLocStr) return;
+
+        try {
+            const locData = JSON.parse(savedLocStr);
+            const address = locData.address || '';
+            const detail = locData.detail || '';
+            const lat = parseFloat(locData.lat);
+            const lng = parseFloat(locData.lng);
+
+            if (lat && lng) {
+                setMapLocation(lat, lng);
+            }
+
+            // Fill detailed address
+            if (addressInput) {
+                const streetPart = address.split(',')[1] ? address.split(',')[1].trim() : '';
+                // Append street part (like street name/village name) if not already included in detail and not a ward/district
+                if (detail && streetPart && !detail.toLowerCase().includes(streetPart.toLowerCase()) && 
+                    !streetPart.toLowerCase().includes('phường') && !streetPart.toLowerCase().includes('xã') && 
+                    !streetPart.toLowerCase().includes('thị xã') && !streetPart.toLowerCase().includes('huyện')) {
+                    addressInput.value = `${detail}, ${streetPart}`;
+                } else {
+                    addressInput.value = detail || address.split(',')[0] || '';
+                }
+            }
+
+            if (!address) return;
+
+            const parts = address.split(',').map(p => cleanName(p));
+
+            function cleanName(name) {
+                if (!name) return '';
+                return name.toLowerCase()
+                    .replace(/^(tỉnh|thành phố|quận|huyện|thị xã|thị trấn|phường|xã)\s+/gi, '')
+                    .trim();
+            }
+
+            // 1. Match Province
+            const provinceRes = await fetch('/api/ghn/provinces');
+            const provinceResult = await provinceRes.json();
+            if (!provinceResult.success) return;
+
+            let matchedProvince = null;
+            for (const p of provinceResult.data) {
+                const cleanedPName = cleanName(p.ProvinceName);
+                if (parts.includes(cleanedPName)) {
+                    matchedProvince = p;
+                    break;
+                }
+            }
+
+            if (!matchedProvince) return;
+
+            // Select province
+            provinceSelect.value = matchedProvince.ProvinceID;
+            document.getElementById('final-province-id').value = matchedProvince.ProvinceID;
+
+            // 2. Load and Match District
+            districtSelect.innerHTML = '<option value="">Đang tải...</option>';
+            const districtRes = await fetch(`/api/ghn/districts/${matchedProvince.ProvinceID}`);
+            const districtResult = await districtRes.json();
+            if (!districtResult.success) {
+                districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện...</option>';
+                return;
+            }
+
+            districtSelect.innerHTML = '<option value="">Chọn Quận/Huyện...</option>';
+            districtResult.data.forEach(d => {
+                const option = document.createElement('option');
+                option.value = d.DistrictID;
+                option.textContent = d.DistrictName;
+                districtSelect.appendChild(option);
+            });
+
+            let matchedDistrict = null;
+            for (const d of districtResult.data) {
+                const cleanedDName = cleanName(d.DistrictName);
+                if (parts.includes(cleanedDName)) {
+                    matchedDistrict = d;
+                    break;
+                }
+            }
+
+            if (!matchedDistrict) return;
+
+            // Select district
+            districtSelect.value = matchedDistrict.DistrictID;
+            document.getElementById('final-district-id').value = matchedDistrict.DistrictID;
+
+            // 3. Load and Match Ward
+            wardSelect.innerHTML = '<option value="">Đang tải...</option>';
+            const wardRes = await fetch(`/api/ghn/wards/${matchedDistrict.DistrictID}`);
+            const wardResult = await wardRes.json();
+            if (!wardResult.success) {
+                wardSelect.innerHTML = '<option value="">Chọn Phường/Xã...</option>';
+                return;
+            }
+
+            wardSelect.innerHTML = '<option value="">Chọn Phường/Xã...</option>';
+            wardResult.data.forEach(w => {
+                const option = document.createElement('option');
+                option.value = w.WardCode;
+                option.textContent = w.WardName;
+                wardSelect.appendChild(option);
+            });
+
+            let matchedWard = null;
+            for (const w of wardResult.data) {
+                const cleanedWName = cleanName(w.WardName);
+                if (parts.includes(cleanedWName)) {
+                    matchedWard = w;
+                    break;
+                }
+            }
+
+            if (matchedWard) {
+                // Select ward
+                wardSelect.value = matchedWard.WardCode;
+                document.getElementById('final-ward-code').value = matchedWard.WardCode;
+                
+                // Re-calculate shipping fee and center map
+                await calculateShipping();
+                await geocodeAndCenterMap();
+            }
+
+        } catch (e) {
+            console.error('Lỗi tự động điền địa chỉ từ header:', e);
+        }
+    }
+
+    // Initialize provinces and auto fill
+    loadProvinces().then(() => {
+        autoFillFromLocalStorage();
+    });
+
+    // Geocode chosen dropdown options to center Leaflet Map
+    async function geocodeAndCenterMap() {
+        const provinceText = provinceSelect.options[provinceSelect.selectedIndex]?.textContent || '';
+        const districtText = districtSelect.options[districtSelect.selectedIndex]?.textContent || '';
+        const wardText = wardSelect.options[wardSelect.selectedIndex]?.textContent || '';
+        const detailAddr = addressInput.value.trim();
+
+        let query = `${wardText}, ${districtText}, ${provinceText}`;
+        if (detailAddr) {
+            query = `${detailAddr}, ${query}`;
+        }
+
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`);
+            const data = await res.json();
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                setMapLocation(lat, lng);
+            } else if (detailAddr) {
+                // Thử tìm theo xã/quận nếu địa chỉ chi tiết không tìm thấy
+                const fallbackRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(`${wardText}, ${districtText}, ${provinceText}`)}&format=json&limit=1`);
+                const fallbackData = await fallbackRes.json();
+                if (fallbackData && fallbackData.length > 0) {
+                    setMapLocation(parseFloat(fallbackData[0].lat), parseFloat(fallbackData[0].lon));
+                }
+            }
+        } catch(e) {}
+    }
+
+    // Input delay listener for detailed address to center map
+    let geocodeTimeout;
+    addressInput.addEventListener('input', () => {
+        clearTimeout(geocodeTimeout);
+        if (provinceSelect.value && districtSelect.value && wardSelect.value) {
+            geocodeTimeout = setTimeout(geocodeAndCenterMap, 1500); // 1.5s delay
+        }
+    });
+
+    function setMapLocation(lat, lng) {
+        map.setView([lat, lng], 15);
+        if (!userMarker) {
+            const customIcon = L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            });
+            userMarker = L.marker([lat, lng], {icon: customIcon, draggable: true}).addTo(map);
+            
+            userMarker.on('dragend', function(e) {
+                // Ghim kéo tay chỉ mang tính trực quan cho shipper, phí ship vẫn tính theo xã/phường dropdown
+            });
+        } else {
+            userMarker.setLatLng([lat, lng]);
+        }
+    }
+
+    // Map click refined pinpointing
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        setMapLocation(lat, lng);
+    });
+
+    // Haversine formula (Tính khoảng cách chim bay - giữ làm dữ liệu tham khảo hoặc đặt là 0)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; 
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    async function calculateShipping() {
+        const districtId = districtSelect.value;
+        const wardCode = wardSelect.value;
+
+        if (!districtId || !wardCode) {
+            resetPricing();
+            return;
+        }
+
+        // Show loading state
+        document.getElementById('distance-text').innerText = '(Đang tính...)';
+        document.getElementById('total-display').innerText = 'Đang tính...';
+
+        try {
+            const res = await fetch('/api/ghn/calculate-fee', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    toDistrictId: districtId,
+                    toWardCode: wardCode
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                // Phí nền GHN
+                document.getElementById('fee-distance').innerText = data.baseFee.toLocaleString('vi-VN') + 'đ';
+                document.getElementById('final-shipping-fee').value = data.finalFee;
+                
+                // Trọng lượng hiển thị
+                document.getElementById('distance-text').innerText = `(${data.totalWeight}g)`;
+                
+                // Phụ thu tươi sống
+                const freshFeeEl = document.getElementById('fresh-fee-display');
+                if (freshFeeEl) {
+                    freshFeeEl.innerText = data.freshFee.toLocaleString('vi-VN') + 'đ';
+                }
+
+                // Phụ thu đóng gói đặc biệt
+                const packagingFeeEl = document.getElementById('packaging-fee-display');
+                if (packagingFeeEl) {
+                    packagingFeeEl.innerText = data.packagingFee.toLocaleString('vi-VN') + 'đ';
+                }
+
+                // Cấu hình giảm giá vận chuyển (Free ship threshold)
+                const discountRow = document.getElementById('shipping-discount-row');
+                if (data.discount > 0) {
+                    if (discountRow) {
+                        discountRow.classList.remove('hidden');
+                        document.getElementById('shipping-discount-amount').innerText = '-' + data.discount.toLocaleString('vi-VN') + 'đ';
+                    }
+                } else {
+                    if (discountRow) {
+                        discountRow.classList.add('hidden');
+                    }
+                }
+
+                // Cập nhật thông tin định tuyến
+                const closestStore = stores[0] || {};
+                if (closestStore.TenCuaHang) {
+                    document.getElementById('routing-info').innerHTML = `<i data-lucide="zap" class="w-3.5 h-3.5 inline text-amber-500"></i> Giao hàng từ: <b>${closestStore.TenCuaHang}</b>`;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+
+                // Cập nhật tổng tiền đơn hàng
+                let promoDiscount = parseInt(document.getElementById('final-promo-discount').value) || 0;
+                let grandTotal = cartTotalAmount + data.finalFee - promoDiscount;
+                if (grandTotal < 0) grandTotal = 0;
+                document.getElementById('total-display').innerText = grandTotal.toLocaleString('vi-VN') + 'đ';
+            } else {
+                document.getElementById('distance-text').innerText = '(Lỗi tính phí)';
+            }
+        } catch (e) {
+            console.error(e);
+            document.getElementById('distance-text').innerText = '(Lỗi kết nối)';
+        }
+    }
+
+    function resetPricing() {
+        document.getElementById('distance-text').innerText = `(Vui lòng chọn địa chỉ)`;
+        document.getElementById('fee-distance').innerText = '0đ';
+        document.getElementById('final-shipping-fee').value = 0;
+        
+        const freshFeeEl = document.getElementById('fresh-fee-display');
+        if (freshFeeEl) freshFeeEl.innerText = '0đ';
+        
+        const packagingFeeEl = document.getElementById('packaging-fee-display');
+        if (packagingFeeEl) packagingFeeEl.innerText = '0đ';
+
+        const discountRow = document.getElementById('shipping-discount-row');
+        if (discountRow) discountRow.classList.add('hidden');
+        
+        let promoDiscount = parseInt(document.getElementById('final-promo-discount').value) || 0;
+        let grandTotal = cartTotalAmount - promoDiscount;
+        if (grandTotal < 0) grandTotal = 0;
+        
+        document.getElementById('total-display').innerText = grandTotal.toLocaleString('vi-VN') + 'đ';
+    }
+
+    // Submit form handler
+    const checkoutForm = document.getElementById('checkout-form');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btn-submit-order');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> ĐANG XỬ LÝ...';
+            btn.disabled = true;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            try {
+                const formData = {
+                    fullName: document.getElementById('fullName').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    address: document.getElementById('address').value.trim(),
+                    note: document.getElementById('note').value.trim(),
+                    paymentMethod: document.getElementById('actualPaymentMethod').value,
+                    shippingFee: document.getElementById('final-shipping-fee').value,
+                    distance: document.getElementById('final-distance').value,
+                    cuaHangId: document.getElementById('final-cuahang-id').value,
+                    maGiamGia: document.getElementById('final-promo-code').value,
+                    toProvinceId: document.getElementById('final-province-id').value,
+                    toDistrictId: document.getElementById('final-district-id').value,
+                    toWardCode: document.getElementById('final-ward-code').value
+                };
+
+                const res = await fetch('/checkout/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showWmToast('Đặt hàng thành công! Đang chuyển hướng...');
+                    const cartBadge = document.getElementById('cart-count-badge');
+                    if (cartBadge) {
+                        cartBadge.textContent = '0';
+                        cartBadge.classList.add('hidden');
+                    }
+                    
+                    setTimeout(() => {
+                        window.location.href = data.redirectUrl;
+                    }, 1000);
+                } else {
+                    showWmToast(data.message || 'Lỗi đặt hàng', 'error');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            } catch (err) {
+                showWmToast('Lỗi kết nối. Vui lòng thử lại sau.', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        });
+    }
+
+    // Xử lý mã giảm giá
+    const btnApplyPromo = document.getElementById('btn-apply-promo');
+    const btnRemovePromo = document.getElementById('btn-remove-promo');
+    const msgEl = document.getElementById('promoCodeMsg');
+    const discountRow = document.getElementById('discount-row');
+    const codeInputEl = document.getElementById('promoCodeInput');
+
+    function clearPromo() {
+        document.getElementById('final-promo-code').value = '';
+        document.getElementById('final-promo-discount').value = 0;
+        discountRow.classList.add('hidden');
+        codeInputEl.value = '';
+        
+        // Re-calculate pricing
+        if (userMarker) {
+            const pos = userMarker.getLatLng();
+            updatePricing(pos.lat, pos.lng);
+        } else {
+            resetPricing();
+        }
+    }
+
+    if (btnRemovePromo) {
+        btnRemovePromo.addEventListener('click', () => {
+            clearPromo();
+            msgEl.textContent = 'Đã hủy mã giảm giá';
+            msgEl.className = 'text-[11px] font-bold mt-2 text-gray-500 block';
+        });
+    }
+
+    if (btnApplyPromo) {
+        btnApplyPromo.addEventListener('click', async () => {
+            const codeInput = codeInputEl.value.trim().toUpperCase();
+            
+            msgEl.classList.remove('hidden');
+
+            if (!codeInput) {
+                clearPromo();
+                msgEl.textContent = 'Đã hủy mã giảm giá';
+                msgEl.className = 'text-[11px] font-bold mt-2 text-gray-500 block';
+                return;
+            }
+
+            try {
+                btnApplyPromo.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
+                lucide.createIcons();
+                
+                const res = await fetch('/checkout/validate-promo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        maCode: codeInput, 
+                        orderTotal: cartTotalAmount 
+                    })
+                });
+                const data = await res.json();
+                
+                btnApplyPromo.innerHTML = 'Áp dụng';
+                
+                if (data.success) {
+                    document.getElementById('final-promo-code').value = codeInput;
+                    document.getElementById('final-promo-discount').value = data.discountValue;
+                    
+                    document.getElementById('discount-code-text').textContent = codeInput;
+                    document.getElementById('discount-amount').textContent = '-' + data.discountValue.toLocaleString('vi-VN') + 'đ';
+                    discountRow.classList.remove('hidden');
+                    
+                    msgEl.textContent = data.message;
+                    msgEl.className = 'text-[11px] font-bold mt-2 text-emerald-500 block';
+                    
+                    // Re-calculate pricing
+                    if (userMarker) {
+                        const pos = userMarker.getLatLng();
+                        updatePricing(pos.lat, pos.lng);
+                    } else {
+                        resetPricing();
+                    }
+                } else {
+                    clearPromo();
+                    
+                    msgEl.textContent = data.message;
+                    msgEl.className = 'text-[11px] font-bold mt-2 text-red-500 block';
+                }
+            } catch (err) {
+                btnApplyPromo.innerHTML = 'Áp dụng';
+                msgEl.textContent = 'Lỗi kiểm tra mã giảm giá';
+                msgEl.className = 'text-[11px] font-bold mt-2 text-red-500 block';
+            }
+        });
+    }
+
+    // Payment styling sync & sub-options logic
+    const paymentGroupRadios = document.querySelectorAll('input[name="paymentMethodGroup"]');
+    const onlineSubOptions = document.getElementById('online-payment-suboptions');
+    const actualPaymentMethodInput = document.getElementById('actualPaymentMethod');
+    const onlineMethodRadios = document.querySelectorAll('input[name="onlineMethod"]');
+
+    paymentGroupRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.payment-label').forEach(lbl => {
+                lbl.classList.remove('border-winmart-red', 'bg-red-50');
+                lbl.classList.add('border-gray-200', 'bg-white');
+                const ring = lbl.querySelector('.selection-ring');
+                if (ring) ring.classList.add('hidden');
+                
+                const icon = lbl.querySelector('.payment-icon');
+                if (icon) {
+                    icon.classList.remove('text-winmart-red');
+                    if (lbl.contains(document.querySelector('input[value="ONLINE"]'))) {
+                        icon.classList.add('text-blue-600');
+                    } else {
+                        icon.classList.add('text-gray-400');
+                    }
+                }
+            });
+            
+            if (this.checked) {
+                const parent = this.closest('.payment-label');
+                parent.classList.remove('border-gray-200', 'bg-white');
+                parent.classList.add('border-winmart-red', 'bg-red-50');
+                const ring = parent.querySelector('.selection-ring');
+                if (ring) ring.classList.remove('hidden');
+                
+                const icon = parent.querySelector('.payment-icon');
+                if (icon) {
+                    icon.classList.remove('text-gray-400', 'text-blue-600');
+                    icon.classList.add('text-winmart-red');
+                }
+
+                if (this.value === 'ONLINE') {
+                    onlineSubOptions.classList.remove('hidden');
+                    // Tự động check VNPay nếu chưa chọn gì
+                    if (!document.querySelector('input[name="onlineMethod"]:checked')) {
+                        onlineMethodRadios[0].checked = true;
+                        actualPaymentMethodInput.value = 'VNPay';
+                    }
+                } else {
+                    onlineSubOptions.classList.add('hidden');
+                    actualPaymentMethodInput.value = 'TienMat';
+                }
+            }
+        });
+    });
+
+    // Handle sub-option click styling and value update
+    onlineMethodRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                actualPaymentMethodInput.value = this.value; // VNPay or MoMo
+                document.querySelectorAll('.sub-payment-label').forEach(lbl => {
+                    lbl.classList.remove('border-blue-500', 'border-pink-500', 'bg-blue-50', 'bg-pink-50');
+                });
+                
+                const parent = this.closest('.sub-payment-label');
+                if (this.value === 'VNPay') {
+                    parent.classList.add('border-blue-500', 'bg-blue-50');
+                } else {
+                    parent.classList.add('border-pink-500', 'bg-pink-50');
+                }
+            }
+        });
+    });
+});
+</script>

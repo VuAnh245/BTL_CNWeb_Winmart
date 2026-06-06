@@ -1,0 +1,666 @@
+<!-- Export Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <p class="text-[11px] text-winmart-slate font-semibold tracking-wider uppercase mb-1">Quản lý Kho Hàng</p>
+        <h1 class="text-2xl font-black tracking-tight text-winmart-dark">Tổng Quan & Nhập Kho</h1>
+    </div>
+    <div class="flex gap-2">
+        <button id="btn-export-excel" onclick="exportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-600/20">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-100"></i> Xuất Excel
+        </button>
+        <button id="btn-export-pdf" onclick="exportPDF()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-rose-600/20">
+            <i data-lucide="file-text" class="w-4 h-4 text-rose-100"></i> Xuất PDF
+        </button>
+        <button id="btn-new-import" onclick="toggleSlideOver()" class="hidden bg-winmart-dark hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-gray-900/20">
+            <i data-lucide="plus" class="w-4 h-4 text-winmart-yellow"></i> Nhập Hàng Mới
+        </button>
+    </div>
+</div>
+
+<%- include('../../partials/flash-message') %>
+
+<!-- Tabs Navigation -->
+<div class="mb-6 flex gap-2 border-b border-gray-100 dark:border-gray-800">
+    <button onclick="switchTab('inventory')" id="tab-inventory" class="px-6 py-3 text-sm font-bold border-b-2 border-winmart-red text-winmart-red transition-all">Tồn Kho Hiện Tại</button>
+    <button onclick="switchTab('history')" id="tab-history" class="px-6 py-3 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all">Lịch Sử Nhập Kho</button>
+</div>
+
+<!-- Tab Content: Inventory -->
+<div id="panel-inventory" class="bento-card overflow-hidden block">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left min-w-[1000px]">
+            <thead>
+                <tr class="bg-white border-b border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider">Mã SP</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Sản Phẩm</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Danh Mục</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Giá Bán</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Tổng Tồn Kho</th>
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Cảnh Báo</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 dark:divide-gray-800/50">
+                <% if (typeof inventoryList !== 'undefined' && inventoryList.length > 0) { %>
+                    <% inventoryList.forEach(item => { %>
+                    <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition bg-white dark:bg-gray-800">
+                        <td class="py-4 px-5 font-bold text-sm text-winmart-dark dark:text-gray-100"><%= item.MaSanPham %></td>
+                        <td class="py-4 px-4 font-semibold text-sm text-gray-700 dark:text-gray-300"><%= item.TenSanPham %></td>
+                        <td class="py-4 px-4 text-xs font-bold text-gray-500"><%= item.TenDanhMuc %></td>
+                        <td class="py-4 px-4 text-right font-black text-winmart-red text-sm"><%= Number(item.GiaBan).toLocaleString('vi-VN') %>đ</td>
+                        <td class="py-4 px-4 text-right font-black text-gray-800 dark:text-gray-200 text-base"><%= item.TongTonKho %></td>
+                        <td class="py-4 px-5 text-center">
+                            <% if (item.TongTonKho <= 0) { %>
+                                <span class="px-2 py-1.5 rounded-md bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-widest border border-red-100 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400">Hết Hàng</span>
+                            <% } else if (item.TongTonKho <= (item.MucCanDat || 10)) { %>
+                                <span class="px-2 py-1.5 rounded-md bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest border border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-400">Sắp Hết</span>
+                            <% } else { %>
+                                <span class="px-2 py-1.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400">Bình Thường</span>
+                            <% } %>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr><td colspan="5" class="py-12 text-center text-gray-400">Chưa có sản phẩm nào</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Tab Content: History -->
+<div id="panel-history" class="bento-card overflow-hidden hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left min-w-[1000px]">
+            <thead>
+                <tr class="bg-white border-b border-gray-100">
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider">Mã Phiếu</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Nhà Cung Cấp</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Ngày Nhập</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Trạng Thái</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Tổng Thanh Toán</th>
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                <% if (receipts && receipts.length > 0) { %>
+                    <% receipts.forEach(r => { %>
+                    <tr class="hover:bg-gray-50/50 transition bg-white">
+                        <td class="py-4 px-5">
+                            <h4 class="font-extrabold text-winmart-dark text-sm"><%= r.MaPhieuNhap %></h4>
+                            <span class="text-[10px] text-gray-400 font-bold mt-0.5 block">Bởi: <%= r.TenNhanVien || 'Hệ thống' %></span>
+                        </td>
+                        <td class="py-4 px-4">
+                            <div class="text-xs font-bold text-gray-700"><%= r.TenNhaCungCap || 'Không rõ' %></div>
+                        </td>
+                        <td class="py-4 px-4">
+                            <div class="text-xs font-semibold text-gray-600">
+                                <%= new Date(r.NgayNhapVe || r.NgayLap).toLocaleDateString('vi-VN') %>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                            <% if (r.TrangThai === 'DangCho') { %>
+                                <span class="bg-amber-50 text-amber-600 px-2.5 py-1 rounded-md text-[10px] font-bold border border-amber-100 whitespace-nowrap">Đang Chờ</span>
+                            <% } else if (r.TrangThai === 'DaNhan') { %>
+                                <span class="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-md text-[10px] font-bold border border-emerald-100 whitespace-nowrap">Đã Nhập</span>
+                            <% } else if (r.TrangThai === 'DaHuy') { %>
+                                <span class="bg-red-50 text-red-600 px-2.5 py-1 rounded-md text-[10px] font-bold border border-red-100 whitespace-nowrap">Đã Hủy</span>
+                            <% } %>
+                        </td>
+                        <td class="py-4 px-4 text-right">
+                            <span class="text-sm font-black text-winmart-red"><%= (Number(r.TongTienNhap) + Number(r.TongVATDauVao || 0)).toLocaleString('vi-VN') %>đ</span>
+                        </td>
+                        <td class="py-4 px-5 text-right">
+                            <a href="/admin/inventory/<%= r.PhieuNhapId %>" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition inline-flex ml-auto" title="Xem chi tiết">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-gray-400">
+                            <i data-lucide="package-open" class="w-12 h-12 mx-auto mb-3 opacity-20"></i>
+                            <p class="text-sm font-semibold">Chưa có phiếu nhập kho nào</p>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+
+<!-- ============================================== -->
+<!-- SLIDE-OVER: Form Tạo Phiếu Nhập Kho (WIDE) -->
+<!-- ============================================== -->
+<% const isOpen = typeof openSlideOver !== 'undefined' && openSlideOver; %>
+
+<div id="slide-over-backdrop" onclick="closeSlideOver()" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40 <%= isOpen ? '' : 'hidden opacity-0' %> transition-opacity"></div>
+
+<div id="slide-over" class="fixed inset-y-0 right-0 w-full xl:w-[960px] lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200 transition-transform duration-300 ease-in-out <%= isOpen ? 'translate-x-0' : 'translate-x-full' %>">
+
+    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+        <div>
+            <h3 class="text-base font-black text-winmart-dark flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-winmart-red rounded-full"></span> Tạo Phiếu Nhập Kho
+            </h3>
+            <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5">Nhập hàng hóa mới vào hệ thống</p>
+        </div>
+        <button onclick="closeSlideOver()" class="p-2 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-winmart-dark transition shadow-sm">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 bg-gray-50/30">
+        <form id="createImportForm" class="space-y-6">
+            <!-- Thông tin chung -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Nhà Cung Cấp</label>
+                    <select name="nhaCungCapId" id="nhaCungCapId" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all appearance-none" required>
+                        <option value="">-- Chọn Nhà Cung Cấp --</option>
+                        <% if (typeof suppliers !== 'undefined') { %>
+                            <% suppliers.forEach(s => { %>
+                                <option value="<%= s.NhaCungCapId %>"><%= s.TenNhaCungCap %></option>
+                            <% }) %>
+                        <% } %>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Ngày Nhập Kho (Thực tế)</label>
+                    <input type="date" name="ngayNhapVe" id="ngayNhapVe" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" required>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Ghi Chú</label>
+                    <textarea name="ghiChu" id="ghiChu" rows="2" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 focus:outline-none focus:border-winmart-red transition-all" placeholder="Ghi chú thêm về lô hàng..."></textarea>
+                </div>
+            </div>
+
+            <!-- Chi tiết sản phẩm -->
+            <div class="mt-8 border-t border-gray-100 pt-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-black text-winmart-dark uppercase tracking-wide">Chi Tiết Sản Phẩm Nhập</h3>
+                    <button type="button" id="addRowBtn" class="bg-gray-100 text-gray-700 hover:bg-gray-200 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Thêm Dòng
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="py-3 px-4 text-[10px] font-black text-gray-500 uppercase rounded-tl-xl" style="width:28%">Sản Phẩm</th>
+                                <th class="py-3 px-4 text-[10px] font-black text-gray-500 uppercase text-center" style="width:8%">ĐVT</th>
+                                <th class="py-3 px-4 text-[10px] font-black text-gray-500 uppercase" style="width:10%">Tồn Kho</th>
+                                <th class="py-3 px-4 text-[10px] font-black text-gray-500 uppercase" style="width:12%">Số Lượng</th>
+                                <th class="py-3 px-4 text-[10px] font-black text-gray-500 uppercase" style="width:14%">Đơn Giá Nhập (đ)</th>
+                                <th class="py-3 px-4 text-[10px] font-black text-gray-500 uppercase text-center" style="width:10%">VAT (%)</th>
+                                <th class="py-3 px-4 text-[10px] font-black text-gray-500 uppercase" style="width:14%">Hạn Sử Dụng</th>
+                                <th class="py-3 px-4 text-[10px] font-black text-gray-500 uppercase rounded-tr-xl text-center" style="width:6%">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody">
+                            <!-- Rows will be added here by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="p-5 border-t border-gray-100 bg-white flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-4 bg-gray-50/50 px-6 py-3 rounded-2xl border border-gray-100">
+            <span class="text-gray-400 font-bold uppercase tracking-widest text-[10px] mt-1">Tổng Thanh Toán</span>
+            <div class="flex flex-col">
+                <div class="flex items-center gap-2 mb-0.5">
+                    <span class="text-sm font-bold text-gray-600" id="tienHangDisplay">0đ</span>
+                    <span class="text-[10px] font-bold text-gray-400" id="vatDisplay">(+ VAT: 0đ)</span>
+                </div>
+                <span class="text-3xl font-black text-winmart-red leading-none" id="tongThanhToanDisplay">= 0đ</span>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="closeSlideOver()" class="px-8 py-3.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-2xl text-sm font-bold text-gray-600 transition shadow-sm">Thoát</button>
+            <button type="button" id="submitBtn" class="bg-winmart-dark hover:bg-black text-white px-8 py-3.5 rounded-2xl text-sm font-black tracking-wide transition shadow-lg shadow-gray-900/20 flex items-center gap-2">
+                <i data-lucide="check-circle" class="w-4 h-4 text-winmart-yellow"></i> Lưu Phiếu Nhập
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Template for row -->
+<template id="rowTemplate">
+    <tr class="border-b border-gray-50 item-row">
+        <td class="py-3 px-4">
+            <select class="item-select w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold focus:border-winmart-red focus:outline-none transition-all" required>
+                <option value="">-- Chọn SP --</option>
+                <% if (typeof products !== 'undefined') { %>
+                    <% products.forEach(p => { %>
+                        <option value="<%= p.SanPhamId %>" data-gia="<%= p.GiaNhapGoc || 0 %>" data-dvt="<%= p.DonViTinh || 'Cái' %>" data-ton="<%= p.TongTonKho %>" data-vat="<%= p.ThueVAT || 0 %>"><%= p.TenSanPham %></option>
+                    <% }) %>
+                <% } %>
+            </select>
+        </td>
+        <td class="py-3 px-4 text-center">
+            <span class="item-dvt text-xs font-semibold text-gray-400">--</span>
+        </td>
+        <td class="py-3 px-4">
+            <span class="item-stock text-xs font-bold text-gray-400">--</span>
+        </td>
+        <td class="py-3 px-4">
+            <input type="number" min="1" class="item-qty w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold focus:border-winmart-red focus:outline-none transition-all" placeholder="0" required>
+        </td>
+        <td class="py-3 px-4">
+            <input type="text" class="item-price-display w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold focus:border-winmart-red focus:outline-none transition-all" placeholder="0">
+            <input type="hidden" class="item-price" value="0">
+        </td>
+        <td class="py-3 px-4">
+            <input type="text" inputmode="numeric" class="item-vat w-full text-center bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs font-bold text-winmart-red focus:bg-white focus:border-winmart-red focus:outline-none transition-all shadow-inner" placeholder="0">
+        </td>
+        <td class="py-3 px-4">
+            <input type="date" class="item-exp w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold focus:border-winmart-red focus:outline-none transition-all">
+        </td>
+        <td class="py-3 px-4 text-center">
+            <button type="button" class="remove-btn text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-md transition-colors">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function toggleSlideOver() {
+        // Reset form
+        document.getElementById('createImportForm').reset();
+        document.getElementById('itemsTableBody').innerHTML = '';
+        document.getElementById('ngayNhapVe').valueAsDate = new Date();
+        addRow();
+        calculateTotal();
+
+        const panel = document.getElementById('slide-over');
+        const backdrop = document.getElementById('slide-over-backdrop');
+        
+        backdrop.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('translate-x-full');
+            panel.classList.add('translate-x-0');
+        }, 10);
+    }
+    
+    function closeSlideOver() {
+        const panel = document.getElementById('slide-over');
+        const backdrop = document.getElementById('slide-over-backdrop');
+        
+        panel.classList.remove('translate-x-0');
+        panel.classList.add('translate-x-full');
+        backdrop.classList.add('opacity-0');
+        setTimeout(() => {
+            backdrop.classList.add('hidden');
+            if (window.location.pathname.includes('/create')) {
+                window.history.pushState({}, document.title, '/admin/inventory');
+            }
+        }, 300);
+    }
+
+    const tbody = document.getElementById('itemsTableBody');
+    const template = document.getElementById('rowTemplate');
+    const totalDisplay = document.getElementById('totalAmountDisplay');
+
+    function formatNumber(num) {
+        return Number(num).toLocaleString('vi-VN');
+    }
+
+    function parseFormattedNumber(str) {
+        if (!str) return 0;
+        return Number(String(str).replace(/\./g, '').replace(/,/g, ''));
+    }
+
+    function calculateTotal() {
+        let totalTienHang = 0;
+        let totalVAT = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            const qty = Number(row.querySelector('.item-qty').value) || 0;
+            const price = Number(row.querySelector('.item-price').value) || 0;
+            
+            const selectEl = row.querySelector('.item-select');
+            
+            const vatInput = row.querySelector('.item-vat').value;
+            const vatRate = vatInput !== '' ? Number(vatInput) : 0;
+            
+            const thanhTien = (qty * price);
+            totalTienHang += thanhTien;
+            totalVAT += thanhTien * (vatRate / 100);
+        });
+        
+        const tongThanhToan = totalTienHang + totalVAT;
+        
+        const tienHangDisplay = document.getElementById('tienHangDisplay');
+        const vatDisplay = document.getElementById('vatDisplay');
+        const tongThanhToanDisplay = document.getElementById('tongThanhToanDisplay');
+        
+        if (tienHangDisplay) tienHangDisplay.textContent = formatNumber(totalTienHang) + 'đ';
+        if (vatDisplay) vatDisplay.textContent = '(+ VAT: ' + formatNumber(totalVAT) + 'đ)';
+        if (tongThanhToanDisplay) tongThanhToanDisplay.textContent = '= ' + formatNumber(tongThanhToan) + 'đ';
+    }
+
+    function setupRowEvents(tr) {
+        tr.querySelector('.remove-btn').addEventListener('click', () => {
+            tr.remove();
+            calculateTotal();
+        });
+
+        tr.querySelector('.item-qty').addEventListener('input', calculateTotal);
+        tr.querySelector('.item-vat').addEventListener('input', calculateTotal);
+
+        // Format price display
+        const priceDisplay = tr.querySelector('.item-price-display');
+        const priceHidden = tr.querySelector('.item-price');
+
+        priceDisplay.addEventListener('input', function() {
+            const raw = parseFormattedNumber(this.value);
+            priceHidden.value = raw;
+            calculateTotal();
+        });
+
+        priceDisplay.addEventListener('blur', function() {
+            const raw = parseFormattedNumber(this.value);
+            if (raw > 0) {
+                this.value = formatNumber(raw);
+            }
+            priceHidden.value = raw;
+        });
+
+        priceDisplay.addEventListener('focus', function() {
+            const raw = parseFormattedNumber(this.value);
+            if (raw > 0) {
+                this.value = raw;
+            } else {
+                this.value = '';
+            }
+        });
+
+        // Auto-fill on product select
+        const select = tr.querySelector('.item-select');
+        select.addEventListener('change', function() {
+            const opt = this.options[this.selectedIndex];
+            if (opt.value) {
+                const gia = Number(opt.getAttribute('data-gia')) || 0;
+                const dvt = opt.getAttribute('data-dvt') || '--';
+                const ton = opt.getAttribute('data-ton') || '0';
+
+                tr.querySelector('.item-dvt').textContent = dvt;
+
+                const tonNum = Number(ton);
+                const stockEl = tr.querySelector('.item-stock');
+                stockEl.textContent = formatNumber(tonNum);
+                if (tonNum <= 0) {
+                    stockEl.className = 'item-stock text-xs font-bold text-red-500';
+                } else {
+                    stockEl.className = 'item-stock text-xs font-bold text-emerald-600';
+                }
+
+                const vat = opt.getAttribute('data-vat') || '0';
+                tr.querySelector('.item-vat').value = vat;
+                if(Number(vat) > 0) {
+                    tr.querySelector('.item-vat').classList.add('text-winmart-red');
+                    tr.querySelector('.item-vat').classList.remove('text-gray-400');
+                } else {
+                    tr.querySelector('.item-vat').classList.remove('text-winmart-red');
+                    tr.querySelector('.item-vat').classList.add('text-gray-400');
+                }
+
+                if (gia > 0) {
+                    priceDisplay.value = formatNumber(gia);
+                    priceHidden.value = gia;
+                    calculateTotal();
+                }
+            } else {
+                tr.querySelector('.item-dvt').textContent = '--';
+                tr.querySelector('.item-stock').textContent = '--';
+                tr.querySelector('.item-stock').className = 'item-stock text-xs font-bold text-gray-400';
+                tr.querySelector('.item-vat').value = '';
+                priceDisplay.value = '';
+                priceHidden.value = 0;
+            }
+        });
+    }
+
+    function addRow() {
+        const clone = template.content.cloneNode(true);
+        const tr = clone.querySelector('tr');
+        setupRowEvents(tr);
+        tbody.appendChild(clone);
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const addBtn = document.getElementById('addRowBtn');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (addBtn) addBtn.addEventListener('click', addRow);
+
+        if (submitBtn) {
+            submitBtn.addEventListener('click', async () => {
+                const nhaCungCapId = document.getElementById('nhaCungCapId').value;
+                const ngayNhapVe = document.getElementById('ngayNhapVe').value;
+                const ghiChu = document.getElementById('ghiChu').value;
+                
+                if (!nhaCungCapId || !ngayNhapVe) {
+                    return Swal.fire('Lỗi', 'Vui lòng điền đủ Nhà cung cấp và Ngày nhập', 'error');
+                }
+
+                const items = [];
+                let valid = true;
+
+                document.querySelectorAll('.item-row').forEach(row => {
+                    const spId = row.querySelector('.item-select').value;
+                    const qty = row.querySelector('.item-qty').value;
+                    const price = row.querySelector('.item-price').value;
+                    const vat = row.querySelector('.item-vat').value;
+                    const exp = row.querySelector('.item-exp').value;
+
+                    if (!spId || !qty || !price) {
+                        valid = false;
+                    } else {
+                        items.push({ sanPhamId: spId, soLuong: qty, giaNhapDonVi: price, thueVAT: vat || 0, ngayHetHan: exp || null });
+                    }
+                });
+
+                if (!valid || items.length === 0) {
+                    return Swal.fire('Lỗi', 'Vui lòng điền đủ thông tin các sản phẩm nhập kho', 'error');
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-winmart-yellow"></i> Đang xử lý...';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+
+                try {
+                    const res = await fetch('/admin/inventory/create', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ nhaCungCapId, ngayNhapVe, ghiChu, items })
+                    });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        Swal.fire('Thành công', data.message, 'success').then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-winmart-yellow"></i> Lưu Phiếu Nhập';
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    }
+                } catch (err) {
+                    Swal.fire('Lỗi', 'Lỗi kết nối server', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-winmart-yellow"></i> Lưu Phiếu Nhập';
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            });
+        }
+        
+        // Auto open if accessed via /create route
+        <% if (isOpen) { %>
+            toggleSlideOver();
+            switchTab('history');
+        <% } else if (typeof openHistory !== 'undefined' && openHistory) { %>
+            switchTab('history');
+        <% } %>
+    });
+
+    function switchTab(tabId) {
+        document.getElementById('panel-inventory').classList.add('hidden');
+        document.getElementById('panel-history').classList.add('hidden');
+        document.getElementById('tab-inventory').className = 'px-6 py-3 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 transition-all';
+        document.getElementById('tab-history').className = 'px-6 py-3 text-sm font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 transition-all';
+
+        document.getElementById('panel-' + tabId).classList.remove('hidden');
+        document.getElementById('tab-' + tabId).className = 'px-6 py-3 text-sm font-bold border-b-2 border-winmart-red text-winmart-red transition-all';
+
+        if (tabId === 'inventory') {
+            document.getElementById('btn-export-excel').classList.remove('hidden');
+            document.getElementById('btn-export-excel').classList.add('flex');
+            document.getElementById('btn-export-pdf').classList.remove('hidden');
+            document.getElementById('btn-export-pdf').classList.add('flex');
+            document.getElementById('btn-new-import').classList.add('hidden');
+            document.getElementById('btn-new-import').classList.remove('flex');
+        } else {
+            document.getElementById('btn-export-excel').classList.add('hidden');
+            document.getElementById('btn-export-excel').classList.remove('flex');
+            document.getElementById('btn-export-pdf').classList.add('hidden');
+            document.getElementById('btn-export-pdf').classList.remove('flex');
+            document.getElementById('btn-new-import').classList.remove('hidden');
+            document.getElementById('btn-new-import').classList.add('flex');
+        }
+    }
+
+    function decodeHtml(html) {
+        var txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
+    }
+
+    function removeVietnameseTones(str) {
+        if(!str) return "";
+        str = decodeHtml(String(str));
+        str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g,"a"); 
+        str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g,"e"); 
+        str = str.replace(/ì|í|ị|ỉ|ĩ/g,"i"); 
+        str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g,"o"); 
+        str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g,"u"); 
+        str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g,"y"); 
+        str = str.replace(/đ/g,"d");
+        str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+        str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+        str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+        str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+        str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+        str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+        str = str.replace(/Đ/g, "D");
+        return str;
+    }
+
+    function getRawData() {
+        const data = [];
+        <% if (typeof inventoryList !== 'undefined') { %>
+            <% inventoryList.forEach(item => { %>
+                data.push({
+                    maSp: "<%= item.MaSanPham %>",
+                    tenSp: "<%= item.TenSanPham %>",
+                    danhMuc: "<%= item.TenDanhMuc %>",
+                    giaBan: Number(<%= item.GiaBan %>),
+                    tonKho: Number(<%= item.TongTonKho %>),
+                    canhBao: "<%= item.TongTonKho <= 0 ? 'Hết Hàng' : (item.TongTonKho <= (item.MucCanDat || 10) ? 'Sắp Hết' : 'Bình Thường') %>"
+                });
+            <% }) %>
+        <% } %>
+        return data;
+    }
+
+    function exportExcel() {
+        Swal.fire({ title: 'Đang trích xuất Excel...', text: 'Vui lòng chờ.', icon: 'info', timer: 1000, showConfirmButton: false }).then(() => {
+            const rawData = getRawData();
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('vi-VN');
+            const timeStr = now.toLocaleTimeString('vi-VN');
+
+            const rows = [];
+            // Excel Header
+            rows.push(['BÁO CÁO TỒN KHO HỆ THỐNG WINMART']);
+            rows.push(['Ngày xuất:', dateStr, 'Giờ xuất:', timeStr]);
+            rows.push([]); // Empty row
+            
+            // Table Header
+            rows.push(['Mã SP', 'Sản Phẩm', 'Danh Mục', 'Giá Bán (VNĐ)', 'Tổng Tồn Kho', 'Cảnh Báo']);
+            
+            // Table Body
+            rawData.forEach(item => {
+                rows.push([
+                    decodeHtml(item.maSp),
+                    decodeHtml(item.tenSp),
+                    decodeHtml(item.danhMuc),
+                    item.giaBan,
+                    item.tonKho,
+                    decodeHtml(item.canhBao)
+                ]);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+            ws['!cols'] = [{wch:15}, {wch:35}, {wch:25}, {wch:15}, {wch:15}, {wch:20}];
+            XLSX.utils.book_append_sheet(wb, ws, "TonKho");
+            XLSX.writeFile(wb, "BaoCaoTonKho_" + now.toISOString().split('T')[0] + ".xlsx");
+        });
+    }
+
+    function exportPDF() {
+        Swal.fire({ title: 'Đang trích xuất PDF...', text: 'Vui lòng chờ.', icon: 'info', timer: 1000, showConfirmButton: false }).then(() => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'pt', 'a4');
+            const rawData = getRawData();
+            const now = new Date();
+            
+            doc.setFontSize(16);
+            doc.text("BAO CAO TON KHO HE THONG WINMART", 40, 40);
+            doc.setFontSize(10);
+            doc.text("Ngay xuat: " + now.toLocaleDateString('vi-VN') + "   Gio xuat: " + now.toLocaleTimeString('vi-VN'), 40, 60);
+
+            const rows = [];
+            rawData.forEach(item => {
+                rows.push([
+                    removeVietnameseTones(item.maSp),
+                    removeVietnameseTones(item.tenSp),
+                    removeVietnameseTones(item.danhMuc),
+                    Number(item.giaBan).toLocaleString('vi-VN') + " d",
+                    String(item.tonKho),
+                    removeVietnameseTones(item.canhBao)
+                ]);
+            });
+
+            doc.autoTable({
+                startY: 80,
+                head: [['Ma SP', 'San Pham', 'Danh Muc', 'Gia Ban', 'Ton Kho', 'Canh Bao']],
+                body: rows,
+                theme: 'grid',
+                headStyles: { fillColor: [226, 30, 38] },
+                styles: { fontSize: 9 }
+            });
+
+            doc.save("BaoCaoTonKho_" + now.toISOString().split('T')[0] + ".pdf");
+        });
+    }
+</script>

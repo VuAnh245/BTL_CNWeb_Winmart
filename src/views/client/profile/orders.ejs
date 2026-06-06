@@ -1,0 +1,113 @@
+<div class="container mx-auto px-4 py-8 mb-20 max-w-5xl">
+    <!-- Breadcrumb -->
+    <nav class="flex text-sm text-gray-500 mb-8" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="/" class="hover:text-winmart-red transition-colors flex items-center gap-1.5">
+                    <i data-lucide="home" class="w-4 h-4"></i> Trang chủ
+                </a>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <i data-lucide="chevron-right" class="w-4 h-4 mx-1"></i>
+                    <span class="font-bold text-winmart-dark">Đơn hàng của tôi</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <div class="flex flex-col md:flex-row gap-8">
+        <!-- Sidebar Menu (Optional if we have more profile pages later) -->
+        <div class="w-full md:w-64 shrink-0">
+            <div class="bento-card p-4 sticky top-24">
+                <div class="flex items-center gap-4 mb-6 p-2">
+                    <div class="w-12 h-12 bg-winmart-red rounded-full flex items-center justify-center text-white font-black text-xl shadow-lg shadow-winmart-red/30">
+                        <%= user.id %>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Tài khoản</p>
+                        <p class="text-sm font-black text-winmart-dark"><%= user.role %></p>
+                    </div>
+                </div>
+                
+                <nav class="space-y-1">
+                    <a href="javascript:void(0)" onclick="goToWishlist()" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-winmart-dark font-bold text-sm transition-all">
+                        <i data-lucide="heart" class="w-4 h-4"></i> Sản phẩm yêu thích
+                    </a>
+                    <a href="/profile/address" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-winmart-dark font-bold text-sm transition-all">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i> Sổ địa chỉ
+                    </a>
+                    <a href="/profile/orders" class="flex items-center gap-3 px-4 py-3 bg-emerald-50 text-emerald-600 rounded-xl font-bold transition-colors">
+                        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                        Đơn hàng của tôi
+                    </a>
+                    <a href="/profile/change-password" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-winmart-dark font-bold text-sm transition-all">
+                        <i data-lucide="key" class="w-4 h-4"></i> Đổi mật khẩu
+                    </a>
+                    <div class="my-2 border-t border-gray-100"></div>
+                    <a href="/auth/logout" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 font-bold text-sm transition-all">
+                        <i data-lucide="log-out" class="w-4 h-4"></i> Đăng xuất
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Order List -->
+        <div class="flex-1 space-y-6">
+            <h1 class="text-2xl font-black text-winmart-dark tracking-tight mb-2">Lịch sử đơn hàng</h1>
+            
+            <% if (orders.length === 0) { %>
+                <div class="bento-card p-12 text-center">
+                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="package-open" class="w-10 h-10 text-gray-300"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-winmart-dark mb-2">Bạn chưa có đơn hàng nào</h3>
+                    <p class="text-sm text-gray-500 mb-6">Hãy dạo quanh cửa hàng và chọn những sản phẩm ưng ý nhé!</p>
+                    <a href="/products" class="inline-block bg-winmart-red hover:bg-red-700 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-winmart-red/20">
+                        Tiếp tục mua sắm
+                    </a>
+                </div>
+            <% } else { %>
+                <div class="space-y-4">
+                    <% orders.forEach(order => { %>
+                        <div class="bento-card p-6 hover:shadow-lg transition-shadow cursor-pointer relative group" onclick="window.location.href='/profile/orders/<%= order.HoaDonId %>'">
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4 pb-4 border-b border-gray-100">
+                                <div>
+                                    <span class="text-xs font-black text-gray-400 uppercase tracking-widest mr-2">Mã ĐH:</span>
+                                    <span class="text-sm font-black text-winmart-dark bg-gray-50 px-2 py-1 rounded-md border border-gray-200"><%= order.MaHoaDon %></span>
+                                </div>
+                                <div class="text-right">
+                                    <%- getStatusBadge(order.TrangThai, order.PhuongThucTT) %>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between items-end">
+                                <div class="space-y-1">
+                                    <p class="text-xs text-gray-500 font-medium">
+                                        <i data-lucide="calendar" class="w-3.5 h-3.5 inline mr-1 opacity-70"></i> 
+                                        <%= new Date(order.NgayLap).toLocaleDateString('vi-VN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) %>
+                                    </p>
+                                    <p class="text-xs text-gray-500 font-medium">
+                                        <i data-lucide="package" class="w-3.5 h-3.5 inline mr-1 opacity-70"></i>
+                                        <%= order.SoLuongSanPham || 0 %> sản phẩm
+                                    </p>
+                                </div>
+                                
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-0.5">Tổng tiền</p>
+                                    <p class="text-lg font-black text-winmart-red"><%= Number(order.TongTienSauKM).toLocaleString('vi-VN') %>đ</p>
+                                </div>
+                            </div>
+                            
+                            <div class="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0 hidden sm:block">
+                                <div class="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-winmart-dark hover:bg-gray-100 transition-colors">
+                                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>

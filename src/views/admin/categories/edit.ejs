@@ -1,0 +1,39 @@
+<div class="admin-header">
+    <div class="admin-header-left">
+        <a href="/admin/categories" class="btn btn-sm btn-light me-3">
+            <i class="bi bi-arrow-left"></i> Trở về
+        </a>
+        <div>
+            <h4 class="admin-page-title"><%= title %></h4>
+            <p class="admin-page-subtitle">Nhập thông tin danh mục</p>
+        </div>
+    </div>
+</div>
+
+<%- include('../../partials/flash-message') %>
+
+<div class="admin-content">
+    <div class="admin-card" style="max-width: 800px; margin: 0 auto;">
+        <form action="<%= category ? '/admin/categories/' + category.DanhMucId + '/edit' : '/admin/categories/create' %>" method="POST">
+            
+            <div class="mb-4">
+                <label class="form-label fw-bold">Tên danh mục <span class="text-danger">*</span></label>
+                <input type="text" name="TenDanhMuc" class="admin-form-control" value="<%= category ? category.TenDanhMuc : '' %>" required>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Mô tả</label>
+                <textarea name="MoTa" class="admin-form-control" style="height: 120px; resize: none;"><%= category ? category.MoTa : '' %></textarea>
+            </div>
+
+            <hr class="my-4">
+            
+            <div class="d-flex justify-content-end gap-3">
+                <a href="/admin/categories" class="btn btn-light admin-btn px-4">Hủy</a>
+                <button type="submit" class="btn admin-btn admin-btn-primary px-5">
+                    <i class="bi bi-save me-2"></i> Lưu danh mục
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

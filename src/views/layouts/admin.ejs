@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WinMart Admin Panel">
+    <title><%= title || 'WinMart Admin' %></title>
+
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        winmart: {
+                            red: '#E21E26',
+                            redHover: '#BE1117',
+                            redLight: '#FFF1F2',
+                            yellow: '#FFC522',
+                            dark: '#111827',
+                            slate: '#6B7280',
+                            bg: '#F8F9FA'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        .bento-card {
+            background: #FFFFFF;
+            border-radius: 2rem;
+            box-shadow: 0 15px 50px -15px rgba(0, 0, 0, 0.04), 0 1px 3px -1px rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(230, 230, 230, 0.6);
+        }
+        .dark .bento-card {
+            background: #1F2937;
+            border-color: #374151;
+            box-shadow: 0 15px 50px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar-active-pill {
+            background: linear-gradient(135deg, #E21E26 0%, #BE1117 100%) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 8px 20px -5px rgba(226, 30, 38, 0.45) !important;
+        }
+        .sidebar-active-pill i {
+            color: #FFFFFF !important;
+        }
+
+        /* Dark Mode Global Overrides */
+        .dark {
+            color-scheme: dark;
+        }
+        .dark body {
+            background-color: #111827 !important;
+        }
+        .dark .bg-white, .dark .bento-card {
+            background-color: #1F2937 !important;
+        }
+        .dark .bg-gray-50 {
+            background-color: #111827 !important;
+        }
+        .dark .bg-gray-100 {
+            background-color: #374151 !important;
+        }
+        .dark .bg-gray-200 {
+            background-color: #4B5563 !important;
+        }
+        .dark .bg-gray-50\/50, .dark .bg-gray-50\/30 {
+            background-color: rgba(17, 24, 39, 0.5) !important;
+        }
+        .dark .hover\:bg-gray-50:hover, .dark .hover\:bg-gray-100:hover, .dark .hover\:bg-gray-50\/50:hover, .dark tr.hover\:bg-gray-50\/50:hover {
+            background-color: #374151 !important;
+        }
+        .dark .text-winmart-dark, .dark .text-gray-900 {
+            color: #F3F4F6 !important;
+        }
+        .dark .text-gray-800 {
+            color: #E5E7EB !important;
+        }
+        .dark .text-gray-700 {
+            color: #D1D5DB !important;
+        }
+        .dark .text-gray-600, .dark .text-gray-500, .dark .text-winmart-slate {
+            color: #9CA3AF !important;
+        }
+        .dark .text-gray-400 {
+            color: #6B7280 !important;
+        }
+        .dark .border-gray-50, .dark .border-gray-100, .dark .border-gray-200, .dark .border-gray-300 {
+            border-color: #374151 !important;
+        }
+        .dark input, .dark select, .dark textarea {
+            background-color: #111827 !important;
+            border-color: #374151 !important;
+            color: #FFFFFF !important;
+        }
+        .dark input::placeholder {
+            color: #6B7280 !important;
+        }
+        .dark select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239CA3AF' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+        }
+        
+        /* Soft Status Alerts */
+        .dark .bg-red-50, .dark .bg-red-50\/50 { background-color: rgba(239, 68, 68, 0.15) !important; }
+        .dark .border-red-100 { border-color: rgba(239, 68, 68, 0.2) !important; }
+        .dark .text-winmart-red, .dark .text-red-500, .dark .text-red-600 { color: #FCA5A5 !important; }
+        
+        .dark .bg-emerald-50, .dark .bg-emerald-50\/50 { background-color: rgba(16, 185, 129, 0.15) !important; }
+        .dark .border-emerald-100 { border-color: rgba(16, 185, 129, 0.2) !important; }
+        .dark .text-emerald-500, .dark .text-emerald-600 { color: #6EE7B7 !important; }
+        
+        .dark .bg-blue-50, .dark .bg-blue-50\/50 { background-color: rgba(59, 130, 246, 0.15) !important; }
+        .dark .border-blue-100 { border-color: rgba(59, 130, 246, 0.2) !important; }
+        .dark .text-blue-500, .dark .text-blue-600 { color: #93C5FD !important; }
+        
+        .dark .bg-amber-50, .dark .bg-amber-50\/50 { background-color: rgba(245, 158, 11, 0.15) !important; }
+        .dark .border-amber-100 { border-color: rgba(245, 158, 11, 0.2) !important; }
+        .dark .text-amber-500, .dark .text-amber-600 { color: #FCD34D !important; }
+        
+        .dark .bg-purple-50, .dark .bg-purple-50\/50 { background-color: rgba(139, 92, 246, 0.15) !important; }
+        .dark .border-purple-100 { border-color: rgba(139, 92, 246, 0.2) !important; }
+        .dark .text-purple-500, .dark .text-purple-600 { color: #C4B5FD !important; }
+
+        /* Slide-over Panel */
+        #slide-over { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide-hidden { transform: translateX(100%); }
+        .slide-active { transform: translateX(0); box-shadow: -20px 0 50px rgba(0,0,0,0.1); }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
+    </style>
+</head>
+<body class="text-winmart-dark antialiased h-screen overflow-hidden dark:bg-gray-900 dark:text-gray-100">
+
+    <div class="flex h-screen bg-winmart-bg relative overflow-hidden dark:bg-gray-900">
+
+        <!-- Mobile Overlay -->
+        <div id="sidebar-overlay" onclick="closeSidebar()" class="fixed inset-0 bg-winmart-dark/40 backdrop-blur-sm z-30 hidden"></div>
+
+        <!-- ============================================== -->
+        <!-- SIDEBAR -->
+        <!-- ============================================== -->
+        <aside id="main-sidebar" class="w-72 bg-white border-r border-gray-100 flex flex-col justify-between p-6 shrink-0 fixed inset-y-0 left-0 z-40 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out shadow-xl md:shadow-none h-screen overflow-y-auto dark:bg-gray-900 dark:border-gray-800">
+            <div class="space-y-7">
+
+                <!-- Brand Selector -->
+                <a href="/admin" class="block bg-gray-50 border border-gray-100 rounded-2xl p-4 flex items-center justify-between cursor-pointer hover:bg-gray-100/50 transition dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700/50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-winmart-red flex items-center justify-center text-white font-extrabold text-sm shadow-md shadow-winmart-red/10">WM</div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs font-extrabold text-winmart-dark">WinMart Store</span>
+                                <span class="bg-[#C5FFDC] text-[#008A43] text-[9px] font-black px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                    <i data-lucide="crown" class="w-2 h-2"></i> Pro
+                                </span>
+                            </div>
+                            <span class="text-[10px] text-winmart-slate font-semibold flex items-center gap-1 mt-0.5">
+                                <i data-lucide="lock" class="w-2.5 h-2.5 text-gray-400"></i> Private
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col text-gray-400">
+                        <i data-lucide="chevron-up" class="w-3 h-3 -mb-0.5"></i>
+                        <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                    </div>
+                </a>
+
+                <!-- Welcome -->
+                <div>
+                    <p class="text-[11px] text-winmart-slate font-semibold tracking-wider uppercase">WinMart Store &rsaquo; Dashboard</p>
+                    <h2 class="text-xl font-bold tracking-tight mt-1 text-gray-900 leading-tight dark:text-gray-100">
+                        Welcome Back,<br>
+                        <span class="text-2xl font-black text-winmart-dark dark:text-white"><%= user?.name || 'Admin' %> 👋</span>
+                    </h2>
+                </div>
+
+                <!-- Nav Menu -->
+                <div class="space-y-5">
+                    <div>
+                        <div class="flex justify-between items-center mb-3 px-1">
+                            <span class="text-[10px] font-black text-winmart-slate uppercase tracking-widest">MENU</span>
+                        </div>
+                        <nav class="space-y-1">
+                            <a href="/admin" class="<%= (currentPath === '/admin' || currentPath === '/admin/' || currentPath === '/') ? 'sidebar-active-pill' : 'text-winmart-slate hover:bg-gray-50 hover:text-winmart-dark' %> flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200">
+                                <i data-lucide="home" class="w-4 h-4"></i> Dashboard
+                            </a>
+                            <a href="/admin/orders" class="<%= currentPath.startsWith('/admin/orders') ? 'sidebar-active-pill' : 'text-winmart-slate hover:bg-gray-50 hover:text-winmart-dark' %> flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200">
+                                <div class="flex items-center gap-3"><i data-lucide="receipt" class="w-4 h-4"></i> Đơn hàng</div>
+                                <% if (typeof adminBadges !== 'undefined' && adminBadges.orders > 0) { %>
+                                <span class="bg-winmart-yellow text-winmart-dark text-[9px] font-black min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center"><%= adminBadges.orders %></span>
+                                <% } %>
+                            </a>
+                            <a href="/admin/products" class="<%= currentPath.startsWith('/admin/products') ? 'sidebar-active-pill' : 'text-winmart-slate hover:bg-gray-50 hover:text-winmart-dark' %> flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200">
+                                <div class="flex items-center gap-3"><i data-lucide="package" class="w-4 h-4"></i> Sản phẩm</div>
+                                <% if (typeof adminBadges !== 'undefined' && adminBadges.products > 0) { %>
+                                <span class="bg-winmart-red text-white text-[9px] font-black min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center"><%= adminBadges.products %></span>
+                                <% } %>
+                            </a>
+                            <a href="/admin/inventory" class="<%= currentPath.startsWith('/admin/inventory') ? 'sidebar-active-pill' : 'text-winmart-slate hover:bg-gray-50 hover:text-winmart-dark' %> flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200">
+                                <i data-lucide="boxes" class="w-4 h-4"></i> Kho hàng
+                            </a>
+                            <a href="/admin/categories" class="<%= currentPath.startsWith('/admin/categories') ? 'sidebar-active-pill' : 'text-winmart-slate hover:bg-gray-50 hover:text-winmart-dark' %> flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200">
+                                <i data-lucide="layout-grid" class="w-4 h-4"></i> Danh mục
+                            </a>
+                            <a href="/admin/customers" class="<%= currentPath.startsWith('/admin/customers') ? 'sidebar-active-pill' : 'text-winmart-slate hover:bg-gray-50 hover:text-winmart-dark' %> flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200">
+                                <i data-lucide="users" class="w-4 h-4"></i> Khách hàng
+                            </a>
+                            <a href="/admin/suppliers" class="<%= currentPath.startsWith('/admin/suppliers') ? 'sidebar-active-pill' : 'text-winmart-slate hover:bg-gray-50 hover:text-winmart-dark' %> flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200">
+                                <i data-lucide="truck" class="w-4 h-4"></i> Nhà cung cấp
+                            </a>
+                            <a href="/admin/promotions" class="<%= currentPath.startsWith('/admin/promotions') ? 'sidebar-active-pill' : 'text-winmart-slate hover:bg-gray-50 hover:text-winmart-dark' %> flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200">
+                                <i data-lucide="tag" class="w-4 h-4"></i> Khuyến mãi
+                            </a>
+                        </nav>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-3 px-1">
+                            <span class="text-[10px] font-black text-winmart-slate uppercase tracking-widest">HỆ THỐNG</span>
+                        </div>
+                        <nav class="space-y-1">
+                            <a href="/admin/users" class="<%= currentPath.startsWith('/admin/users') ? 'sidebar-active-pill' : 'text-winmart-slate hover:bg-gray-50 hover:text-winmart-dark' %> flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200">
+                                <div class="flex items-center gap-3"><i data-lucide="user-cog" class="w-4 h-4"></i> Nhân viên</div>
+                                <% if (typeof adminBadges !== 'undefined' && adminBadges.users > 0) { %>
+                                <span class="bg-winmart-red text-white text-[9px] font-black min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center"><%= adminBadges.users %></span>
+                                <% } %>
+                            </a>
+                            <a href="/admin/statistics" class="<%= currentPath.startsWith('/admin/statistics') ? 'sidebar-active-pill' : 'text-winmart-slate hover:bg-gray-50 hover:text-winmart-dark' %> flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200">
+                                <div class="flex items-center gap-3"><i data-lucide="trending-up" class="w-4 h-4"></i> Báo cáo</div>
+                                <% if (typeof adminBadges !== 'undefined' && adminBadges.reports > 0) { %>
+                                <span class="bg-winmart-red text-white text-[9px] font-black min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center"><%= adminBadges.reports %></span>
+                                <% } %>
+                            </a>
+                            <a href="/admin/settings" class="<%= currentPath.startsWith('/admin/settings') ? 'sidebar-active-pill' : 'text-winmart-slate hover:bg-gray-50 hover:text-winmart-dark dark:hover:bg-gray-800 dark:hover:text-white' %> flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200">
+                                <i data-lucide="settings" class="w-4 h-4"></i> Cài đặt
+                            </a>
+                            <a href="/auth/logout" class="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-50 hover:text-winmart-red dark:hover:bg-red-900/20 rounded-2xl text-xs font-bold tracking-wide transition-all duration-200">
+                                <i data-lucide="log-out" class="w-4 h-4"></i> Đăng xuất
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- ============================================== -->
+        <!-- MAIN CONTENT AREA -->
+        <!-- ============================================== -->
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+
+            <!-- Top Header Bar -->
+            <header class="bg-white/60 backdrop-blur-md border-b border-gray-200/60 px-6 py-4 flex justify-between items-center z-10 shrink-0 dark:bg-gray-900/60 dark:border-gray-800/60">
+                <div class="flex items-center gap-3">
+                    <!-- Mobile Menu Toggle -->
+                    <button onclick="openSidebar()" class="md:hidden p-2.5 bg-white border border-gray-200 rounded-xl text-winmart-slate hover:text-winmart-dark shadow-sm transition dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+
+                    <!-- Search đã bị gỡ bỏ theo yêu cầu để tránh dư thừa -->
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <!-- Dark Mode Toggle -->
+                    <div class="hidden sm:flex bg-white border border-gray-100 rounded-2xl p-1 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+                        <button onclick="toggleDarkMode(false)" id="btn-light" class="p-2 bg-gray-50 text-winmart-dark rounded-xl transition-colors dark:bg-transparent dark:text-gray-400"><i data-lucide="sun" class="w-4 h-4"></i></button>
+                        <button onclick="toggleDarkMode(true)" id="btn-dark" class="p-2 text-gray-300 hover:text-winmart-dark rounded-xl transition-colors dark:bg-gray-700 dark:text-white"><i data-lucide="moon" class="w-4 h-4"></i></button>
+                    </div>
+
+                    <!-- Notifications -->
+                    <div class="relative dropdown-container">
+                        <button onclick="toggleDropdown('notif-dropdown')" class="p-2.5 bg-white hover:bg-gray-50 rounded-2xl border border-gray-100 shadow-sm text-winmart-slate hover:text-winmart-dark relative transition focus:outline-none dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">
+                            <i data-lucide="bell" class="w-4 h-4"></i>
+                            <% if (typeof adminBadges !== 'undefined' && (adminBadges.orders > 0 || adminBadges.products > 0 || adminBadges.reports > 0)) { %>
+                                <span id="notif-badge" class="absolute top-2.5 right-2.5 w-2 h-2 bg-winmart-red rounded-full"></span>
+                            <% } %>
+                        </button>
+                        <div id="notif-dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 hidden z-50 overflow-hidden dark:bg-gray-800 dark:border-gray-700">
+                            <div class="p-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50 dark:border-gray-700">
+                                <h3 class="font-bold text-winmart-dark dark:text-white text-sm">Thông báo</h3>
+                                <span id="btn-mark-read" onclick="markAllAsRead()" class="text-xs text-winmart-red font-bold cursor-pointer hover:underline">Đánh dấu đã đọc</span>
+                            </div>
+                            <div class="max-h-64 overflow-y-auto p-2">
+                                <% if (typeof adminBadges !== 'undefined') { %>
+                                    <% let hasNotif = false; %>
+                                    <% if (adminBadges.orders > 0) { hasNotif = true; %>
+                                    <a href="/admin/orders" class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl cursor-pointer transition-colors flex gap-3 block">
+                                        <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                                            <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-winmart-dark dark:text-white font-medium line-clamp-2">Có <%= adminBadges.orders %> đơn hàng mới đang chờ xử lý.</p>
+                                            <p class="text-xs text-gray-400 mt-1"><%= adminBadges.ordersTime %></p>
+                                        </div>
+                                    </a>
+                                    <% } %>
+                                    <% if (adminBadges.products > 0) { hasNotif = true; %>
+                                    <a href="/admin/products" class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl cursor-pointer transition-colors flex gap-3 block">
+                                        <div class="w-8 h-8 rounded-full bg-yellow-50 text-yellow-500 flex items-center justify-center shrink-0">
+                                            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-winmart-dark dark:text-white font-medium line-clamp-2">Cảnh báo: <%= adminBadges.products %> sản phẩm sắp hết hàng.</p>
+                                            <p class="text-xs text-gray-400 mt-1"><%= adminBadges.productsTime %></p>
+                                        </div>
+                                    </a>
+                                    <% } %>
+                                    <% if (adminBadges.reports > 0) { hasNotif = true; %>
+                                    <a href="/admin/reports" class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl cursor-pointer transition-colors flex gap-3 block">
+                                        <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                                            <i data-lucide="trending-up" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-winmart-dark dark:text-white font-medium line-clamp-2">Báo cáo: <%= adminBadges.reports %> đơn hàng hoàn tất hôm nay.</p>
+                                            <p class="text-xs text-gray-400 mt-1"><%= adminBadges.reportsTime %></p>
+                                        </div>
+                                    </a>
+                                    <% } %>
+                                    <% if (!hasNotif) { %>
+                                    <div class="p-4 text-center">
+                                        <p class="text-sm text-gray-500 font-bold">Không có thông báo mới</p>
+                                    </div>
+                                    <% } %>
+                                <% } else { %>
+                                    <div class="p-4 text-center">
+                                        <p class="text-sm text-gray-500 font-bold">Không có thông báo mới</p>
+                                    </div>
+                                <% } %>
+                            </div>
+                            <div class="p-3 text-center border-t border-gray-50 dark:border-gray-700">
+                                <button id="btn-load-more" onclick="loadMoreNotifications()" class="text-sm font-bold text-winmart-red hover:underline focus:outline-none">Xem tất cả</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Profile -->
+                    <div class="relative dropdown-container flex items-center gap-2 pl-3 border-l border-gray-200 dark:border-gray-700">
+                        <button onclick="toggleDropdown('profile-dropdown')" class="flex items-center gap-2 focus:outline-none">
+                            <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(user?.name || 'Admin') %>&background=fee2e2&color=e21e26&rounded=true" class="w-8 h-8 rounded-full border-2 border-white shadow-sm dark:border-gray-800">
+                            <span class="text-xs font-bold text-winmart-dark dark:text-gray-200 hidden sm:block"><%= user?.name || 'Admin' %></span>
+                            <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400 hidden sm:block"></i>
+                        </button>
+                        
+                        <div id="profile-dropdown" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 hidden z-50 dark:bg-gray-800 dark:border-gray-700">
+                            <div class="p-3 border-b border-gray-50 dark:border-gray-700">
+                                <p class="text-sm font-bold text-winmart-dark dark:text-white"><%= user?.name || 'Admin' %></p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400"><%= user?.email || 'admin@winmart.vn' %></p>
+                            </div>
+                            <div class="p-2">
+                                <a href="/admin/profile" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-winmart-dark dark:hover:text-white rounded-lg transition-colors">
+                                    <i data-lucide="user" class="w-4 h-4"></i> Hồ sơ cá nhân
+                                </a>
+                                <div class="h-px bg-gray-50 dark:bg-gray-700 my-1"></div>
+                                <a href="/auth/logout" class="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors font-bold">
+                                    <i data-lucide="log-out" class="w-4 h-4"></i> Đăng xuất
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Flash Messages via Toast -->
+            <% if (typeof success !== 'undefined' && success !== '') { %>
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        setTimeout(() => {
+                            showAdminToast("<%= success %>", 'success');
+                        }, 100);
+                    });
+                </script>
+            <% } %>
+            <% if (typeof error !== 'undefined' && error !== '') { %>
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        setTimeout(() => {
+                            showAdminToast("<%= error %>", 'error');
+                        }, 100);
+                    });
+                </script>
+            <% } %>
+
+            <!-- Page Content -->
+            <div class="flex-1 p-6 lg:p-8 overflow-y-auto">
+                <%- body %>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="admin-toast" class="fixed bottom-5 right-5 z-[60] transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="flex items-center gap-3 bg-winmart-dark text-white px-5 py-4 rounded-2xl shadow-2xl border border-gray-800">
+            <div id="admin-toast-icon" class="p-1.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+            </div>
+            <p id="admin-toast-text" class="text-sm font-bold"></p>
+        </div>
+    </div>
+
+    <script>
+        // Khởi tạo icons
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            // Khôi phục Dark Mode
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                updateDarkModeButtons(true);
+            } else {
+                document.documentElement.classList.remove('dark');
+                updateDarkModeButtons(false);
+            }
+        });
+
+        // Dropdown Logic
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            // Close all others
+            document.querySelectorAll('.dropdown-container > div[id]').forEach(el => {
+                if(el.id !== id) el.classList.add('hidden');
+            });
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.dropdown-container')) {
+                document.querySelectorAll('.dropdown-container > div[id]').forEach(el => {
+                    el.classList.add('hidden');
+                });
+            }
+        });
+
+        // Dark Mode Logic
+        function toggleDarkMode(isDark) {
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
+            updateDarkModeButtons(isDark);
+        }
+
+        function updateDarkModeButtons(isDark) {
+            const btnLight = document.getElementById('btn-light');
+            const btnDark = document.getElementById('btn-dark');
+            if(btnLight && btnDark) {
+                if (isDark) {
+                    btnLight.classList.remove('bg-gray-50', 'text-winmart-dark');
+                    btnLight.classList.add('text-gray-400');
+                    btnDark.classList.remove('text-gray-300');
+                    btnDark.classList.add('bg-gray-700', 'text-white');
+                } else {
+                    btnLight.classList.add('bg-gray-50', 'text-winmart-dark');
+                    btnLight.classList.remove('text-gray-400');
+                    btnDark.classList.add('text-gray-300');
+                    btnDark.classList.remove('bg-gray-700', 'text-white');
+                }
+            }
+        }
+
+        // Đánh dấu đã đọc thông báo (Mô phỏng)
+        function markAllAsRead() {
+            const badge = document.getElementById('notif-badge');
+            const btn = document.getElementById('btn-mark-read');
+            const dropdown = document.getElementById('notif-dropdown');
+            
+            if(badge) badge.classList.add('hidden');
+            if(btn) btn.classList.add('hidden');
+            
+            // Làm mờ các mục trong danh sách để biểu thị đã đọc
+            const items = dropdown.querySelectorAll('.max-h-64 > div');
+            items.forEach(item => {
+                item.classList.add('opacity-60');
+            });
+            
+            showAdminToast('Đã đánh dấu tất cả thông báo là đã đọc');
+        }
+
+        // Tải thêm thông báo (Mô phỏng)
+        function loadMoreNotifications() {
+            const list = document.querySelector('#notif-dropdown .max-h-64');
+            const newNotifHTML = `
+                <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl cursor-pointer transition-colors flex gap-3">
+                    <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center shrink-0">
+                        <i data-lucide="trending-up" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-winmart-dark dark:text-white font-medium line-clamp-2">Báo cáo doanh thu tuần đã có sẵn.</p>
+                        <p class="text-xs text-gray-400 mt-1">Hôm qua</p>
+                    </div>
+                </div>
+                <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl cursor-pointer transition-colors flex gap-3">
+                    <div class="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-winmart-dark dark:text-white font-medium line-clamp-2">Lỗi đồng bộ máy chủ hệ thống.</p>
+                        <p class="text-xs text-gray-400 mt-1">2 ngày trước</p>
+                    </div>
+                </div>
+            `;
+            list.insertAdjacentHTML('beforeend', newNotifHTML);
+            lucide.createIcons(); // Khởi tạo lại icon cho phần tử mới
+            
+            // Đổi trạng thái nút
+            const btn = document.getElementById('btn-load-more');
+            if(btn) {
+                btn.innerText = 'Không còn thông báo nào khác';
+                btn.classList.add('text-gray-400', 'cursor-not-allowed');
+                btn.classList.remove('text-winmart-red', 'hover:underline');
+                btn.onclick = null;
+            }
+        }
+
+        function openSidebar() {
+            document.getElementById('main-sidebar').classList.remove('-translate-x-full');
+            document.getElementById('sidebar-overlay').classList.remove('hidden');
+        }
+
+        function closeSidebar() {
+            document.getElementById('main-sidebar').classList.add('-translate-x-full');
+            document.getElementById('sidebar-overlay').classList.add('hidden');
+        }
+
+        function showAdminToast(text, type = 'success') {
+            const toast = document.getElementById('admin-toast');
+            const icon = document.getElementById('admin-toast-icon');
+            document.getElementById('admin-toast-text').innerText = text;
+            icon.innerHTML = type === 'success'
+                ? '<i data-lucide="check-circle" class="w-5 h-5"></i>'
+                : '<i data-lucide="alert-circle" class="w-5 h-5"></i>';
+            icon.className = `p-1.5 rounded-xl ${type === 'success' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`;
+            lucide.createIcons();
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+        // Polling âm báo đơn hàng mới
+        let lastOrderCheckTime = new Date().toISOString();
+        const notificationAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'); // Sound effect "Ting"
+
+        setInterval(async () => {
+            try {
+                const res = await fetch(`/admin/api/check-new-orders?lastCheckTime=${lastOrderCheckTime}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    lastOrderCheckTime = data.serverTime;
+                    
+                    if (data.hasNew) {
+                        if (data.playSound) {
+                            notificationAudio.play().catch(e => console.log('Trình duyệt chặn autoplay âm thanh:', e));
+                        }
+                        showAdminToast(`Có ${data.count} đơn hàng Online mới!`);
+                        
+                        // Update badge if exists
+                        const orderBadge = document.querySelector('a[href="/admin/orders"] span.bg-winmart-yellow');
+                        if (orderBadge) {
+                            orderBadge.innerText = parseInt(orderBadge.innerText) + data.count;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Lỗi khi kiểm tra đơn hàng mới', e);
+            }
+        }, 10000); // 10 giây 1 lần
+    </script>
+    <%- typeof scripts !== 'undefined' ? scripts : '' %>
+    <%- typeof script !== 'undefined' ? script : '' %>
+</body>
+</html>

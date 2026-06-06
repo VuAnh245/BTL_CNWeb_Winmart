@@ -1,0 +1,223 @@
+<div class="bg-gray-50 min-h-screen pt-8 pb-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Breadcrumb -->
+        <nav class="flex items-center gap-2 text-xs font-semibold text-gray-500 mb-8">
+            <a href="/" class="hover:text-winmart-red transition-colors flex items-center gap-1.5"><i data-lucide="home" class="w-3.5 h-3.5"></i> Trang chủ</a>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            <a href="/products" class="hover:text-winmart-red transition-colors">Sản phẩm</a>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            <span class="text-winmart-dark font-bold line-clamp-1"><%= product.TenSanPham %></span>
+        </nav>
+
+        <div class="bento-card overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+                
+                <!-- Hình ảnh sản phẩm -->
+                <div class="bg-white p-8 md:p-12 border-b md:border-b-0 md:border-r border-gray-100 flex items-center justify-center relative group">
+                    <% 
+                        const rawImg = product.HinhAnh || '';
+                        const image = rawImg
+                            ? (rawImg.startsWith('/') || rawImg.startsWith('http') ? rawImg : '/uploads/' + rawImg)
+                            : '/images/products/placeholder.png';
+                        const fallbackImage = rawImg ? '/images/products/' + rawImg : '/images/products/placeholder.png';
+                    %>
+                    <img src="<%= image %>" 
+                         alt="<%= product.TenSanPham %>" 
+                         onerror="this.onerror=null; this.src='<%= fallbackImage %>';"
+                         class="w-full max-w-md object-contain transition-transform duration-500 group-hover:scale-105">
+                         
+                    <% if (product.GiamGia) { %>
+                        <div class="absolute top-6 left-6 bg-winmart-red text-white text-xs font-black px-3 py-1.5 rounded-xl shadow-lg">
+                            -<%= product.GiamGia %>%
+                        </div>
+                    <% } %>
+                </div>
+                
+                <!-- Thông tin sản phẩm -->
+                <div class="p-8 md:p-12 flex flex-col justify-center">
+                    
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="bg-winmart-red/10 text-winmart-red text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl">WinMart Official</span>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Mã SP: <%= product.MaSanPham %></span>
+                    </div>
+
+                    <h1 class="text-3xl font-black text-winmart-dark tracking-tight leading-tight mb-4"><%= product.TenSanPham %></h1>
+                    
+                    <!-- Đánh giá -->
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="flex items-center gap-1 text-winmart-yellow">
+                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                            <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                            <i data-lucide="star-half" class="w-4 h-4 fill-current"></i>
+                        </div>
+                        <div class="h-4 w-px bg-gray-200"></div>
+                        <span class="text-sm font-bold text-gray-500">4.8 Đánh giá</span>
+                        <div class="h-4 w-px bg-gray-200"></div>
+                        <span class="text-sm font-bold text-gray-500">Đã bán 124</span>
+                    </div>
+
+                    <!-- Giá -->
+                    <div class="mb-8">
+                        <% if (product.GiaCu) { %>
+                            <div class="text-sm text-gray-400 line-through font-semibold mb-1"><%= Number(product.GiaCu).toLocaleString('vi-VN') %>đ</div>
+                        <% } %>
+                        <div class="text-4xl font-black text-winmart-red flex items-baseline gap-2">
+                            <%= Number(product.GiaBan || 0).toLocaleString('vi-VN') %>đ
+                            <% if (product.DonViTinh) { %>
+                                <span class="text-lg font-bold text-gray-400">/ <%= product.DonViTinh %></span>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin bổ sung -->
+                    <div class="bg-gray-50 rounded-2xl p-6 mb-8 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-bold text-gray-500">Danh mục</span>
+                            <span class="text-sm font-black text-winmart-dark"><%= product.TenDanhMuc %></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-bold text-gray-500">Nhà cung cấp</span>
+                            <span class="text-sm font-black text-winmart-dark"><%= product.TenNhaCungCap || 'WinMart System' %></span>
+                        </div>
+                        <% 
+                            let tongTon = 0;
+                            if (product.batches && product.batches.length > 0) {
+                                tongTon = product.batches.reduce((sum, b) => sum + b.soLuong, 0);
+                            } else {
+                                tongTon = product.SoLuongTon || 0;
+                            }
+                        %>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-bold text-gray-500">Tình trạng</span>
+                            <% if (tongTon > 0) { %>
+                                <span class="text-sm font-black text-emerald-500 flex items-center gap-1">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Còn hàng (<%= tongTon %>)
+                                </span>
+                            <% } else { %>
+                                <span class="text-sm font-black text-gray-400 flex items-center gap-1">
+                                    <i data-lucide="x-circle" class="w-4 h-4"></i> Hết hàng
+                                </span>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- Hành động -->
+                    <div class="flex flex-col sm:flex-row items-center gap-4 mt-auto">
+                        
+                        <!-- Số lượng -->
+                        <div class="flex items-center bg-gray-50 border border-gray-200 rounded-xl h-14 w-full sm:w-32 shrink-0">
+                            <button type="button" id="btn-minus" class="w-10 h-full flex items-center justify-center text-gray-500 hover:text-winmart-dark transition-colors">
+                                <i data-lucide="minus" class="w-4 h-4"></i>
+                            </button>
+                            <input type="text" id="quantity" value="1" class="w-full bg-transparent text-center font-black text-winmart-dark focus:outline-none" readonly>
+                            <button type="button" id="btn-plus" class="w-10 h-full flex items-center justify-center text-gray-500 hover:text-winmart-dark transition-colors">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Thêm vào giỏ hàng -->
+                        <div class="flex flex-1 gap-3 w-full">
+                            <button id="btn-add-to-cart" class="flex-1 h-14 bg-winmart-dark hover:bg-gray-800 text-white rounded-xl text-sm font-black tracking-wide flex items-center justify-center gap-2 transition-all shadow-lg shadow-gray-900/20 <%= tongTon <= 0 ? 'opacity-50 cursor-not-allowed' : '' %>" <%= tongTon <= 0 ? 'disabled' : '' %>>
+                                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                                THÊM VÀO GIỎ HÀNG
+                            </button>
+                            <button id="wishlist-btn-<%= product.SanPhamId %>" onclick="toggleWishlist('<%= product.SanPhamId %>')" class="w-14 h-14 shrink-0 rounded-xl border border-gray-200 bg-white text-gray-400 hover:text-winmart-red hover:border-winmart-red flex items-center justify-center transition-colors shadow-sm">
+                                <i data-lucide="heart" class="w-6 h-6"></i>
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chi tiết và Mô tả -->
+        <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Mô tả -->
+            <div class="lg:col-span-2 bento-card p-8 md:p-10">
+                <h3 class="text-xl font-black text-winmart-dark mb-6 flex items-center gap-2">
+                    <div class="w-1.5 h-6 bg-winmart-red rounded-full"></div>
+                    Mô tả sản phẩm
+                </h3>
+                <div class="prose prose-sm sm:prose-base prose-gray max-w-none text-gray-600 leading-relaxed space-y-4">
+                    <p>Sản phẩm <strong><%= product.TenSanPham %></strong> được phân phối chính hãng bởi <strong><%= product.TenNhaCungCap || 'Hệ thống WinMart' %></strong>. Chúng tôi cam kết mang đến những sản phẩm chất lượng cao, an toàn cho sức khỏe người tiêu dùng, trải qua quá trình kiểm định nghiêm ngặt trước khi đến tay khách hàng.</p>
+                    <p>Với nguồn gốc xuất xứ rõ ràng, sản phẩm luôn đảm bảo độ tươi mới và giữ nguyên vẹn giá trị dinh dưỡng. Bao bì được đóng gói cẩn thận, tiện lợi cho việc sử dụng và bảo quản.</p>
+                    <ul class="list-disc pl-5 mt-4 space-y-2">
+                        <li>Thành phần 100% tự nhiên, an toàn.</li>
+                        <li>Quy trình sản xuất và đóng gói đạt chuẩn vệ sinh an toàn thực phẩm.</li>
+                        <li>Sản phẩm đạt chứng nhận chất lượng ISO.</li>
+                        <li>Phù hợp cho mọi đối tượng sử dụng trong gia đình.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Thông số -->
+            <div class="bento-card p-8 md:p-10 h-fit">
+                <h3 class="text-xl font-black text-winmart-dark mb-6 flex items-center gap-2">
+                    <div class="w-1.5 h-6 bg-winmart-red rounded-full"></div>
+                    Thông số kỹ thuật
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                        <span class="text-sm font-bold text-gray-500">Mã sản phẩm</span>
+                        <span class="text-sm font-black text-winmart-dark"><%= product.MaSanPham %></span>
+                    </div>
+                    <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                        <span class="text-sm font-bold text-gray-500">Mã vạch (Barcode)</span>
+                        <span class="text-sm font-black text-winmart-dark"><%= product.Barcode || 'Đang cập nhật' %></span>
+                    </div>
+                    <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                        <span class="text-sm font-bold text-gray-500">Đơn vị tính</span>
+                        <span class="text-sm font-black text-winmart-dark"><%= product.DonViTinh || 'Đang cập nhật' %></span>
+                    </div>
+                    <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                        <span class="text-sm font-bold text-gray-500">Thuế VAT</span>
+                        <span class="text-sm font-black text-winmart-dark"><%= product.ThueVAT ? product.ThueVAT + '%' : '0%' %></span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-bold text-gray-500">Thương hiệu</span>
+                        <span class="text-sm font-black text-winmart-dark"><%= product.TenNhaCungCap || 'WinMart' %></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnMinus = document.getElementById('btn-minus');
+        const btnPlus = document.getElementById('btn-plus');
+        const inputQty = document.getElementById('quantity');
+        const maxStock = <%= tongTon %>;
+
+        if(btnPlus && btnMinus && inputQty) {
+            btnPlus.addEventListener('click', () => {
+                let current = parseInt(inputQty.value) || 1;
+                if(current < maxStock) {
+                    inputQty.value = current + 1;
+                }
+            });
+
+            btnMinus.addEventListener('click', () => {
+                let current = parseInt(inputQty.value) || 1;
+                if (current > 1) {
+                    inputQty.value = current - 1;
+                }
+            });
+        }
+
+        const btnAddToCart = document.getElementById('btn-add-to-cart');
+        if (btnAddToCart) {
+            btnAddToCart.addEventListener('click', () => {
+                const qty = parseInt(inputQty.value) || 1;
+                addToCart('<%= product.SanPhamId %>', qty);
+            });
+        }
+    });
+</script>

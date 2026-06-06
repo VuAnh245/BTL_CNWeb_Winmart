@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- Google Fonts: Inter for clean thermal printing -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background-color: #f0f0f0;
+            color: #000;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .receipt-container {
+            width: 80mm;
+            max-width: 100%;
+            margin: 20px auto;
+            background: #fff;
+            padding: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        /* Print Media Query */
+        @media print {
+            body { background: transparent; }
+            .receipt-container {
+                margin: 0;
+                padding: 5px;
+                box-shadow: none;
+                width: 100%;
+            }
+            .no-print { display: none !important; }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 15px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 900;
+            margin-bottom: 5px;
+            letter-spacing: -1px;
+        }
+
+        .store-info {
+            font-size: 11px;
+            color: #333;
+        }
+
+        .order-info {
+            margin-bottom: 15px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 15px;
+        }
+
+        .order-info p {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .items-table th {
+            text-align: left;
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .items-table td {
+            padding: 5px 0;
+            vertical-align: top;
+        }
+
+        .item-name {
+            font-weight: 600;
+            margin-bottom: 2px;
+            display: block;
+        }
+
+        .item-qty-price {
+            color: #555;
+            font-size: 11px;
+        }
+
+        .item-total {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .totals {
+            border-top: 1px dashed #000;
+            padding-top: 15px;
+            margin-bottom: 20px;
+        }
+
+        .totals p {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .totals p.grand-total {
+            font-size: 16px;
+            font-weight: 800;
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px solid #000;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 11px;
+        }
+        
+        .barcode {
+            margin: 15px 0;
+            text-align: center;
+            font-family: monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        .action-buttons {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: #111827;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #111827;
+            border: 1px solid #111827;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print action-buttons">
+        <button class="btn" onclick="window.print()">🖨️ In Hóa Đơn Lại</button>
+        <button class="btn btn-outline" onclick="window.close()">Đóng</button>
+    </div>
+
+    <div class="receipt-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo"><%= store.TenCuaHang %></div>
+            <div class="store-info">
+                <%= store.DiaChi %><br>
+                Hotline: 1900 1234
+            </div>
+        </div>
+
+        <!-- Order Info -->
+        <div class="order-info">
+            <p><span>Hóa đơn:</span> <strong>#<%= order.MaHoaDon %></strong></p>
+            <p><span>Ngày in:</span> <strong><%= new Date().toLocaleString('vi-VN') %></strong></p>
+            <p><span>Thu ngân:</span> <strong><%= order.tenNhanVien || 'Admin' %></strong></p>
+            <% if (order.tenKhachHang) { %>
+            <p><span>Khách hàng:</span> <strong><%= order.tenKhachHang %></strong></p>
+            <% } %>
+        </div>
+
+        <!-- Items -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 70%">Sản phẩm</th>
+                    <th style="width: 30%; text-align: right;">Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% order.items.forEach(item => { %>
+                <tr>
+                    <td>
+                        <span class="item-name"><%= item.TenSanPham %></span>
+                        <span class="item-qty-price"><%= item.SoLuong %> x <%= Number(item.DonGiaGoc).toLocaleString('vi-VN') %>đ</span>
+                        <% if (item.PhanTramGiam > 0) { %>
+                            <span style="color: #666; font-size: 10px; display: block;">Giảm <%= item.PhanTramGiam %>%</span>
+                        <% } %>
+                    </td>
+                    <td class="item-total"><%= Number(item.ThanhTienCuoi).toLocaleString('vi-VN') %>đ</td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <div class="totals">
+            <p><span>Tổng tiền hàng:</span> <span><%= Number(order.TongTienTruocKM).toLocaleString('vi-VN') %>đ</span></p>
+            
+            <% 
+                let tongVAT = 0;
+                order.items.forEach(item => {
+                    const tienGocSauGiam = item.SoLuong * item.DonGiaGoc * (1 - (item.PhanTramGiam || 0) / 100);
+                    const vatItem = tienGocSauGiam * ((item.ThueVATApDung || 0) / 100);
+                    tongVAT += vatItem;
+                });
+                const tienGiam = Number(order.TongTienTruocKM) + tongVAT - Number(order.TongTienSauKM); 
+            %>
+            <p><span>Thuế GTGT (VAT):</span> <span><%= Math.round(Number(tongVAT)).toLocaleString('vi-VN') %>đ</span></p>
+            <% if (tienGiam > 0) { %>
+                <p><span>Khuyến mãi / Giảm:</span> <span>-<%= Math.round(Number(tienGiam)).toLocaleString('vi-VN') %>đ</span></p>
+            <% } %>
+
+            <p class="grand-total"><span>THANH TOÁN:</span> <span><%= Number(order.TongTienSauKM).toLocaleString('vi-VN') %>đ</span></p>
+            <p style="margin-top: 10px; font-size: 11px;">
+                <span>Thanh toán bằng:</span> <strong><%= order.PhuongThucTT === 'TienMat' ? 'Tiền mặt' : (order.PhuongThucTT === 'ChuyenKhoan' ? 'Chuyển khoản' : 'Thẻ Tín Dụng') %></strong>
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="barcode">
+                *<%= order.MaHoaDon %>*
+            </div>
+            <p style="font-weight: 600; font-size: 13px; margin-bottom: 5px;">CẢM ƠN QUÝ KHÁCH. HẸN GẶP LẠI!</p>
+            <p>Hàng đổi trả trong vòng 7 ngày (kèm HĐ).</p>
+        </div>
+    </div>
+
+    <script>
+        // Tự động bật hộp thoại in khi trang load xong
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        };
+    </script>
+</body>
+</html>

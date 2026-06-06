@@ -1,0 +1,74 @@
+HỆ THỐNG WEB BÁN HÀNG WINMART - MÔ TẢ YÊU CẦU HỆ THỐNG CHI TIẾT
+=================================================================
+
+1. MỤC TIÊU TỔNG QUÁT
+- Xây dựng nền tảng bán hàng trực tuyến + POS quầy thu ngân cho chuỗi cửa hàng tiện lợi.
+- Quản lý sản phẩm FMCG theo mã vạch, hạn sử dụng, tồn kho đa lô (FEFO).
+- Hỗ trợ tích điểm thành viên WinMart Plus, đổi quà, phân hạng VIP tự động.
+- Phân quyền 3 tầng rõ ràng, bảo mật, dễ triển khai trên XAMPP/MySQL, vận hành ổn định offline cơ bản.
+
+2. YÊU CẦU CHỨC NĂNG (MAP 1:1 TỪ USE CASE)
+────────────────────────────────────────────────────────────────────────────
+MODULE 1: XÁC THỰC & PHÂN QUYỀN (UC-C01, UC-S01, UC-A01)
+  • Input: Email/SĐT, mật khẩu, vai trò.
+  • Xử lý: Hash bcrypt, session/JWT, kiểm tra unique, rate-limit login (5 lần/5p).
+  • Output: Token/Session, redirect theo role, log đăng nhập.
+  • Rule: Password ≥ 8 ký tự, có chữ hoa/số/ký tự đặc biệt. Lock tài khoản sau 10 lần sai.
+
+MODULE 2: CATALOG & TÌM KIẾM (UC-C02, UC-A01)
+  • Input: Từ khóa, danh mục, khoảng giá, barcode.
+  • Xử lý: Query MySQL với `LIKE`, `IN`, `BETWEEN`, index trên `barcode`, `status`. Cache kết quả thường dùng (Redis/Session).
+  • Output: Danh sách SP phân trang, ảnh thumbnail, trạng thái còn hàng.
+  • Rule: Giá > 0, VAT ∈ {0, 8, 10}, SP `is_active=1` mới hiển thị.
+
+MODULE 3: GIỎ HÀNG & THANH TOÁN (UC-C03, UC-C04, UC-S02)
+  • Input: Danh sách SP, số lượng, thông tin nhận hàng, phương thức TT, mã KM/điểm.
+  • Xử lý: Kiểm tồn ≥ số lượng muốn mua → Reserve 5 phút → Tính tổng, áp KM → Trừ điểm (nếu đủ) → Tạo Order (Pending) → Xác nhận TT → Trừ tồn thực tế → Ghi hóa đơn → Trigger Loyalty.
+  • Output: Order code, trạng thái đơn, hóa đơn HTML/PDF, log điểm.
+  • Rule: Không cho phép tồn kho âm. Đơn > 24h chưa TT tự hủy, release reserve.
+
+MODULE 4: POS & OFFLINE SYNC (UC-S02, UC-S03)
+  • Input: Barcode quét, thao tác bàn phím (F1-F5), queue đơn local.
+  • Xử lý: LocalStorage/IndexedDB lưu đơn khi mất mạng → Background sync khi online → Server validate → Merge/Reject → Clear local.
+  • Output: Hóa đơn in nhiệt, cảnh báo sync thành công/thất bại.
+  • Rule: Ưu tiên tốc độ <1s/phản hồi. Fallback UI khi network drop.
+
+MODULE 5: KHO & NHẬP HÀNG (UC-A02)
+  • Input: Phiếu nhập, NCC, batch, hạn sử dụng, số lượng, giá nhập.
+  • Xử lý: Tạo phiếu → Duyệt → Cộng tồn theo `batch_no` → Sort FEFO (`expiry_date ASC`) → Cảnh báo `<30 ngày`.
+  • Output: Tồn kho cập nhật, log nhập hàng, cảnh báo dashboard.
+  • Rule: Giá nhập > 0, hạn sử dụng ≥ ngày hiện tại + 1 ngày.
+
+MODULE 6: LOYALTY & KHÁCH HÀNG (UC-C05, UC-A03)
+  • Input: Hóa đơn thanh toán, số điểm muốn dùng, lý do điều chỉnh.
+  • Xử lý: Tính điểm = (Tổng sau KM) × Tỷ lệ cấu hình → Insert `DiemTichLuy` → Recalc balance → Check threshold → Update `capDoVIP` → Log audit.
+  • Output: Điểm dư mới, hạng VIP, lịch sử giao dịch.
+  • Rule: Không cho điểm âm. `DieuChinh` bắt buộc ghiChu. Hạng VIP update realtime sau mỗi giao dịch.
+
+MODULE 7: BÁO CÁO & CẤU HÌNH (UC-A04)
+  • Input: Khoảng thời gian, danh mục, filter.
+  • Xử lý: Aggregate query `SUM`, `COUNT`, `GROUP BY` → Materialized view nếu chậm → Xuất CSV/Excel.
+  • Output: Biểu đồ đường/cột, bảng chi tiết, cảnh báo tồn thấp.
+  • Rule: Dữ liệu chỉ đọc (read-only) với staff. Admin toàn quyền.
+
+3. YÊU CẦU PHI CHỨC NĂNG
+────────────────────────────────────────────────────────────────────────────
+  • Hiệu năng: Load trang <1.5s (cached), Checkout <3s (DB pool 10 conn). Hỗ trợ ≥300 đơn/phút.
+  • Bảo mật: Helmet, CORS, CSRF token, HTTPOnly cookies, bcrypt salt=12, input sanitize (Joi/Zod), rate-limit API.
+  • Tính toàn vẹn: ACID cho checkout/nhập kho. `BEGIN` → thực thi → `COMMIT`/`ROLLBACK`. Không dùng `DELETE` cứng.
+  • Tính sẵn sàng: Graceful degradation (POS queue), retry webhook 3 lần, health check `/ping`.
+  • Tương thích: MySQL 8+ (XAMPP), UTF8MB4, Node.js 18+, trình duyệt Chrome/Edge/Firefox/Safari.
+  • Khả năng mở rộng: Modular Monolith, API versioning `/api/v1`, dễ tách service sau này.
+  • Tuân thủ: Nghị định 13/2023 (VDPA), lưu log consent, PII mã hóa at-rest, audit trail đầy đủ.
+
+4. RÀNG BUỘC TRIỂN KHAI
+  • Backend: ExpressJS, EJS, mysql2/promise, express-session, multer, dotenv.
+  • Database: MySQL trên XAMPP, charset `utf8mb4_unicode_ci`.
+  • Môi trường: Windows, Node.js 18+, RAM ≥4GB (dev), XAMPP Control Panel active.
+  • Không yêu cầu: Microservices, Redis cluster, Kubernetes, payment gateway live (chỉ mock COD/QR).
+
+5. MA TRẬN BẢO CHỨNG (TRACEABILITY)
+  UC-C04 → FN-Checkout → NFP-Performance, NFP-Consistency
+  UC-S02 → FN-POS, FN-OfflineSync → NFP-Availability, NFP-UX
+  UC-A03 → FN-Loyalty, FN-AdminAdjust → NFP-Compliance, NFP-Audit
+  UC-A02 → FN-InventoryFEFO → NFP-Consistency, NFP-Scalability

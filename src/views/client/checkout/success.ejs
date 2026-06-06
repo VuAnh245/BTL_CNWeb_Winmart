@@ -1,0 +1,72 @@
+<div class="container mx-auto px-4 py-16 mb-20">
+    <div class="max-w-2xl mx-auto bento-card p-8 lg:p-12 text-center">
+        <!-- Success Icon Animation -->
+        <div class="relative w-24 h-24 mx-auto mb-8">
+            <div class="absolute inset-0 bg-emerald-100 rounded-full animate-ping opacity-75"></div>
+            <div class="relative w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                <i data-lucide="check" class="w-12 h-12 text-white"></i>
+            </div>
+        </div>
+
+        <h1 class="text-3xl font-black text-winmart-dark tracking-tight mb-4">Cảm ơn bạn đã đặt hàng!</h1>
+        <p class="text-gray-500 font-semibold mb-8 text-lg">Đơn hàng của bạn đã được tiếp nhận và đang trong quá trình xử lý.</p>
+        
+        <div class="bg-gray-50 border border-gray-100 rounded-2xl p-6 mb-8 inline-block text-left w-full max-w-sm">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Mã đơn hàng</span>
+                <span class="text-sm font-bold text-winmart-dark bg-white px-3 py-1 rounded-lg border border-gray-200"><%= orderCode %></span>
+            </div>
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Phương thức thanh toán</span>
+                <span class="text-sm font-bold text-winmart-dark">Tiền mặt (COD)</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Trạng thái</span>
+                <span class="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">Chờ xác nhận</span>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/profile/orders" class="bg-white border border-gray-200 hover:border-winmart-dark hover:text-winmart-dark text-gray-600 font-bold px-8 py-3.5 rounded-xl transition-all inline-flex items-center justify-center gap-2">
+                <i data-lucide="file-text" class="w-5 h-5"></i>
+                Xem đơn hàng
+            </a>
+            <a href="/products" class="bg-winmart-red hover:bg-red-700 text-white font-bold px-8 py-3.5 rounded-xl transition-all shadow-lg shadow-winmart-red/20 inline-flex items-center justify-center gap-2">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                Tiếp tục mua sắm
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Cấu hình confetti bắn pháo bông chúc mừng -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const duration = 3 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+    function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+            return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        confetti(Object.assign({}, defaults, { particleCount,
+            origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+            colors: ['#E02224', '#ffffff', '#10B981']
+        }));
+        confetti(Object.assign({}, defaults, { particleCount,
+            origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+            colors: ['#E02224', '#ffffff', '#10B981']
+        }));
+    }, 250);
+});
+</script>

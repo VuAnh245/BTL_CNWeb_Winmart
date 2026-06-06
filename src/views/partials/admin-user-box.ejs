@@ -1,0 +1,22 @@
+<% if (user) { %>
+    <div class="dropdown">
+        <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2 border-0 shadow-sm" type="button" id="adminUserDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: 8px; padding: 6px 12px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #6f42c1, #d63384); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">
+                <%= user.HoTen ? user.HoTen.charAt(0).toUpperCase() : 'A' %>
+            </div>
+            <span class="d-none d-md-block fw-medium text-dark"><%= user.HoTen || 'Admin' %></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="adminUserDropdown" style="border-radius: 12px; min-width: 220px;">
+            <li class="px-3 py-2 text-muted border-bottom mb-1">
+                <div class="fw-bold text-dark"><%= user.HoTen || 'Admin' %></div>
+                <small style="font-size: 12px;"><%= user.Email || 'admin@winmart.com' %></small>
+            </li>
+            <li><a class="dropdown-item py-2" href="#"><i class="bi bi-person me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
+            <li><a class="dropdown-item py-2" href="#"><i class="bi bi-gear me-2 text-secondary"></i>Cài đặt</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item py-2 text-danger fw-bold" href="/auth/logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+        </ul>
+    </div>
+<% } else { %>
+    <a href="/auth/login" class="btn btn-outline-primary" style="border-radius: 8px;">Đăng nhập</a>
+<% } %>

@@ -1,0 +1,217 @@
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <div class="flex items-center gap-4">
+        <a href="/admin/inventory" class="text-winmart-slate hover:bg-gray-100 p-2 rounded-xl transition">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </a>
+        <div>
+            <p class="text-[11px] text-winmart-slate font-semibold tracking-wider uppercase mb-1">
+                Chi Tiết Kho Hàng
+                <% if (receipt.TrangThai === 'DangCho') { %>
+                    <span class="ml-2 inline-block bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[9px] font-bold">ĐANG CHỜ DUYỆT</span>
+                <% } else if (receipt.TrangThai === 'DaNhan') { %>
+                    <span class="ml-2 inline-block bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[9px] font-bold">ĐÃ NHẬP KHO</span>
+                <% } else if (receipt.TrangThai === 'DaHuy') { %>
+                    <span class="ml-2 inline-block bg-red-100 text-red-700 px-2 py-0.5 rounded text-[9px] font-bold">ĐÃ HỦY</span>
+                <% } %>
+            </p>
+            <h1 class="text-2xl font-black tracking-tight text-winmart-dark">Phiếu Nhập: <%= receipt.MaPhieuNhap %></h1>
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        <button onclick="window.print()" class="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+            <i data-lucide="printer" class="w-4 h-4"></i> In Phiếu
+        </button>
+        <% if (receipt.TrangThai === 'DangCho') { %>
+            <button onclick="cancelReceipt(<%= receipt.PhieuNhapId %>)" class="bg-white text-red-600 hover:bg-red-50 border border-red-200 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+                <i data-lucide="x-circle" class="w-4 h-4"></i> Hủy Phiếu
+            </button>
+            <button onclick="approveReceipt(<%= receipt.PhieuNhapId %>)" class="bg-winmart-dark hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm shadow-gray-900/20 flex items-center gap-2">
+                <i data-lucide="check-circle" class="w-4 h-4 text-winmart-yellow"></i> Duyệt Nhập Kho
+            </button>
+        <% } %>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Info Card -->
+    <div class="lg:col-span-1 space-y-6">
+        <div class="bento-card p-6">
+            <h3 class="text-sm font-black text-winmart-dark uppercase tracking-wide mb-4 border-b border-gray-100 pb-3">Thông Tin Chung</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Nhà Cung Cấp</span>
+                    <span class="text-sm font-semibold text-gray-800"><%= receipt.TenNhaCungCap || 'N/A' %></span>
+                </div>
+                <div>
+                    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Người Tạo</span>
+                    <span class="text-sm font-semibold text-gray-800"><%= receipt.TenNhanVien || 'Hệ thống' %></span>
+                </div>
+                <div>
+                    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Ngày Lập</span>
+                    <span class="text-sm font-semibold text-gray-800"><%= new Date(receipt.NgayLap).toLocaleString('vi-VN') %></span>
+                </div>
+                <div>
+                    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Ngày Nhập Kho</span>
+                    <span class="text-sm font-semibold text-winmart-red"><%= new Date(receipt.NgayNhapVe).toLocaleDateString('vi-VN') %></span>
+                </div>
+                <div>
+                    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Ghi Chú</span>
+                    <span class="text-sm font-medium text-gray-600"><%= receipt.GhiChu || 'Không có ghi chú' %></span>
+                </div>
+            </div>
+            
+            <div class="mt-6 pt-4 border-t border-gray-100 space-y-3">
+                <div class="flex justify-between items-end">
+                    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tiền Hàng</span>
+                    <span class="text-lg font-black text-gray-700"><%= Number(receipt.TongTienNhap).toLocaleString('vi-VN') %>đ</span>
+                </div>
+                <div class="flex justify-between items-end">
+                    <span class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Thuế VAT Đầu Vào</span>
+                    <span class="text-lg font-black text-gray-700"><%= Number(receipt.TongVATDauVao || 0).toLocaleString('vi-VN') %>đ</span>
+                </div>
+                <div class="flex justify-between items-end pt-3 border-t border-gray-100">
+                    <span class="block text-[10px] font-bold text-winmart-red uppercase tracking-widest">Tổng Thanh Toán</span>
+                    <span class="text-2xl font-black text-winmart-red"><%= (Number(receipt.TongTienNhap) + Number(receipt.TongVATDauVao || 0)).toLocaleString('vi-VN') %>đ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Table -->
+    <div class="lg:col-span-2">
+        <div class="bento-card overflow-hidden h-full flex flex-col">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 class="text-sm font-black text-winmart-dark uppercase tracking-wide">Chi Tiết Sản Phẩm Nhập</h3>
+                <span class="bg-blue-50 text-blue-600 text-[10px] font-black uppercase px-2 py-1 rounded-md"><%= details.length %> Mặt hàng</span>
+            </div>
+            
+            <div class="overflow-x-auto flex-1">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-white border-b border-gray-100">
+                            <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider">Sản Phẩm</th>
+                            <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Số Lượng</th>
+                            <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Đơn Giá Nhập</th>
+                            <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">VAT</th>
+                            <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Hạn Sử Dụng</th>
+                            <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Thành Tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        <% details.forEach(d => { %>
+                        <tr class="hover:bg-gray-50/50 transition bg-white">
+                            <td class="py-4 px-5">
+                                <h4 class="font-bold text-winmart-dark text-xs"><%= d.TenSanPham %></h4>
+                                <span class="text-[9px] font-mono text-gray-400 mt-0.5 block">Lô: <%= d.MaLo %></span>
+                            </td>
+                            <td class="py-4 px-4">
+                                <span class="text-xs font-bold text-gray-700"><%= d.SoLuong %></span>
+                            </td>
+                            <td class="py-4 px-4">
+                                <span class="text-xs font-semibold text-gray-600"><%= Number(d.GiaNhapDonVi).toLocaleString('vi-VN') %>đ</span>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <% if(Number(d.ThueVATDauVao) > 0) { %>
+                                    <span class="text-[10px] font-bold text-winmart-red bg-red-50 px-2 py-1 rounded"><%= d.ThueVATDauVao %>%</span>
+                                <% } else { %>
+                                    <span class="text-[10px] font-bold text-gray-400">0%</span>
+                                <% } %>
+                            </td>
+                            <td class="py-4 px-4">
+                                <% if (d.NgayHetHan) { %>
+                                    <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-600 px-2 py-1 rounded-md text-[9px] font-bold border border-amber-100">
+                                        <i data-lucide="clock" class="w-3 h-3"></i> <%= new Date(d.NgayHetHan).toLocaleDateString('vi-VN') %>
+                                    </span>
+                                <% } else { %>
+                                    <span class="text-[10px] text-gray-400">Không có HSD</span>
+                                <% } %>
+                            </td>
+                            <td class="py-4 px-5 text-right">
+                                <% 
+                                    const tienHang = Number(d.SoLuong) * Number(d.GiaNhapDonVi);
+                                    const tienVAT = tienHang * (Number(d.ThueVATDauVao || 0) / 100);
+                                    const tongCong = tienHang + tienVAT;
+                                %>
+                                <div class="flex flex-col items-end">
+                                    <span class="text-sm font-black text-winmart-dark"><%= tongCong.toLocaleString('vi-VN') %>đ</span>
+                                    <span class="text-[9px] font-bold text-gray-400 mt-0.5">Tiền hàng: <%= tienHang.toLocaleString('vi-VN') %>đ</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Print Styles -->
+<style>
+    @media print {
+        body * { visibility: hidden; }
+        .bento-card, .bento-card * { visibility: visible; }
+        .bento-card { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; }
+        .bg-gray-50 { background-color: #fff !important; }
+        .border-b { border-bottom-color: #000 !important; }
+        .text-winmart-dark, .text-gray-700, .text-gray-800, .text-gray-600 { color: #000 !important; }
+        .text-winmart-red { color: #000 !important; }
+        .bg-blue-50, .text-blue-600 { background: none !important; color: #000 !important; border: 1px solid #000; }
+        .bg-amber-50, .text-amber-600 { background: none !important; color: #000 !important; border: 1px solid #000; }
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function approveReceipt(id) {
+        Swal.fire({
+            title: 'Duyệt phiếu nhập?',
+            text: "Tồn kho sẽ được cộng thêm dựa vào phiếu nhập này.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#e21e26',
+            cancelButtonColor: '#9ca3af',
+            confirmButtonText: 'Có, Duyệt ngay!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/admin/inventory/' + id + '/approve', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        Swal.fire('Thành công!', data.message, 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                    }
+                })
+                .catch(err => Swal.fire('Lỗi', 'Có lỗi xảy ra', 'error'));
+            }
+        });
+    }
+
+    function cancelReceipt(id) {
+        Swal.fire({
+            title: 'Hủy phiếu nhập?',
+            text: "Phiếu này sẽ bị hủy bỏ và không cộng vào tồn kho.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#9ca3af',
+            confirmButtonText: 'Hủy Phiếu'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/admin/inventory/' + id + '/cancel', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        Swal.fire('Thành công!', data.message, 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                    }
+                })
+                .catch(err => Swal.fire('Lỗi', 'Có lỗi xảy ra', 'error'));
+            }
+        });
+    }
+</script>

@@ -1,0 +1,121 @@
+<div class="bg-gray-50 min-h-screen pt-12 pb-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <nav class="flex items-center gap-2 text-xs font-semibold text-gray-500 mb-8">
+            <a href="/" class="hover:text-winmart-red transition-colors flex items-center gap-1.5"><i data-lucide="home" class="w-3.5 h-3.5"></i> Trang chủ</a>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            <a href="/profile" class="hover:text-winmart-red transition-colors font-bold text-winmart-dark">Hồ sơ cá nhân</a>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            <span class="text-winmart-dark font-bold">Sản phẩm yêu thích</span>
+        </nav>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Sidebar -->
+            <aside class="w-full lg:w-72 shrink-0">
+                <div class="bento-card p-3">
+                    <nav class="flex flex-col gap-1.5">
+                        <a href="/profile" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-winmart-dark font-bold text-sm transition-all">
+                            <i data-lucide="user" class="w-4 h-4"></i> Thông tin tài khoản
+                        </a>
+                        <a href="/profile/orders" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-winmart-dark font-bold text-sm transition-all">
+                            <i data-lucide="package" class="w-4 h-4"></i> Đơn hàng của tôi
+                        </a>
+                        <a href="javascript:void(0)" onclick="goToWishlist()" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-winmart-red/10 text-winmart-red font-bold text-sm transition-all">
+                            <i data-lucide="heart" class="w-4 h-4"></i> Sản phẩm yêu thích
+                        </a>
+                        <a href="/profile/address" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-winmart-dark font-bold text-sm transition-all">
+                            <i data-lucide="map-pin" class="w-4 h-4"></i> Sổ địa chỉ
+                        </a>
+                        <a href="/profile/change-password" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-winmart-dark font-bold text-sm transition-all">
+                            <i data-lucide="key" class="w-4 h-4"></i> Đổi mật khẩu
+                        </a>
+                        <div class="my-2 border-t border-gray-100"></div>
+                        <a href="/auth/logout" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 font-bold text-sm transition-all">
+                            <i data-lucide="log-out" class="w-4 h-4"></i> Đăng xuất
+                        </a>
+                    </nav>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1">
+                <div class="mb-6 flex justify-between items-end">
+                    <div>
+                        <h1 class="text-2xl font-black text-winmart-dark tracking-tight">Sản phẩm yêu thích</h1>
+                        <p class="text-sm font-semibold text-gray-400 mt-1">Danh sách các sản phẩm bạn đã lưu lại</p>
+                    </div>
+                    <div class="text-sm font-bold text-gray-500 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100">
+                        Đã lưu: <span class="text-winmart-red"><%= products.length %></span> sản phẩm
+                    </div>
+                </div>
+
+                <% if (products.length === 0) { %>
+                    <div class="bento-card p-12 flex flex-col items-center justify-center text-center">
+                        <div class="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center text-red-300 mb-6">
+                            <i data-lucide="heart-crack" class="w-12 h-12"></i>
+                        </div>
+                        <h3 class="text-lg font-black text-winmart-dark mb-2">Chưa có sản phẩm yêu thích</h3>
+                        <p class="text-sm font-semibold text-gray-400 max-w-sm mb-6">Bạn chưa lưu bất kỳ sản phẩm nào. Hãy khám phá và thêm các sản phẩm yêu thích nhé!</p>
+                        <a href="/products" class="bg-winmart-dark hover:bg-gray-800 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-gray-900/20 transition-all flex items-center gap-2">
+                            Tiếp tục mua sắm <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                <% } else { %>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                        <% products.forEach(product => { 
+                            const isDiscounted = product.PhanTramGiam > 0;
+                            const finalPrice = isDiscounted 
+                                ? product.GiaBan - (product.GiaBan * product.PhanTramGiam / 100) 
+                                : product.GiaBan;
+                        %>
+                            <div id="wishlist-item-<%= product.SanPhamId %>" class="group bg-white rounded-2xl p-4 transition-all duration-300 hover:shadow-2xl hover:shadow-gray-200/50 hover:-translate-y-1 relative border border-gray-100 flex flex-col h-full">
+                                <!-- Tags -->
+                                <div class="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                                    <% if (isDiscounted) { %>
+                                        <span class="bg-winmart-red text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-sm">
+                                            -<%= product.PhanTramGiam %>%
+                                        </span>
+                                    <% } %>
+                                </div>
+                                
+                                <button onclick="toggleWishlist('<%= product.SanPhamId %>')" class="absolute top-4 right-4 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-winmart-red shadow-sm hover:scale-110 transition-transform">
+                                    <i data-lucide="heart" class="w-4 h-4 fill-winmart-red"></i>
+                                </button>
+
+                                <!-- Image -->
+                                <a href="/products/<%= product.SanPhamId %>" class="block relative aspect-square mb-4 rounded-xl overflow-hidden bg-gray-50">
+                                    <img src="<%= product.HinhAnh || 'https://placehold.co/400x400?text=WinMart' %>" 
+                                         alt="<%= product.TenSanPham %>"
+                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                </a>
+
+                                <!-- Content -->
+                                <div class="flex-1 flex flex-col">
+                                    <h3 class="font-bold text-winmart-dark text-sm mb-1 line-clamp-2 group-hover:text-winmart-red transition-colors">
+                                        <a href="/products/<%= product.SanPhamId %>"><%= product.TenSanPham %></a>
+                                    </h3>
+                                    <div class="mt-auto pt-3">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div class="flex flex-col">
+                                                <% if (isDiscounted) { %>
+                                                    <span class="text-xs text-gray-400 line-through font-semibold"><%= product.GiaBan.toLocaleString('vi-VN') %>đ</span>
+                                                <% } %>
+                                                <span class="font-black text-winmart-red text-base leading-none">
+                                                    <%= Math.round(finalPrice).toLocaleString('vi-VN') %>đ
+                                                </span>
+                                            </div>
+                                            <button onclick="addToCart('<%= product.SanPhamId %>')" 
+                                                    class="w-10 h-10 rounded-xl bg-gray-50 hover:bg-winmart-red hover:text-white text-winmart-dark flex items-center justify-center transition-colors shrink-0">
+                                                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } %>
+            </main>
+        </div>
+    </div>
+</div>

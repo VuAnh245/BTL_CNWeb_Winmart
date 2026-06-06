@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof title !== 'undefined' ? title : 'POS | WinMart' %></title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        winmart: { red: '#E21E26', yellow: '#FFC522', dark: '#111827', slate: '#6B7280', bg: '#F8F9FA' }
+                    },
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8F9FA; }
+        .bento-card { background: #FFFFFF; border-radius: 1.5rem; box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.04), 0 1px 3px -1px rgba(0, 0, 0, 0.02); border: 1px solid rgba(230, 230, 230, 0.7); }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
+    </style>
+</head>
+<body class="text-winmart-dark antialiased h-screen overflow-hidden flex">
+
+    <!-- Sidebar -->
+    <aside class="w-16 lg:w-20 bg-white border-r border-gray-100 flex flex-col items-center py-4 shrink-0 z-20">
+        <!-- Logo -->
+        <a href="/staff/pos" class="w-12 h-12 rounded-2xl bg-winmart-red flex items-center justify-center text-white font-black text-xl shadow-lg shadow-winmart-red/30 mb-8 transition-transform hover:scale-105">
+            WM
+        </a>
+        
+        <!-- Navigation -->
+        <% const currentPath = typeof req !== 'undefined' ? req.path : (typeof currentRoute !== 'undefined' ? currentRoute : '/staff/pos'); %>
+        <nav class="flex-1 flex flex-col gap-4 w-full px-2 mt-4">
+            <a href="/staff/pos" class="group flex flex-col items-center gap-1 p-2 rounded-xl relative <%= currentPath === '/staff/pos' ? 'bg-winmart-red/10 text-winmart-red' : 'text-gray-400 hover:bg-gray-50 hover:text-winmart-dark' %> font-bold transition-all">
+                <% if (currentPath === '/staff/pos') { %>
+                    <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-winmart-red rounded-r-md"></div>
+                <% } %>
+                <i data-lucide="monitor" class="w-5 h-5 <%= currentPath !== '/staff/pos' ? 'group-hover:scale-110 transition-transform' : '' %>"></i>
+                <span class="text-[9px] uppercase tracking-wider">POS</span>
+            </a>
+            
+            <a href="/staff/orders" class="group flex flex-col items-center gap-1 p-2 rounded-xl relative <%= currentPath === '/staff/orders' ? 'bg-winmart-red/10 text-winmart-red' : 'text-gray-400 hover:bg-gray-50 hover:text-winmart-dark' %> font-bold transition-all">
+                <% if (currentPath === '/staff/orders') { %>
+                    <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-winmart-red rounded-r-md"></div>
+                <% } %>
+                <i data-lucide="receipt" class="w-5 h-5 <%= currentPath !== '/staff/orders' ? 'group-hover:scale-110 transition-transform' : '' %>"></i>
+                <span class="text-[9px] uppercase tracking-wider">Đơn</span>
+            </a>
+            
+            <a href="/staff/inventory" class="group flex flex-col items-center gap-1 p-2 rounded-xl relative <%= currentPath === '/staff/inventory' ? 'bg-winmart-red/10 text-winmart-red' : 'text-gray-400 hover:bg-gray-50 hover:text-winmart-dark' %> font-bold transition-all">
+                <% if (currentPath === '/staff/inventory') { %>
+                    <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-winmart-red rounded-r-md"></div>
+                <% } %>
+                <i data-lucide="package" class="w-5 h-5 <%= currentPath !== '/staff/inventory' ? 'group-hover:scale-110 transition-transform' : '' %>"></i>
+                <span class="text-[9px] uppercase tracking-wider">Kho</span>
+            </a>
+
+            <!-- NEW: Khách Hàng -->
+            <a href="/staff/customers" class="group flex flex-col items-center gap-1 p-2 rounded-xl relative <%= currentPath === '/staff/customers' ? 'bg-winmart-red/10 text-winmart-red' : 'text-gray-400 hover:bg-gray-50 hover:text-winmart-dark' %> font-bold transition-all">
+                <% if (currentPath === '/staff/customers') { %>
+                    <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-winmart-red rounded-r-md"></div>
+                <% } %>
+                <i data-lucide="users" class="w-5 h-5 <%= currentPath !== '/staff/customers' ? 'group-hover:scale-110 transition-transform' : '' %>"></i>
+                <span class="text-[9px] uppercase tracking-wider">Khách</span>
+            </a>
+        </nav>
+        
+        <!-- User Profile Dropdown -->
+        <div class="mt-auto flex flex-col gap-3 w-full px-2 relative group pb-4">
+            <!-- Clickable Avatar -->
+            <div class="w-full aspect-square rounded-xl bg-gray-50 hover:bg-gray-100 flex items-center justify-center relative cursor-pointer border border-gray-200 transition-colors shadow-sm">
+                <span class="font-black text-gray-600 text-xs tracking-tighter"><%= typeof user !== 'undefined' && user.fullName ? user.fullName.split(' ').pop().substring(0,2).toUpperCase() : 'NV' %></span>
+                <!-- Online Status Dot -->
+                <div class="absolute bottom-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></div>
+            </div>
+            
+            <!-- Dropdown Menu (Shows on hover for simplicity in CSS, or click via JS) -->
+            <div class="absolute bottom-14 left-14 w-48 bg-white border border-gray-100 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden transform translate-y-2 group-hover:translate-y-0">
+                <div class="p-3 bg-gray-50/50 border-b border-gray-100">
+                    <div class="font-bold text-sm text-winmart-dark truncate"><%= typeof user !== 'undefined' ? user.fullName : 'Nhân viên' %></div>
+                    <div class="text-[10px] font-semibold text-gray-500"><%= typeof user !== 'undefined' ? user.code : 'STAFF001' %></div>
+                </div>
+                <div class="p-2 space-y-1">
+                    <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-emerald-600 bg-emerald-50">
+                        <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div> Đang ca trực
+                    </div>
+                    <a href="/admin/profile" class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-winmart-dark transition-colors">
+                        <i data-lucide="user" class="w-3.5 h-3.5"></i> Hồ sơ cá nhân
+                    </a>
+                    <a href="/auth/logout" class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors mt-1 border-t border-gray-50">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 h-full bg-winmart-bg relative overflow-hidden flex flex-col">
+        <!-- Top Bar -->
+        <header class="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 shrink-0 relative z-10 shadow-[0_4px_20px_-10px_rgba(0,0,0,0.02)]">
+            <div class="flex items-center gap-3">
+                <h1 class="text-base font-black tracking-tight text-winmart-dark"><%= typeof pageTitle !== 'undefined' ? pageTitle : (typeof title !== 'undefined' ? title : 'Bán hàng tại quầy') %></h1>
+            </div>
+            
+            <div class="flex items-center">
+                <!-- Digital Clock -->
+                <div id="posClock" class="text-sm font-black text-gray-700 bg-gray-50 border border-gray-100 px-4 py-1.5 rounded-xl shadow-inner flex items-center gap-2">
+                    <i data-lucide="clock" class="w-4 h-4 text-gray-400"></i>
+                    <span id="posTime">00:00:00</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Content -->
+        <div class="flex-1 p-4 lg:p-6 overflow-hidden h-full flex flex-col">
+            <%- typeof body !== 'undefined' ? body : '' %>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            // Khởi chạy đồng hồ Real-time
+            function updateClock() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('vi-VN', { hour12: false });
+                const dateOptions = { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' };
+                const dateString = now.toLocaleDateString('vi-VN', dateOptions);
+                document.getElementById('posTime').textContent = `${timeString} | ${dateString}`;
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+        });
+        // Polling âm báo đơn hàng mới
+        let lastOrderCheckTime = new Date().toISOString();
+        const notificationAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+
+        setInterval(async () => {
+            try {
+                const res = await fetch(`/admin/api/check-new-orders?lastCheckTime=${lastOrderCheckTime}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    lastOrderCheckTime = data.serverTime;
+                    
+                    if (data.hasNew && data.playSound) {
+                        notificationAudio.play().catch(e => console.log('Trình duyệt chặn autoplay:', e));
+                        // Có thể hiển thị thêm một toast nếu muốn
+                    }
+                }
+            } catch (e) {
+                console.error('Lỗi check đơn', e);
+            }
+        }, 10000);
+    </script>
+</body>
+</html>

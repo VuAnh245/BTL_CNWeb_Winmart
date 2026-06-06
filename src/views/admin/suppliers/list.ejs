@@ -1,0 +1,346 @@
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <p class="text-[11px] text-winmart-slate font-semibold tracking-wider uppercase mb-1">Chuỗi cung ứng</p>
+        <h1 class="text-2xl font-black tracking-tight text-winmart-dark">Nhà Cung Cấp</h1>
+    </div>
+    <button onclick="toggleSlideOver()" class="bg-winmart-dark hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-gray-900/20">
+        <i data-lucide="plus" class="w-4 h-4 text-winmart-yellow"></i> Thêm NCC
+    </button>
+</div>
+
+<!-- Quick Stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+    <div class="bento-card p-5 flex items-center gap-4 border-l-4 border-l-blue-500">
+        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+            <i data-lucide="users" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Tổng Đối Tác</span>
+            <span class="text-2xl font-black text-winmart-dark"><%= suppliers.length %> <span class="text-[11px] font-semibold text-emerald-500 ml-1">nhà cung cấp</span></span>
+        </div>
+    </div>
+    <div class="bento-card p-5 flex items-center gap-4 border-l-4 border-l-emerald-500">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <i data-lucide="check-circle" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest block">Đang Giao Dịch</span>
+            <span class="text-2xl font-black text-emerald-600"><%= suppliers.filter(s => s.is_active == 1).length %> <span class="text-[10px] font-bold text-gray-400 ml-1">đối tác</span></span>
+        </div>
+    </div>
+    <div class="bento-card p-5 flex items-center gap-4 border-l-4 border-l-gray-400">
+        <div class="w-12 h-12 rounded-2xl bg-gray-50 text-gray-500 flex items-center justify-center shrink-0">
+            <i data-lucide="pause-circle" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Ngừng Hợp Tác</span>
+            <span class="text-2xl font-black text-winmart-dark"><%= suppliers.filter(s => s.is_active == 0).length %> <span class="text-[10px] font-semibold text-gray-500 ml-1">đối tác</span></span>
+        </div>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="bento-card overflow-hidden">
+
+    <!-- Filters -->
+    <div class="p-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50/50">
+        <form action="/admin/suppliers" method="GET" class="flex gap-2 w-full sm:w-auto">
+            <div class="relative flex-1 sm:w-72">
+                <input type="text" name="search" placeholder="Tìm theo tên, mã số thuế..." value="<%= typeof filters !== 'undefined' ? (filters.search || '') : '' %>"
+                       class="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-9 pr-4 text-xs font-semibold focus:outline-none focus:border-winmart-red shadow-sm">
+                <i data-lucide="search" class="absolute left-3 top-3 w-3.5 h-3.5 text-gray-400"></i>
+            </div>
+            <button type="submit" class="bg-winmart-dark text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm">
+                <i data-lucide="filter" class="w-3.5 h-3.5"></i> Lọc
+            </button>
+        </form>
+        <button class="bg-winmart-dark text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm whitespace-nowrap">
+            <i data-lucide="file-down" class="w-3.5 h-3.5 text-winmart-yellow"></i> Báo Cáo
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left min-w-[900px]">
+            <thead>
+                <tr class="bg-white border-b border-gray-100">
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider">Nhà Cung Cấp</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Địa chỉ</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Liên hệ</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Trạng Thái</th>
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                <% if (suppliers.length > 0) { %>
+                    <% suppliers.forEach(ncc => { %>
+                    <tr class="hover:bg-gray-50/50 transition group bg-white">
+                        <td class="py-4 px-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-black text-xs shrink-0">
+                                    <%= ncc.TenNhaCungCap.charAt(0).toUpperCase() %>
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-winmart-dark text-sm"><%= ncc.TenNhaCungCap %></h4>
+                                    <div class="text-[10px] text-gray-400 font-semibold mt-0.5">
+                                        Mã: <span class="text-winmart-slate"><%= ncc.MaNhaCungCap %></span>
+                                        <% if (ncc.MaSoThue) { %> &bull; MST: <%= ncc.MaSoThue %><% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4">
+                            <span class="text-xs font-semibold text-gray-500 flex items-center gap-1">
+                                <i data-lucide="map-pin" class="w-3 h-3 text-gray-400 shrink-0"></i>
+                                <%= ncc.DiaChi || 'Chưa cập nhật' %>
+                            </span>
+                        </td>
+                        <td class="py-4 px-4">
+                            <% if (ncc.SoDienThoai) { %>
+                                <div class="text-[10px] font-semibold text-gray-500 flex items-center gap-1">
+                                    <i data-lucide="phone" class="w-3 h-3 text-gray-400"></i> <%= ncc.SoDienThoai %>
+                                </div>
+                            <% } %>
+                            <% if (ncc.Email) { %>
+                                <div class="text-[10px] font-semibold text-gray-500 flex items-center gap-1 mt-1">
+                                    <i data-lucide="mail" class="w-3 h-3 text-gray-400"></i> <%= ncc.Email %>
+                                </div>
+                            <% } %>
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                            <% if (ncc.is_active == 1) { %>
+                                <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 border border-emerald-100 px-2.5 py-1 rounded-full text-[10px] font-black">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Đang giao dịch
+                                </span>
+                            <% } else { %>
+                                <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-500 border border-gray-200 px-2.5 py-1 rounded-full text-[10px] font-black">
+                                    <i data-lucide="pause-circle" class="w-3 h-3"></i> Ngừng hợp tác
+                                </span>
+                            <% } %>
+                        </td>
+                        <td class="py-4 px-5 text-right">
+                            <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <a href="/admin/suppliers/<%= ncc.NhaCungCapId %>/edit" class="p-1.5 bg-white border border-gray-200 text-blue-500 hover:bg-blue-50 rounded-lg transition shadow-sm">
+                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                </a>
+                                <button type="button" onclick="deleteSupplier('<%= ncc.NhaCungCapId %>')" class="p-1.5 bg-white border border-gray-200 text-gray-400 hover:text-winmart-red hover:bg-red-50 rounded-lg transition shadow-sm">
+                                    <i data-lucide="slash" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="5" class="py-16 text-center">
+                            <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i data-lucide="building-2" class="w-7 h-7 text-gray-400"></i>
+                            </div>
+                            <p class="text-sm font-bold text-gray-500 mb-1">Chưa có nhà cung cấp</p>
+                            <p class="text-xs text-gray-400">Bấm "Thêm NCC" để bắt đầu quản lý đối tác cung ứng.</p>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- SLIDE-OVER: Form Thêm/Sửa NCC -->
+<!-- ============================================== -->
+<% const isOpen = typeof openSlideOver !== 'undefined' && openSlideOver; %>
+<% const isEdit = typeof editSupplier !== 'undefined' && editSupplier; %>
+
+<div id="slide-over-backdrop" onclick="closeSlideOver()" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40 <%= isOpen ? '' : 'hidden opacity-0' %> transition-opacity"></div>
+
+<div id="slide-over" class="fixed inset-y-0 right-0 w-full md:w-[480px] bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200 transition-transform duration-300 ease-in-out <%= isOpen ? 'translate-x-0' : 'translate-x-full' %>">
+
+    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+        <div>
+            <h3 class="text-base font-black text-winmart-dark flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-winmart-red rounded-full"></span> <%= isEdit ? 'Cập Nhật Đối Tác' : 'Hồ Sơ Đối Tác' %>
+            </h3>
+            <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5">
+                <%= isEdit ? 'Chỉnh sửa nhà cung cấp' : 'Thêm mới Nhà Cung Cấp' %>
+            </p>
+        </div>
+        <button onclick="closeSlideOver()" class="p-2 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-winmart-dark transition shadow-sm">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6">
+        <form action="<%= isEdit ? '/admin/suppliers/' + editSupplier.NhaCungCapId + '/edit' : '/admin/suppliers/create' %>" method="POST" class="space-y-5" id="ncc-form">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5">Tên công ty / Tổ chức <span class="text-red-500">*</span></label>
+                <input type="text" name="TenNhaCungCap" placeholder="VD: Tập đoàn TH True Milk" required value="<%= isEdit ? editSupplier.TenNhaCungCap : '' %>"
+                       class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-winmart-dark focus:outline-none focus:border-winmart-red focus:ring-2 focus:ring-winmart-red/10 transition-all shadow-sm">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1.5">Mã số thuế</label>
+                    <input type="text" name="MaSoThue" placeholder="MST Công ty" value="<%= isEdit ? editSupplier.MaSoThue : '' %>"
+                           class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-winmart-dark focus:outline-none focus:border-winmart-red transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1.5">Số điện thoại</label>
+                    <input type="text" name="SoDienThoai" placeholder="SĐT liên hệ" value="<%= isEdit ? editSupplier.SoDienThoai : '' %>"
+                           class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-winmart-dark focus:outline-none focus:border-winmart-red transition-all">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5">Email</label>
+                <input type="email" name="Email" placeholder="email@company.vn" value="<%= isEdit ? editSupplier.Email : '' %>"
+                       class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-winmart-dark focus:outline-none focus:border-winmart-red transition-all">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5">Địa chỉ trụ sở</label>
+                <input type="text" name="DiaChi" placeholder="Địa chỉ đầy đủ..." value="<%= isEdit ? editSupplier.DiaChi : '' %>"
+                       class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-winmart-dark focus:outline-none focus:border-winmart-red transition-all">
+            </div>
+
+
+            <% if (isEdit) { %>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5">Trạng thái</label>
+                <select name="is_active" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-winmart-dark focus:outline-none focus:border-winmart-red transition-all shadow-sm appearance-none">
+                    <option value="1" <%= editSupplier.is_active == 1 ? 'selected' : '' %>>Đang hợp tác</option>
+                    <option value="0" <%= editSupplier.is_active == 0 ? 'selected' : '' %>>Ngừng hợp tác</option>
+                </select>
+            </div>
+            <% } %>
+        </form>
+    </div>
+
+    <div class="p-5 border-t border-gray-100 bg-white flex gap-3 shrink-0">
+        <button onclick="closeSlideOver()" class="flex-1 py-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 transition shadow-sm">Thoát</button>
+        <button type="submit" form="ncc-form" id="submitBtn" class="flex-[2] py-3 bg-winmart-dark hover:bg-black text-white rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-gray-900/20">
+            <i data-lucide="save" class="w-4 h-4 text-winmart-yellow"></i> <%= isEdit ? 'Lưu Thay Đổi' : 'Lưu Hồ Sơ Đối Tác' %>
+        </button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function toggleSlideOver() {
+        // Reset form for fresh Create action
+        document.getElementById('ncc-form').reset();
+        document.getElementById('ncc-form').action = '/admin/suppliers/create';
+        
+        const panel = document.getElementById('slide-over');
+        const backdrop = document.getElementById('slide-over-backdrop');
+        
+        backdrop.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('translate-x-full');
+            panel.classList.add('translate-x-0');
+        }, 10);
+    }
+    
+    function closeSlideOver() {
+        const panel = document.getElementById('slide-over');
+        const backdrop = document.getElementById('slide-over-backdrop');
+        
+        panel.classList.remove('translate-x-0');
+        panel.classList.add('translate-x-full');
+        backdrop.classList.add('opacity-0');
+        setTimeout(() => {
+            backdrop.classList.add('hidden');
+            if (window.location.pathname.includes('/edit') || window.location.pathname.includes('/create')) {
+                window.history.pushState({}, document.title, '/admin/suppliers');
+            }
+        }, 300);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('ncc-form');
+        
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const tenNcc = form.elements['TenNhaCungCap'].value;
+                if (!tenNcc) {
+                    return Swal.fire('Cảnh báo', 'Vui lòng nhập Tên công ty / Tổ chức!', 'warning');
+                }
+
+                const btn = document.getElementById('submitBtn');
+                const btnOriginalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 text-winmart-yellow animate-spin"></i> Đang xử lý...';
+                lucide.createIcons();
+
+                try {
+                    // For suppliers we can send URL-encoded body
+                    const formData = new FormData(form);
+                    const params = new URLSearchParams();
+                    for (const pair of formData) {
+                        params.append(pair[0], pair[1]);
+                    }
+
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        body: params,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        await Swal.fire('Thành công', data.message, 'success');
+                        window.location.href = '/admin/suppliers';
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = btnOriginalText;
+                        lucide.createIcons();
+                    }
+                } catch (err) {
+                    Swal.fire('Lỗi', 'Có lỗi kết nối máy chủ', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = btnOriginalText;
+                    lucide.createIcons();
+                }
+            });
+        }
+    });
+
+    function deleteSupplier(id) {
+        Swal.fire({
+            title: 'Xác nhận ngừng hợp tác?',
+            text: "Đối tác này sẽ bị ẩn khỏi danh sách cung ứng.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#9ca3af',
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Đóng'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const res = await fetch(`/admin/suppliers/${id}/delete`, {
+                        method: 'POST'
+                    });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Lỗi', 'Không thể kết nối máy chủ', 'error');
+                }
+            }
+        });
+    }
+</script>

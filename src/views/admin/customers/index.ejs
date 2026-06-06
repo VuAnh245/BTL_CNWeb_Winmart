@@ -1,0 +1,342 @@
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <p class="text-[11px] text-winmart-slate font-semibold tracking-wider uppercase mb-1">Quản lý Khách hàng</p>
+        <h1 class="text-2xl font-black tracking-tight text-winmart-dark">Danh Sách Khách Hàng</h1>
+    </div>
+    <button onclick="toggleSlideOver()" class="bg-winmart-dark hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-gray-900/20">
+        <i data-lucide="plus" class="w-4 h-4 text-winmart-yellow"></i>
+        Thêm khách hàng
+    </button>
+</div>
+
+<!-- Data Table Container -->
+<div class="bento-card overflow-hidden">
+
+    <!-- Filters -->
+    <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+        <form method="GET" action="/admin/customers" class="flex flex-col sm:flex-row gap-4 items-center w-full">
+            <div class="relative flex-1 w-full sm:w-96">
+                <input type="text" name="search" placeholder="Tìm theo tên hoặc số điện thoại..." value="<%= filters.search || '' %>"
+                       class="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-xs font-semibold focus:outline-none focus:border-winmart-red shadow-sm">
+                <i data-lucide="search" class="absolute left-3.5 top-3 w-4 h-4 text-gray-400"></i>
+            </div>
+            
+            <div class="w-full sm:w-64">
+                <select name="tier" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-winmart-red shadow-sm appearance-none">
+                    <option value="">Tất cả hạng thành viên</option>
+                    <% Object.keys(LOYALTY_TIER).forEach(key => { %>
+                        <option value="<%= LOYALTY_TIER[key] %>" <%= filters.tier === LOYALTY_TIER[key] ? 'selected' : '' %>>
+                            Hạng <%= LOYALTY_TIER[key] %>
+                        </option>
+                    <% }) %>
+                </select>
+            </div>
+            
+            <button type="submit" class="w-full sm:w-auto bg-winmart-dark text-white px-6 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
+                <i data-lucide="filter" class="w-3.5 h-3.5"></i> Lọc
+            </button>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left min-w-[1000px]">
+            <thead>
+                <tr class="bg-white border-b border-gray-100">
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider">Khách hàng</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Liên hệ</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Đơn hàng</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Tổng chi tiêu</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Hạng</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Trạng thái</th>
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                <% if (typeof customers !== 'undefined' && customers.length > 0) { %>
+                    <% customers.forEach(kh => { %>
+                    <tr class="hover:bg-gray-50/50 transition group bg-white">
+                        <td class="py-3 px-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-black text-xs shrink-0">
+                                    <%= kh.HoTen ? kh.HoTen.charAt(0).toUpperCase() : 'K' %>
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-winmart-dark text-sm"><%= kh.HoTen %></h4>
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase mt-0.5 block">Mã: <%= kh.MaKhachHang %></span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <% if (kh.SoDienThoai) { %>
+                                <div class="text-[11px] font-semibold text-gray-500 flex items-center gap-1">
+                                    <i data-lucide="phone" class="w-3 h-3 text-gray-400"></i> <%= kh.SoDienThoai %>
+                                </div>
+                            <% } %>
+                            <% if (kh.Email) { %>
+                                <div class="text-[11px] font-semibold text-gray-500 flex items-center gap-1 mt-1">
+                                    <i data-lucide="mail" class="w-3 h-3 text-gray-400"></i> <%= kh.Email %>
+                                </div>
+                            <% } %>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="text-sm font-bold text-gray-600"><%= kh.soDonHang || 0 %></span>
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <span class="text-sm font-black text-winmart-red"><%= Number(kh.tongChiTieu || 0).toLocaleString('vi-VN') %>đ</span>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <% if (kh.CapDoVIP === LOYALTY_TIER.THUONG) { %>
+                                <span class="inline-flex items-center bg-gray-50 text-gray-600 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-gray-200">
+                                    Thường
+                                </span>
+                            <% } else if (kh.CapDoVIP === LOYALTY_TIER.VIP1) { %>
+                                <span class="inline-flex items-center bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-blue-100">
+                                    VIP 1
+                                </span>
+                            <% } else if (kh.CapDoVIP === LOYALTY_TIER.VIP2) { %>
+                                <span class="inline-flex items-center bg-purple-50 text-purple-600 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-purple-100">
+                                    VIP 2
+                                </span>
+                            <% } else if (kh.CapDoVIP === LOYALTY_TIER.VIP3) { %>
+                                <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-600 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-amber-100">
+                                    <i data-lucide="crown" class="w-3 h-3"></i> VIP 3
+                                </span>
+                            <% } %>
+                            <div class="text-[10px] text-gray-400 font-semibold mt-1">
+                                <%= kh.TongDiemTichLuy || 0 %> điểm
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <% if (kh.is_active) { %>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Hoạt động
+                                </span>
+                            <% } else { %>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-50 text-gray-500 border border-gray-200">
+                                    Đã khóa
+                                </span>
+                            <% } %>
+                        </td>
+                        <td class="py-3 px-5 text-right">
+                            <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <a href="/admin/customers/<%= kh.KhachHangId %>" class="px-3 py-1.5 bg-white border border-gray-200 text-winmart-dark hover:text-blue-600 hover:border-blue-200 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1">
+                                    Chi tiết <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                                </a>
+                                <% if (kh.is_active) { %>
+                                <button type="button" onclick="toggleStatus('<%= kh.KhachHangId %>', 'lock')" class="p-1.5 bg-white border border-gray-200 text-gray-400 hover:text-winmart-red hover:bg-red-50 rounded-lg transition shadow-sm" title="Khóa tài khoản">
+                                    <i data-lucide="lock" class="w-4 h-4"></i>
+                                </button>
+                                <% } else { %>
+                                <button type="button" onclick="toggleStatus('<%= kh.KhachHangId %>', 'unlock')" class="p-1.5 bg-white border border-gray-200 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition shadow-sm" title="Mở khóa tài khoản">
+                                    <i data-lucide="unlock" class="w-4 h-4"></i>
+                                </button>
+                                <% } %>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6" class="py-16 text-center">
+                            <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i data-lucide="users" class="w-7 h-7 text-gray-400"></i>
+                            </div>
+                            <p class="text-sm font-bold text-gray-500 mb-1">Không tìm thấy khách hàng nào</p>
+                            <p class="text-xs text-gray-400">Hãy thử thay đổi điều kiện tìm kiếm.</p>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <% if (typeof meta !== 'undefined' && meta && meta.totalPages > 1) { %>
+        <div class="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-center">
+            <div class="flex gap-1">
+                <a href="?page=<%= meta.currentPage - 1 %>&search=<%= typeof filters !== 'undefined' && filters.search ? filters.search : '' %>&tier=<%= typeof filters !== 'undefined' && filters.tier ? filters.tier : '' %>" 
+                   class="px-3 py-1.5 rounded-lg text-xs font-bold <%= meta.currentPage === 1 ? 'text-gray-400 pointer-events-none' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' %>">
+                    Trước
+                </a>
+                
+                <% for(let i = 1; i <= meta.totalPages; i++) { %>
+                    <a href="?page=<%= i %>&search=<%= typeof filters !== 'undefined' && filters.search ? filters.search : '' %>&tier=<%= typeof filters !== 'undefined' && filters.tier ? filters.tier : '' %>" 
+                       class="px-3 py-1.5 rounded-lg text-xs font-bold <%= meta.currentPage === i ? 'bg-winmart-dark text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' %>">
+                        <%= i %>
+                    </a>
+                <% } %>
+                
+                <a href="?page=<%= meta.currentPage + 1 %>&search=<%= typeof filters !== 'undefined' && filters.search ? filters.search : '' %>&tier=<%= typeof filters !== 'undefined' && filters.tier ? filters.tier : '' %>" 
+                   class="px-3 py-1.5 rounded-lg text-xs font-bold <%= meta.currentPage === meta.totalPages ? 'text-gray-400 pointer-events-none' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' %>">
+                    Sau
+                </a>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+<!-- Slide-over Tạo Khách Hàng -->
+<div id="slideOverBg" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[99] hidden opacity-0 transition-opacity duration-300" onclick="closeSlideOver()"></div>
+<div id="slideOver" class="fixed inset-y-0 right-0 w-full md:w-[450px] bg-white z-[100] transform translate-x-full transition-transform duration-300 ease-out shadow-2xl flex flex-col">
+    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+        <div class="flex items-center gap-3">
+            <div class="w-1.5 h-6 bg-winmart-red rounded-full"></div>
+            <h2 class="text-lg font-black text-winmart-dark">Thêm Khách Hàng</h2>
+        </div>
+        <button onclick="closeSlideOver()" class="p-2 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-gray-600 transition">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+    </div>
+
+    <form id="createForm" action="/admin/customers" method="POST" class="flex-1 flex flex-col overflow-y-auto">
+        <div class="p-6 space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5">Tên khách hàng <span class="text-winmart-red">*</span></label>
+                <input type="text" name="HoTen" required placeholder="Nguyễn Văn A" 
+                       class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5">Số điện thoại <span class="text-winmart-red">*</span></label>
+                <input type="text" name="SoDienThoai" required placeholder="09xxxxxxxx" 
+                       class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5">Email (không bắt buộc)</label>
+                <input type="email" name="Email" placeholder="example@email.com" 
+                       class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-winmart-red focus:ring-4 focus:ring-winmart-red/10 transition">
+            </div>
+            
+            <div class="bg-blue-50 text-blue-800 p-4 rounded-xl text-xs font-semibold flex gap-3 border border-blue-100">
+                <i data-lucide="info" class="w-5 h-5 shrink-0 text-blue-500"></i>
+                <p>Khách hàng tạo tại quầy có thể sử dụng số điện thoại để tích điểm. Mật khẩu không bắt buộc, khách hàng có thể sử dụng chức năng quên mật khẩu trên web để tạo mật khẩu đăng nhập sau.</p>
+            </div>
+        </div>
+
+        <div class="p-6 border-t border-gray-100 bg-gray-50/50 mt-auto flex gap-3">
+            <button type="button" onclick="closeSlideOver()" class="flex-1 bg-white border border-gray-200 text-gray-600 px-5 py-3 rounded-xl text-sm font-bold hover:bg-gray-50 transition shadow-sm">
+                Thoát
+            </button>
+            <button type="submit" id="submitBtn" class="flex-1 bg-winmart-dark text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-black transition shadow-sm flex items-center justify-center gap-2">
+                <i data-lucide="save" class="w-4 h-4 text-winmart-yellow"></i> Tạo Khách Hàng
+            </button>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function toggleSlideOver() {
+        const bg = document.getElementById('slideOverBg');
+        const slide = document.getElementById('slideOver');
+        
+        if (bg.classList.contains('hidden')) {
+            bg.classList.remove('hidden');
+            setTimeout(() => {
+                bg.classList.remove('opacity-0');
+                slide.classList.remove('translate-x-full');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeSlideOver() {
+        const bg = document.getElementById('slideOverBg');
+        const slide = document.getElementById('slideOver');
+        
+        bg.classList.add('opacity-0');
+        slide.classList.add('translate-x-full');
+        
+        setTimeout(() => {
+            bg.classList.add('hidden');
+            document.getElementById('createForm').reset();
+        }, 300);
+        document.body.style.overflow = '';
+    }
+
+    document.getElementById('createForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btn = document.getElementById('submitBtn');
+        const btnOriginalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 text-winmart-yellow animate-spin"></i> Đang xử lý...';
+        lucide.createIcons();
+
+        try {
+            const formData = new URLSearchParams(new FormData(e.target));
+            const res = await fetch(e.target.action, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+            
+            const data = await res.json();
+            
+            if (data.success) {
+                closeSlideOver();
+                await Swal.fire({
+                    title: 'Thành công',
+                    text: data.message,
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                window.location.reload();
+            } else {
+                Swal.fire('Lỗi', data.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = btnOriginalText;
+                lucide.createIcons();
+            }
+        } catch (err) {
+            Swal.fire('Lỗi', 'Có lỗi kết nối máy chủ', 'error');
+            btn.disabled = false;
+            btn.innerHTML = btnOriginalText;
+            lucide.createIcons();
+        }
+    });
+
+    async function toggleStatus(id, action) {
+        const result = await Swal.fire({
+            title: action === 'lock' ? 'Khóa tài khoản?' : 'Mở khóa tài khoản?',
+            text: action === 'lock' ? "Khách hàng này sẽ không thể đăng nhập hoặc tích điểm." : "Tài khoản sẽ được khôi phục trạng thái bình thường.",
+            icon: action === 'lock' ? 'warning' : 'info',
+            showCancelButton: true,
+            confirmButtonColor: action === 'lock' ? '#EF4444' : '#10B981',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: action === 'lock' ? 'Khóa ngay' : 'Mở khóa',
+            cancelButtonText: 'Hủy'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`/admin/customers/${id}/toggle-status`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    await Swal.fire({
+                        title: 'Thành công',
+                        text: data.message,
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    window.location.reload();
+                } else {
+                    Swal.fire('Lỗi', data.message, 'error');
+                }
+            } catch (err) {
+                Swal.fire('Lỗi', 'Có lỗi kết nối máy chủ', 'error');
+            }
+        }
+    }
+</script>

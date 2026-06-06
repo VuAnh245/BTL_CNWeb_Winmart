@@ -1,0 +1,361 @@
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <p class="text-[11px] text-winmart-slate font-semibold tracking-wider uppercase mb-1">Quản lý Danh mục</p>
+        <h1 class="text-2xl font-black tracking-tight text-winmart-dark">Danh Sách Danh Mục</h1>
+    </div>
+    <button onclick="toggleSlideOver()" class="bg-winmart-dark hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-gray-900/20">
+        <i data-lucide="plus" class="w-4 h-4 text-winmart-yellow"></i> Thêm danh mục
+    </button>
+</div>
+
+<%- include('../../partials/flash-message') %>
+
+<%
+function getCategoryIcon(name) {
+    const n = (name || '').toLowerCase();
+    // Danh sách từ khóa mở rộng cho Siêu thị
+    if (n.match(/bánh|kẹo|snack|socola/)) return 'cookie';
+    if (n.match(/uống|nước|sữa|bia|rượu|trà|cafe/)) return 'cup-soda';
+    if (n.match(/khô|gia vị|mì|gạo|đường|muối|ngũ cốc/)) return 'wheat';
+    if (n.match(/tươi|sống|thịt|cá|hải sản|trứng/)) return 'beef';
+    if (n.match(/đông lạnh|kem|đá|mát/)) return 'snowflake';
+    if (n.match(/rau|củ|trái cây|quả|nông sản/)) return 'carrot';
+    if (n.match(/hóa phẩm|gia đình|giặt|vệ sinh|tắm|gội|tẩy/)) return 'spray-can';
+    if (n.match(/đồ hộp|đóng hộp|lon/)) return 'archive';
+    if (n.match(/mẹ|bé|tã|bỉm/)) return 'baby';
+    if (n.match(/cá nhân|mỹ phẩm|làm đẹp/)) return 'sparkles';
+    if (n.match(/văn phòng|văn phòng phẩm|sách|vở/)) return 'paperclip';
+    if (n.match(/thú cưng|chó|mèo/)) return 'bone';
+    
+    // Icon mặc định ngẫu nhiên dựa trên tên để tránh trùng lặp
+    const icons = ['layout-grid', 'box', 'layers', 'grid', 'package'];
+    let hash = 0;
+    for (let i = 0; i < n.length; i++) hash = n.charCodeAt(i) + ((hash << 5) - hash);
+    return icons[Math.abs(hash) % icons.length];
+}
+
+function getCategoryColor(name) {
+    const n = (name || '').toLowerCase();
+    
+    if (n.match(/bánh|kẹo|snack|socola|trứng/)) return 'bg-amber-50 text-amber-500 border-amber-100';
+    if (n.match(/uống|nước|sữa|bia|rượu|đông lạnh|kem|đá|mát/)) return 'bg-blue-50 text-blue-500 border-blue-100';
+    if (n.match(/khô|gia vị|mì|gạo|đường|muối/)) return 'bg-orange-50 text-orange-500 border-orange-100';
+    if (n.match(/tươi|sống|thịt|cá|hải sản/)) return 'bg-red-50 text-red-500 border-red-100';
+    if (n.match(/rau|củ|trái cây|quả|nông sản/)) return 'bg-emerald-50 text-emerald-500 border-emerald-100';
+    if (n.match(/hóa phẩm|gia đình|giặt|vệ sinh|tắm|gội|tẩy/)) return 'bg-indigo-50 text-indigo-500 border-indigo-100';
+    if (n.match(/mẹ|bé|tã|bỉm|mỹ phẩm|làm đẹp/)) return 'bg-pink-50 text-pink-500 border-pink-100';
+
+    // Sinh màu ngẫu nhiên nhưng cố định theo tên danh mục
+    const colors = [
+        'bg-purple-50 text-purple-500 border-purple-100',
+        'bg-fuchsia-50 text-fuchsia-500 border-fuchsia-100',
+        'bg-cyan-50 text-cyan-500 border-cyan-100',
+        'bg-teal-50 text-teal-500 border-teal-100',
+        'bg-rose-50 text-rose-500 border-rose-100',
+        'bg-violet-50 text-violet-500 border-violet-100'
+    ];
+    let hash = 0;
+    for (let i = 0; i < n.length; i++) hash = n.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+}
+%>
+
+<!-- Data Table Container -->
+<div class="bento-card overflow-hidden">
+
+    <!-- Filters -->
+    <div class="p-5 border-b border-gray-100 bg-gray-50/50">
+        <form method="GET" action="/admin/categories" class="flex flex-col sm:flex-row gap-4 items-center w-full">
+            <div class="relative flex-1 w-full sm:w-96">
+                <input type="text" name="search" placeholder="Tìm tên danh mục..." value="<%= typeof search !== 'undefined' ? search : '' %>"
+                       class="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-xs font-semibold focus:outline-none focus:border-winmart-red shadow-sm">
+                <i data-lucide="search" class="absolute left-3.5 top-3 w-4 h-4 text-gray-400"></i>
+            </div>
+            
+            <button type="submit" class="w-full sm:w-auto bg-winmart-dark text-white px-6 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
+                <i data-lucide="filter" class="w-3.5 h-3.5"></i> Lọc
+            </button>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left min-w-[800px]">
+            <thead>
+                <tr class="bg-white border-b border-gray-100">
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider">Danh mục</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Mô tả</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Sản phẩm</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Trạng thái</th>
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+                    <% categories.forEach(cat => { %>
+                    <tr class="hover:bg-gray-50/50 transition group bg-white">
+                        <td class="py-4 px-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 <%= getCategoryColor(cat.TenDanhMuc) %> shadow-sm">
+                                    <i data-lucide="<%= getCategoryIcon(cat.TenDanhMuc) %>" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-extrabold text-winmart-dark text-sm"><%= cat.TenDanhMuc %></h4>
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase mt-0.5 block"><%= cat.MaDanhMuc %></span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4">
+                            <span class="text-xs text-gray-500 font-medium">
+                                <%= cat.MoTa || 'Không có mô tả' %>
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                            <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-blue-100">
+                                <i data-lucide="package" class="w-3 h-3"></i> <%= cat.soSanPham || 0 %> SP
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                            <% if (cat.is_active) { %>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Hoạt động
+                                </span>
+                            <% } else { %>
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-50 text-gray-500 border border-gray-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Đã khóa
+                                </span>
+                            <% } %>
+                        </td>
+                        <td class="py-4 px-5 text-right">
+                            <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <a href="/admin/categories/<%= cat.DanhMucId %>/edit" class="p-1.5 bg-white border border-gray-200 text-blue-500 hover:bg-blue-50 rounded-lg transition shadow-sm">
+                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                </a>
+                                <button type="button" onclick="deleteCategory('<%= cat.DanhMucId %>')" class="p-1.5 bg-white border border-gray-200 text-gray-400 hover:text-winmart-red hover:bg-red-50 rounded-lg transition shadow-sm">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="4" class="py-16 text-center">
+                            <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i data-lucide="layout-grid" class="w-7 h-7 text-gray-400"></i>
+                            </div>
+                            <p class="text-sm font-bold text-gray-500 mb-1">Không tìm thấy danh mục nào</p>
+                            <p class="text-xs text-gray-400">Hãy thử thay đổi điều kiện tìm kiếm hoặc thêm mới.</p>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <% if (typeof meta !== 'undefined' && meta && meta.totalPages > 1) { %>
+        <div class="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-center">
+            <div class="flex gap-1">
+                <a href="?page=<%= meta.currentPage - 1 %>&search=<%= typeof search !== 'undefined' ? search : '' %>" 
+                   class="px-3 py-1.5 rounded-lg text-xs font-bold <%= meta.currentPage === 1 ? 'text-gray-400 pointer-events-none' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' %>">
+                    Trước
+                </a>
+                
+                <% for(let i = 1; i <= meta.totalPages; i++) { %>
+                    <a href="?page=<%= i %>&search=<%= typeof search !== 'undefined' ? search : '' %>" 
+                       class="px-3 py-1.5 rounded-lg text-xs font-bold <%= meta.currentPage === i ? 'bg-winmart-dark text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' %>">
+                        <%= i %>
+                    </a>
+                <% } %>
+                
+                <a href="?page=<%= meta.currentPage + 1 %>&search=<%= typeof search !== 'undefined' ? search : '' %>" 
+                   class="px-3 py-1.5 rounded-lg text-xs font-bold <%= meta.currentPage === meta.totalPages ? 'text-gray-400 pointer-events-none' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50' %>">
+                    Sau
+                </a>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+<!-- ============================================== -->
+<!-- SLIDE-OVER: Form Thêm/Sửa Danh Mục -->
+<!-- ============================================== -->
+<% const isOpen = typeof openSlideOver !== 'undefined' && openSlideOver; %>
+<% const isEdit = typeof editCategory !== 'undefined' && editCategory; %>
+
+<div id="slide-over-backdrop" onclick="closeSlideOver()" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40 <%= isOpen ? '' : 'hidden opacity-0' %> transition-opacity"></div>
+
+<div id="slide-over" class="fixed inset-y-0 right-0 w-full md:w-[480px] bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200 transition-transform duration-300 ease-in-out <%= isOpen ? 'translate-x-0' : 'translate-x-full' %>">
+
+    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+        <div>
+            <h3 class="text-base font-black text-winmart-dark flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-winmart-red rounded-full"></span> <%= isEdit ? 'Cập Nhật Danh Mục' : 'Thêm Mới Danh Mục' %>
+            </h3>
+            <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5">
+                <%= isEdit ? 'Chỉnh sửa thông tin' : 'Khởi tạo danh mục mới' %>
+            </p>
+        </div>
+        <button onclick="closeSlideOver()" class="p-2 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-winmart-dark transition shadow-sm">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6">
+        <form action="<%= isEdit ? '/admin/categories/' + editCategory.DanhMucId + '/edit' : '/admin/categories/create' %>" method="POST" class="space-y-5" id="category-form">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5">Tên danh mục <span class="text-red-500">*</span></label>
+                <input type="text" name="TenDanhMuc" placeholder="VD: Đồ ăn vặt, Gia vị..." required value="<%= isEdit ? editCategory.TenDanhMuc : '' %>"
+                       class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-winmart-dark focus:outline-none focus:border-winmart-red focus:ring-2 focus:ring-winmart-red/10 transition-all shadow-sm">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5">Mô tả chi tiết</label>
+                <textarea name="MoTa" rows="4" placeholder="Nhập mô tả về danh mục này..."
+                          class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-winmart-dark focus:outline-none focus:border-winmart-red focus:ring-2 focus:ring-winmart-red/10 transition-all resize-none shadow-sm"><%= isEdit ? editCategory.MoTa : '' %></textarea>
+            </div>
+            
+            <% if (isEdit) { %>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5">Trạng thái</label>
+                <select name="is_active" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-winmart-dark focus:outline-none focus:border-winmart-red transition-all shadow-sm appearance-none">
+                    <option value="1" <%= editCategory.is_active == 1 ? 'selected' : '' %>>Hoạt động (Hiển thị)</option>
+                    <option value="0" <%= editCategory.is_active == 0 ? 'selected' : '' %>>Khóa (Tạm ẩn)</option>
+                </select>
+            </div>
+            <% } %>
+        </form>
+    </div>
+
+    <div class="p-5 border-t border-gray-100 bg-white flex gap-3 shrink-0">
+        <button onclick="closeSlideOver()" class="flex-1 py-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 transition shadow-sm">Thoát</button>
+        <button type="submit" form="category-form" id="submitBtn" class="flex-[2] py-3 bg-winmart-dark hover:bg-black text-white rounded-xl text-sm font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-gray-900/20">
+            <i data-lucide="save" class="w-4 h-4 text-winmart-yellow"></i> <%= isEdit ? 'Lưu Thay Đổi' : 'Tạo Danh Mục' %>
+        </button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function toggleSlideOver() {
+        // Reset form for fresh Create action
+        document.getElementById('category-form').reset();
+        document.getElementById('category-form').action = '/admin/categories/create';
+        // Open panel
+        const panel = document.getElementById('slide-over');
+        const backdrop = document.getElementById('slide-over-backdrop');
+        
+        backdrop.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('translate-x-full');
+            panel.classList.add('translate-x-0');
+        }, 10);
+    }
+    
+    function closeSlideOver() {
+        const panel = document.getElementById('slide-over');
+        const backdrop = document.getElementById('slide-over-backdrop');
+        
+        panel.classList.remove('translate-x-0');
+        panel.classList.add('translate-x-full');
+        backdrop.classList.add('opacity-0');
+        setTimeout(() => {
+            backdrop.classList.add('hidden');
+            // Nếu đang trong trạng thái edit có lỗi, khi đóng xong ta dọn URL
+            if (window.location.pathname.includes('/edit') || window.location.pathname.includes('/create')) {
+                window.history.pushState({}, document.title, '/admin/categories');
+            }
+        }, 300);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('category-form');
+        
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const tenDM = form.elements['TenDanhMuc'].value;
+                if (!tenDM) {
+                    return Swal.fire('Cảnh báo', 'Vui lòng nhập Tên danh mục!', 'warning');
+                }
+
+                const btn = document.getElementById('submitBtn');
+                const btnOriginalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 text-winmart-yellow animate-spin"></i> Đang xử lý...';
+                lucide.createIcons();
+
+                try {
+                    const formData = new URLSearchParams(new FormData(form));
+
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        closeSlideOver();
+                        await Swal.fire({
+                            title: 'Thành công',
+                            text: data.message,
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        window.location.reload();
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = btnOriginalText;
+                        lucide.createIcons();
+                    }
+                } catch (err) {
+                    Swal.fire('Lỗi', 'Có lỗi kết nối máy chủ', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = btnOriginalText;
+                    lucide.createIcons();
+                }
+            });
+        }
+    });
+
+    function deleteCategory(id) {
+        Swal.fire({
+            title: 'Xóa danh mục này?',
+            text: "Nếu danh mục đang chứa sản phẩm, bạn sẽ không thể xóa.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#9ca3af',
+            confirmButtonText: 'Đồng ý xóa',
+            cancelButtonText: 'Đóng'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const res = await fetch(`/admin/categories/${id}/delete`, {
+                        method: 'POST'
+                    });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Lỗi', 'Không thể kết nối máy chủ', 'error');
+                }
+            }
+        });
+    }
+</script>

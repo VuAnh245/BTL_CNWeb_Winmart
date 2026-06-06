@@ -1,0 +1,602 @@
+<!-- Row 0: Page Header with Date Filter & Export -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+    <div>
+        <p class="text-[11px] text-winmart-slate font-semibold tracking-wider uppercase mb-1">Thống Kê</p>
+        <h1 class="text-2xl font-black tracking-tight text-winmart-dark dark:text-white">Báo Cáo Doanh Thu</h1>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+        <!-- Date Filter -->
+        <form method="GET" action="/admin/statistics" class="flex items-center gap-2">
+            <div class="flex items-center gap-2 bg-white border border-gray-100 rounded-2xl px-4 py-2 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+                <i data-lucide="calendar" class="w-4 h-4 text-winmart-red"></i>
+                <select name="month" class="text-xs font-bold text-gray-700 bg-transparent border-none outline-none cursor-pointer pr-1 dark:text-gray-200">
+                    <% for (let m = 1; m <= 12; m++) { %>
+                    <option value="<%= m %>" <%= m === selectedMonth ? 'selected' : '' %>>Tháng <%= m %></option>
+                    <% } %>
+                </select>
+                <select name="year" class="text-xs font-bold text-gray-700 bg-transparent border-none outline-none cursor-pointer pr-1 dark:text-gray-200">
+                    <% for (let y = 2024; y <= 2030; y++) { %>
+                    <option value="<%= y %>" <%= y === selectedYear ? 'selected' : '' %>><%= y %></option>
+                    <% } %>
+                </select>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-winmart-dark text-white text-xs font-black rounded-xl hover:bg-gray-800 transition-colors shadow-sm dark:bg-gray-700 dark:hover:bg-gray-600">
+                <i data-lucide="search" class="w-3.5 h-3.5 inline-block mr-1 -mt-0.5"></i> Xem
+            </button>
+        </form>
+
+        <!-- Export Buttons -->
+        <div class="flex items-center gap-2">
+            <a href="/admin/statistics/export/excel?month=<%= selectedMonth %>&year=<%= selectedYear %>"
+               class="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 text-white text-xs font-black rounded-xl hover:bg-emerald-600 transition-colors shadow-sm">
+                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Xuất Excel
+            </a>
+            <a href="/admin/statistics/export/pdf?month=<%= selectedMonth %>&year=<%= selectedYear %>"
+               class="flex items-center gap-1.5 px-4 py-2 bg-winmart-red text-white text-xs font-black rounded-xl hover:bg-winmart-redHover transition-colors shadow-sm">
+                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Xuất PDF
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Row 1: 4 KPI Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+    <!-- Tổng Doanh Thu -->
+    <div class="bento-card p-5 group hover:-translate-y-1 transition-transform">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-1 rounded-lg">Tháng <%= selectedMonth %></span>
+        </div>
+        <div class="text-2xl font-black text-winmart-dark dark:text-white mb-1">
+            <%= Number(stats.totalRevenue).toLocaleString('vi-VN') %>đ
+        </div>
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tổng Doanh Thu</p>
+    </div>
+
+    <!-- Đơn Hàng Hoàn Thành -->
+    <div class="bento-card p-5 group hover:-translate-y-1 transition-transform">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[10px] font-black text-blue-500 bg-blue-50 px-2 py-1 rounded-lg">Hoàn thành</span>
+        </div>
+        <div class="text-2xl font-black text-winmart-dark dark:text-white mb-1">
+            <%= Number(stats.totalOrders).toLocaleString('vi-VN') %>
+        </div>
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Đơn Hàng Hoàn Thành</p>
+    </div>
+
+    <!-- Khách Hàng Mua Hàng -->
+    <div class="bento-card p-5 group hover:-translate-y-1 transition-transform">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-purple-50 text-purple-500 flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                <i data-lucide="users" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[10px] font-black text-purple-500 bg-purple-50 px-2 py-1 rounded-lg">Unique</span>
+        </div>
+        <div class="text-2xl font-black text-winmart-dark dark:text-white mb-1">
+            <%= Number(stats.totalCustomers).toLocaleString('vi-VN') %>
+        </div>
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Khách Hàng Mua Hàng</p>
+    </div>
+
+    <!-- Lợi Nhuận Gộp -->
+    <div class="bento-card p-5 group hover:-translate-y-1 transition-transform">
+        <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 rounded-2xl bg-winmart-red/10 text-winmart-red flex items-center justify-center group-hover:bg-winmart-red group-hover:text-white transition-colors">
+                <i data-lucide="trending-up" class="w-5 h-5"></i>
+            </div>
+            <span class="text-[10px] font-black text-winmart-red bg-red-50 px-2 py-1 rounded-lg">
+                Margin: <%= Number(stats.totalRevenue) > 0 ? (Number(stats.grossProfit) / Number(stats.totalRevenue) * 100).toFixed(1) : '0.0' %>%
+            </span>
+        </div>
+        <div class="text-2xl font-black text-winmart-dark dark:text-white mb-1">
+            <%= Number(stats.grossProfit).toLocaleString('vi-VN') %>đ
+        </div>
+        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Lợi Nhuận Gộp</p>
+    </div>
+</div>
+
+<!-- Row 2: Charts (2/3 + 1/3) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Line Chart: Daily Revenue -->
+    <div class="bento-card p-6 lg:col-span-2 flex flex-col">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-sm font-black text-winmart-dark dark:text-white flex items-center gap-2">
+                <div class="w-1.5 h-4 bg-emerald-500 rounded-full"></div>
+                Biểu Đồ Doanh Thu Theo Ngày
+            </h3>
+            <span class="text-[10px] font-black text-gray-400 uppercase">Tháng <%= selectedMonth %>/<%= selectedYear %></span>
+        </div>
+        <div class="flex-1 w-full bg-white dark:bg-gray-800 rounded-xl relative min-h-[280px]">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Doughnut Chart: Online vs POS -->
+    <div class="bento-card p-6 lg:col-span-1 flex flex-col">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-sm font-black text-winmart-dark dark:text-white flex items-center gap-2">
+                <div class="w-1.5 h-4 bg-blue-500 rounded-full"></div>
+                Tỉ Lệ Đơn Hàng
+            </h3>
+        </div>
+        <div class="relative flex-1 flex items-center justify-center min-h-[200px]">
+            <canvas id="typeChart"></canvas>
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-4">
+            <div class="text-center bg-gray-50 rounded-xl p-3 dark:bg-gray-800">
+                <span class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Web Online</span>
+                <span class="text-lg font-black text-winmart-red"><%= chart.onlineCount %></span>
+            </div>
+            <div class="text-center bg-gray-50 rounded-xl p-3 dark:bg-gray-800">
+                <span class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Tại Quầy (POS)</span>
+                <span class="text-lg font-black text-gray-700 dark:text-gray-200"><%= chart.posCount %></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 3: Two more charts (1/2 + 1/2) -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Doughnut Chart: Payment Methods -->
+    <div class="bento-card p-6 flex flex-col">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-sm font-black text-winmart-dark dark:text-white flex items-center gap-2">
+                <div class="w-1.5 h-4 bg-purple-500 rounded-full"></div>
+                Phương Thức Thanh Toán
+            </h3>
+        </div>
+        <% if (paymentMethods && paymentMethods.length > 0) { %>
+        <div class="flex-1 flex items-center justify-center min-h-[250px]">
+            <canvas id="paymentChart"></canvas>
+        </div>
+        <div class="mt-4 flex flex-wrap justify-center gap-4">
+            <% paymentMethods.forEach(pm => {
+                let label = pm.PhuongThucTT;
+                if (label === 'TienMat') label = 'Tiền mặt';
+                else if (label === 'ChuyenKhoan') label = 'Chuyển khoản';
+                else if (label === 'QR') label = 'QR Code';
+            %>
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full <%= pm.PhuongThucTT === 'TienMat' ? 'bg-emerald-500' : pm.PhuongThucTT === 'ChuyenKhoan' ? 'bg-blue-500' : 'bg-purple-500' %>"></span>
+                <span class="text-xs font-bold text-gray-600 dark:text-gray-300"><%= label %>: <span class="text-winmart-dark dark:text-white"><%= pm.Count %></span></span>
+            </div>
+            <% }) %>
+        </div>
+        <% } else { %>
+        <div class="flex-1 flex flex-col items-center justify-center py-8">
+            <i data-lucide="credit-card" class="w-10 h-10 text-gray-300 mb-2"></i>
+            <p class="text-sm font-semibold text-gray-400">Chưa có dữ liệu thanh toán</p>
+        </div>
+        <% } %>
+    </div>
+
+    <!-- Bar Chart: Revenue by Category (Horizontal) -->
+    <div class="bento-card p-6 flex flex-col">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-sm font-black text-winmart-dark dark:text-white flex items-center gap-2">
+                <div class="w-1.5 h-4 bg-winmart-red rounded-full"></div>
+                Doanh Thu Theo Danh Mục
+            </h3>
+        </div>
+        <% if (categoryRevenue && categoryRevenue.length > 0) { %>
+        <div class="flex-1 flex items-center justify-center min-h-[250px]">
+            <canvas id="categoryChart"></canvas>
+        </div>
+        <% } else { %>
+        <div class="flex-1 flex flex-col items-center justify-center py-8">
+            <i data-lucide="bar-chart-3" class="w-10 h-10 text-gray-300 mb-2"></i>
+            <p class="text-sm font-semibold text-gray-400">Chưa có dữ liệu danh mục</p>
+        </div>
+        <% } %>
+    </div>
+</div>
+
+<!-- Row 4: Top 5 Products Table -->
+<div class="bento-card p-6 mb-6">
+    <div class="flex items-center justify-between mb-5">
+        <h3 class="text-sm font-black text-winmart-dark dark:text-white flex items-center gap-2">
+            <div class="w-1.5 h-4 bg-emerald-500 rounded-full"></div>
+            Top 5 Sản Phẩm Bán Chạy Nhất
+        </h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-gray-50 dark:bg-gray-800">
+                    <th class="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider rounded-tl-lg">#</th>
+                    <th class="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Sản Phẩm</th>
+                    <th class="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Số Lượng Bán</th>
+                    <th class="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right rounded-tr-lg">Doanh Thu Mang Lại</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+                <% if (topProducts && topProducts.length > 0) { %>
+                    <% topProducts.forEach((p, index) => { %>
+                    <tr class="hover:bg-gray-50/50 transition bg-white dark:bg-transparent dark:hover:bg-gray-800/50">
+                        <td class="py-3 px-4">
+                            <span class="w-6 h-6 rounded bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-black text-gray-400"><%= index + 1 %></span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="text-sm font-bold text-gray-700 dark:text-gray-200"><%= p.TenSanPham %></span>
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <span class="text-xs font-black text-winmart-dark dark:text-white"><%= p.TotalSold %></span>
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <span class="text-sm font-black text-emerald-600"><%= Number(p.TotalMoney).toLocaleString('vi-VN') %>đ</span>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="4" class="py-8 text-center">
+                            <i data-lucide="package" class="w-10 h-10 text-gray-300 mx-auto mb-2"></i>
+                            <p class="text-sm font-semibold text-gray-400">Chưa có dữ liệu bán hàng trong tháng này.</p>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Row 5: Employee Performance Table -->
+<div class="bento-card p-6 mb-6">
+    <div class="flex items-center justify-between mb-5">
+        <h3 class="text-sm font-black text-winmart-dark dark:text-white flex items-center gap-2">
+            <div class="w-1.5 h-4 bg-blue-500 rounded-full"></div>
+            Hiệu Suất Nhân Viên
+        </h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-gray-50 dark:bg-gray-800">
+                    <th class="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider rounded-tl-lg">#</th>
+                    <th class="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Nhân Viên</th>
+                    <th class="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Số Đơn Xử Lý</th>
+                    <th class="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right rounded-tr-lg">Doanh Thu Mang Lại</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+                <% if (employeePerformance && employeePerformance.length > 0) { %>
+                    <% employeePerformance.forEach((e, index) => { %>
+                    <tr class="hover:bg-gray-50/50 transition bg-white dark:bg-transparent dark:hover:bg-gray-800/50">
+                        <td class="py-3 px-4">
+                            <span class="w-6 h-6 rounded bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-black text-gray-400"><%= index + 1 %></span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center dark:bg-blue-900/30">
+                                    <i data-lucide="user" class="w-4 h-4"></i>
+                                </div>
+                                <span class="text-sm font-bold text-gray-700 dark:text-gray-200"><%= e.HoTen %></span>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <span class="text-xs font-black text-winmart-dark dark:text-white"><%= e.TotalOrders %></span>
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <span class="text-sm font-black text-emerald-600"><%= Number(e.TotalRevenue).toLocaleString('vi-VN') %>đ</span>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="4" class="py-8 text-center">
+                            <i data-lucide="users" class="w-10 h-10 text-gray-300 mx-auto mb-2"></i>
+                            <p class="text-sm font-semibold text-gray-400">Chưa có dữ liệu nhân viên trong tháng này.</p>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Row 7: Promotion Stats Table (only if data exists) -->
+<% if (promotionStats && promotionStats.length > 0) { %>
+<div class="bento-card p-6 mb-6">
+    <div class="flex items-center justify-between mb-5">
+        <h3 class="text-sm font-black text-winmart-dark dark:text-white flex items-center gap-2">
+            <div class="w-1.5 h-4 bg-purple-500 rounded-full"></div>
+            Thống Kê Khuyến Mãi
+        </h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-gray-50 dark:bg-gray-800">
+                    <th class="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider rounded-tl-lg">Mã Giảm Giá</th>
+                    <th class="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Tên Chương Trình</th>
+                    <th class="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Số Lần Sử Dụng</th>
+                    <th class="py-3 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right rounded-tr-lg">Tổng Giá Trị Giảm</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50 dark:divide-gray-700">
+                <% promotionStats.forEach(promo => { %>
+                <tr class="hover:bg-gray-50/50 transition bg-white dark:bg-transparent dark:hover:bg-gray-800/50">
+                    <td class="py-3 px-4">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-black text-purple-600 bg-purple-50 px-2.5 py-1 rounded-lg dark:bg-purple-900/30">
+                            <i data-lucide="tag" class="w-3 h-3"></i>
+                            <%= promo.MaCode %>
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="text-sm font-bold text-gray-700 dark:text-gray-200"><%= promo.TenMaGiamGia %></span>
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                        <span class="text-xs font-black text-winmart-dark dark:text-white"><%= promo.UsageCount %></span>
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                        <span class="text-sm font-black text-winmart-red"><%= Number(promo.TotalDiscount).toLocaleString('vi-VN') %>đ</span>
+                    </td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<% } %>
+
+<%- contentFor('scripts') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Shared tooltip style
+        const tooltipStyle = {
+            backgroundColor: 'rgba(31, 41, 55, 0.95)',
+            titleColor: '#9ca3af',
+            bodyColor: '#ffffff',
+            borderColor: '#374151',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: true,
+            boxPadding: 6,
+            usePointStyle: true,
+            titleFont: { size: 12, family: 'Plus Jakarta Sans', weight: 'normal' },
+            bodyFont: { size: 14, weight: 'bold', family: 'Plus Jakarta Sans' }
+        };
+
+        // --- 1. Line Chart: Daily Revenue ---
+        const ctxRevenue = document.getElementById('revenueChart');
+        if (ctxRevenue) {
+            const ctx = ctxRevenue.getContext('2d');
+            const revenueLabels = <%- chart.labels %>;
+            const revenueData = <%- chart.data %>;
+
+            let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+            gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+            new Chart(ctxRevenue, {
+                type: 'line',
+                data: {
+                    labels: revenueLabels,
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: revenueData,
+                        borderColor: '#10b981',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#10b981',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            ...tooltipStyle,
+                            callbacks: {
+                                title: function(context) {
+                                    return 'Ngày: ' + context[0].label;
+                                },
+                                label: function(context) {
+                                    let value = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.parsed.y);
+                                    return ' Doanh thu: ' + value;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: { family: 'Plus Jakarta Sans', size: 11 }, color: '#9ca3af' }
+                        },
+                        y: {
+                            grid: { color: '#f3f4f6', drawBorder: false, borderDash: [5, 5] },
+                            ticks: {
+                                font: { family: 'Plus Jakarta Sans', size: 11 },
+                                color: '#9ca3af',
+                                callback: function(value) {
+                                    if (value >= 1000000) return (value / 1000000) + ' Tr';
+                                    if (value >= 1000) return (value / 1000) + ' K';
+                                    return value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- 2. Doughnut Chart: Online vs POS ---
+        const ctxType = document.getElementById('typeChart');
+        if (ctxType) {
+            const onlineCount = <%= chart.onlineCount %>;
+            const posCount = <%= chart.posCount %>;
+
+            new Chart(ctxType, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Online', 'POS'],
+                    datasets: [{
+                        data: [onlineCount, posCount],
+                        backgroundColor: ['#e11d48', '#374151'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            ...tooltipStyle,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = total > 0 ? Math.round((context.raw / total) * 100) : 0;
+                                    return ` ${context.label}: ${context.raw} đơn (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- 3. Doughnut Chart: Payment Methods ---
+        <% if (paymentMethods && paymentMethods.length > 0) { %>
+        const ctxPayment = document.getElementById('paymentChart');
+        if (ctxPayment) {
+            const paymentLabels = [<%- paymentMethods.map(pm => {
+                if (pm.PhuongThucTT === 'TienMat') return "'Tiền mặt'";
+                if (pm.PhuongThucTT === 'ChuyenKhoan') return "'Chuyển khoản'";
+                if (pm.PhuongThucTT === 'QR') return "'QR Code'";
+                return "'" + pm.PhuongThucTT + "'";
+            }).join(',') %>];
+            const paymentData = [<%- paymentMethods.map(pm => pm.Count).join(',') %>];
+            const paymentColors = [<%-  paymentMethods.map(pm => {
+                if (pm.PhuongThucTT === 'TienMat') return "'#10b981'";
+                if (pm.PhuongThucTT === 'ChuyenKhoan') return "'#3b82f6'";
+                if (pm.PhuongThucTT === 'QR') return "'#8b5cf6'";
+                return "'#6b7280'";
+            }).join(',') %>];
+
+            new Chart(ctxPayment, {
+                type: 'doughnut',
+                data: {
+                    labels: paymentLabels,
+                    datasets: [{
+                        data: paymentData,
+                        backgroundColor: paymentColors,
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            ...tooltipStyle,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = total > 0 ? Math.round((context.raw / total) * 100) : 0;
+                                    return ` ${context.label}: ${context.raw} đơn (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        <% } %>
+
+        // --- 4. Bar Chart: Revenue by Category (Horizontal) ---
+        <% if (categoryRevenue && categoryRevenue.length > 0) { %>
+        const ctxCategory = document.getElementById('categoryChart');
+        if (ctxCategory) {
+            const catLabels = [<%- categoryRevenue.map(c => "'" + c.TenDanhMuc.replace(/'/g, "\\'") + "'").join(',') %>];
+            const catData = [<%- categoryRevenue.map(c => c.Revenue).join(',') %>];
+
+            // Generate gradient colors for each bar
+            const barColors = [
+                '#e11d48', '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b',
+                '#ec4899', '#14b8a6', '#6366f1', '#f97316', '#06b6d4'
+            ];
+
+            new Chart(ctxCategory, {
+                type: 'bar',
+                data: {
+                    labels: catLabels,
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: catData,
+                        backgroundColor: catLabels.map((_, i) => barColors[i % barColors.length]),
+                        borderWidth: 0,
+                        borderRadius: 8,
+                        barThickness: 24
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            ...tooltipStyle,
+                            callbacks: {
+                                label: function(context) {
+                                    let value = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.parsed.x);
+                                    return ' Doanh thu: ' + value;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#f3f4f6', drawBorder: false, borderDash: [5, 5] },
+                            ticks: {
+                                font: { family: 'Plus Jakarta Sans', size: 11 },
+                                color: '#9ca3af',
+                                callback: function(value) {
+                                    if (value >= 1000000) return (value / 1000000) + ' Tr';
+                                    if (value >= 1000) return (value / 1000) + ' K';
+                                    return value;
+                                }
+                            }
+                        },
+                        y: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: {
+                                font: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' },
+                                color: '#374151'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        <% } %>
+
+        // Re-init Lucide icons for dynamically rendered elements
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+</script>

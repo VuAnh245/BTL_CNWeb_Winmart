@@ -1,0 +1,276 @@
+<!-- Customers Index for Staff -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-full flex flex-col">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h2 class="text-2xl font-black text-winmart-dark tracking-tight">Khách hàng thành viên</h2>
+            <p class="text-sm text-gray-500 font-medium mt-1">Danh sách khách hàng và điểm tích lũy</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <form action="/staff/customers" method="GET" class="relative">
+                <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input type="text" name="keyword" value="<%= query.keyword || '' %>" placeholder="Tìm tên KH, số điện thoại..." 
+                       class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-winmart-red/20 focus:border-winmart-red transition-all w-80 font-medium">
+                <button type="submit" class="hidden"></button>
+            </form>
+            <button onclick="document.getElementById('addCustomerModal').classList.remove('hidden')" class="bg-winmart-dark hover:bg-black text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 shadow-md">
+                <i data-lucide="user-plus" class="w-4 h-4"></i> Thêm mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Customers Table -->
+    <div class="flex-1 overflow-auto rounded-xl border border-gray-100">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-100">
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Khách hàng</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Số điện thoại</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Hạng thành viên</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Điểm tích lũy</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Tổng chi tiêu</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                <% if (customers && customers.length > 0) { %>
+                    <% customers.forEach(c => { %>
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="py-3 px-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 font-black flex items-center justify-center shrink-0 border border-blue-100">
+                                        <%= c.HoTen ? c.HoTen.split(' ').pop().charAt(0).toUpperCase() : 'K' %>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-sm text-winmart-dark"><%= c.HoTen || 'Khách vãng lai' %></div>
+                                        <div class="text-[10px] text-gray-400 font-bold mt-0.5"><%= c.MaKhachHang %></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3 px-6 font-mono text-sm text-gray-600 font-medium"><%= c.SoDienThoai || '---' %></td>
+                            <td class="py-3 px-6">
+                                <% if (c.CapDoVIP === 'VIP3') { %>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-50 text-purple-600 border border-purple-100 text-xs font-black">
+                                        <i data-lucide="gem" class="w-3 h-3"></i> Kim Cương
+                                    </span>
+                                <% } else if (c.CapDoVIP === 'VIP2') { %>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-yellow-50 text-yellow-600 border border-yellow-100 text-xs font-black">
+                                        <i data-lucide="award" class="w-3 h-3"></i> Vàng
+                                    </span>
+                                <% } else if (c.CapDoVIP === 'VIP1') { %>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 border border-gray-200 text-xs font-black">
+                                        <i data-lucide="shield" class="w-3 h-3"></i> Bạc
+                                    </span>
+                                <% } else { %>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-600 border border-blue-100 text-xs font-black">
+                                        Thường
+                                    </span>
+                                <% } %>
+                            </td>
+                            <td class="py-3 px-6 font-black text-emerald-600"><%= c.TongDiemTichLuy || 0 %> pt</td>
+                            <td class="py-3 px-6 font-bold text-winmart-dark"><%= Number(c.tongChiTieu || 0).toLocaleString('vi-VN') %>đ</td>
+                            <td class="py-3 px-6 text-right">
+                                <button onclick="viewCustomerDetails('<%= c.KhachHangId %>')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs hover:bg-blue-100 transition shadow-sm">
+                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i> Chi tiết
+                                </button>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-gray-500">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                                    <i data-lucide="users" class="w-8 h-8 text-gray-400"></i>
+                                </div>
+                                <p class="font-bold">Không tìm thấy khách hàng nào.</p>
+                            </div>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Customer Modal -->
+<div id="addCustomerModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center" onclick="if(event.target === this) document.getElementById('addCustomerModal').classList.add('hidden')">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <h3 class="text-lg font-black text-winmart-dark">Thêm Khách Hàng Mới</h3>
+            <button onclick="document.getElementById('addCustomerModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <form id="addCustomerForm" class="p-6">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Họ và tên <span class="text-red-500">*</span></label>
+                    <input type="text" id="customerName" required class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-winmart-red focus:ring-2 focus:ring-winmart-red/20 transition-all placeholder-gray-400" placeholder="Nhập tên khách hàng">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Số điện thoại <span class="text-red-500">*</span></label>
+                    <input type="tel" id="customerPhone" required pattern="[0-9]{10,11}" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-winmart-red focus:ring-2 focus:ring-winmart-red/20 transition-all placeholder-gray-400" placeholder="Ví dụ: 0912345678">
+                </div>
+                <div id="addCustomerError" class="text-red-500 text-sm font-bold hidden"></div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" onclick="document.getElementById('addCustomerModal').classList.add('hidden')" class="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">
+                    Hủy bỏ
+                </button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-winmart-red hover:bg-red-700 transition-colors flex items-center gap-2 shadow-md">
+                    <i data-lucide="save" class="w-4 h-4"></i> Lưu Khách Hàng
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('addCustomerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nameInput = document.getElementById('customerName');
+    const phoneInput = document.getElementById('customerPhone');
+    const errorDiv = document.getElementById('addCustomerError');
+    
+    errorDiv.classList.add('hidden');
+    
+    try {
+        const response = await fetch('/staff/api/pos/customers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                HoTen: nameInput.value.trim(),
+                SoDienThoai: phoneInput.value.trim()
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Tải lại trang để cập nhật danh sách
+            window.location.reload();
+        } else {
+            errorDiv.textContent = data.message || 'Có lỗi xảy ra khi thêm khách hàng';
+            errorDiv.classList.remove('hidden');
+        }
+    } catch (error) {
+        errorDiv.textContent = 'Lỗi kết nối đến máy chủ';
+        errorDiv.classList.remove('hidden');
+    }
+});
+
+    async function viewCustomerDetails(id) {
+        const modal = document.getElementById('customerDetailModal');
+        const content = document.getElementById('customerDetailContent');
+        const body = document.getElementById('customerDetailBody');
+        
+        modal.classList.remove('hidden');
+        setTimeout(() => content.classList.remove('translate-x-full'), 10);
+        
+        body.innerHTML = `
+            <div class="flex justify-center items-center h-32 text-gray-400">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+            </div>
+        `;
+        lucide.createIcons();
+        
+        try {
+            const res = await fetch(`/staff/api/customers/${id}`);
+            const data = await res.json();
+            
+            if (data.success && data.customer) {
+                const c = data.customer;
+                
+                let ordersHtml = '';
+                if (c.recentOrders && c.recentOrders.length > 0) {
+                    ordersHtml = c.recentOrders.map(o => {
+                        return `
+                        <div class="flex justify-between py-2 border-b border-gray-50 last:border-0 items-center">
+                            <div>
+                                <p class="text-xs font-bold text-gray-700">HĐ: <span class="text-winmart-dark font-mono">${o.maHD}</span></p>
+                                <p class="text-[10px] font-bold text-gray-400">${new Date(o.ngay).toLocaleString('vi-VN')}</p>
+                            </div>
+                            <div class="text-sm font-black text-winmart-red">
+                                ${Number(o.tong).toLocaleString('vi-VN')}đ
+                            </div>
+                        </div>
+                    `}).join('');
+                } else {
+                    ordersHtml = `<p class="text-sm text-gray-500 italic py-2">Chưa có giao dịch</p>`;
+                }
+                
+                let tierHtml = '';
+                if (c.CapDoVIP === 'VIP3') tierHtml = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-50 text-purple-600 border border-purple-100 text-xs font-black"><i data-lucide="gem" class="w-3 h-3"></i> Kim Cương</span>`;
+                else if (c.CapDoVIP === 'VIP2') tierHtml = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-yellow-50 text-yellow-600 border border-yellow-100 text-xs font-black"><i data-lucide="award" class="w-3 h-3"></i> Vàng</span>`;
+                else if (c.CapDoVIP === 'VIP1') tierHtml = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 border border-gray-200 text-xs font-black"><i data-lucide="shield" class="w-3 h-3"></i> Bạc</span>`;
+                else tierHtml = `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-600 border border-blue-100 text-xs font-black">Thường</span>`;
+
+                body.innerHTML = `
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-16 h-16 rounded-full bg-blue-50 text-blue-600 font-black text-2xl flex items-center justify-center border border-blue-100 shrink-0">
+                            ${c.HoTen ? c.HoTen.split(' ').pop().charAt(0).toUpperCase() : 'K'}
+                        </div>
+                        <div>
+                            <h4 class="font-black text-winmart-dark text-lg leading-tight mb-1">${c.HoTen || 'Khách vãng lai'}</h4>
+                            <span class="inline-block bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded font-mono font-bold">${c.MaKhachHang}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50/50 rounded-xl border border-gray-100 p-4 space-y-3 mb-6">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500">Số điện thoại:</span>
+                            <span class="text-sm font-mono font-bold text-winmart-dark">${c.SoDienThoai || 'N/A'}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500">Điểm tích lũy:</span>
+                            <span class="text-sm font-black text-emerald-600">${c.TongDiemTichLuy || 0} pt</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500">Hạng:</span>
+                            ${tierHtml}
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold text-gray-500">Ngày đăng ký:</span>
+                            <span class="text-xs font-bold text-gray-700">${new Date(c.NgayTao).toLocaleDateString('vi-VN')}</span>
+                        </div>
+                    </div>
+                    
+                    <h5 class="text-xs font-black text-gray-500 uppercase tracking-wider mb-3">Giao dịch gần đây (Tối đa 10)</h5>
+                    <div class="bg-white rounded-xl border border-gray-100 px-4 py-2 max-h-60 overflow-y-auto custom-scrollbar">
+                        ${ordersHtml}
+                    </div>
+                `;
+                lucide.createIcons();
+            } else {
+                body.innerHTML = `<div class="text-center text-red-500 font-bold p-6">Lỗi: ${data.message || 'Không tải được'}</div>`;
+            }
+        } catch (e) {
+            body.innerHTML = `<div class="text-center text-red-500 font-bold p-6">Lỗi kết nối máy chủ</div>`;
+        }
+    }
+    
+    function closeCustomerDetailModal() {
+        const modal = document.getElementById('customerDetailModal');
+        const content = document.getElementById('customerDetailContent');
+        content.classList.add('translate-x-full');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+</script>
+
+<!-- Customer Detail Modal -->
+<div id="customerDetailModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden flex justify-end" onclick="if(event.target === this) closeCustomerDetailModal()">
+    <div class="bg-white w-full max-w-md h-full shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300" id="customerDetailContent">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 shrink-0">
+            <h3 class="text-lg font-black text-winmart-dark">Chi tiết Khách Hàng</h3>
+            <button onclick="closeCustomerDetailModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6" id="customerDetailBody">
+            <div class="flex justify-center items-center h-32 text-gray-400">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+            </div>
+        </div>
+    </div>
+</div>

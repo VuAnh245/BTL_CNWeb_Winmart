@@ -1,0 +1,47 @@
+<div class="min-h-screen flex items-center justify-center p-4 bg-gray-50/50">
+    <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-gray-100 text-center mx-auto my-12">
+        <% if (success) { %>
+            <div class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-500 flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <i data-lucide="check-circle" class="w-10 h-10"></i>
+            </div>
+            <h1 class="text-2xl font-black text-gray-800 mb-2">Thanh toán thành công!</h1>
+            <p class="text-gray-500 font-medium mb-6"><%= message %></p>
+            
+            <div class="bg-gray-50 rounded-xl p-4 mb-6 text-left border border-gray-100">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Mã đơn hàng</span>
+                    <span class="text-sm font-black text-winmart-red"><%= orderCode %></span>
+                </div>
+            </div>
+            
+            <a href="/checkout/success?code=<%= orderCode %>" class="w-full block bg-winmart-red hover:bg-winmart-redHover text-white py-3.5 rounded-xl font-bold shadow-lg shadow-red-500/30 transition-all active:scale-[0.98]">
+                XEM CHI TIẾT ĐƠN HÀNG
+            </a>
+        <% } else { %>
+            <div class="w-20 h-20 rounded-full bg-red-100 text-red-500 flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <i data-lucide="x-circle" class="w-10 h-10"></i>
+            </div>
+            <h1 class="text-2xl font-black text-gray-800 mb-2">Thanh toán thất bại</h1>
+            <p class="text-gray-500 font-medium mb-6"><%= message %></p>
+            
+            <div class="bg-gray-50 rounded-xl p-4 mb-6 text-left border border-gray-100">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Mã đơn hàng</span>
+                    <span class="text-sm font-black text-gray-700"><%= orderCode %></span>
+                </div>
+            </div>
+            
+            <div class="flex flex-col gap-3">
+                <a href="/checkout/payment/<%= orderCode %>" class="w-full block bg-winmart-red hover:bg-winmart-redHover text-white py-3.5 rounded-xl font-bold shadow-lg shadow-red-500/30 transition-all active:scale-[0.98]">
+                    THỬ LẠI HOẶC ĐỔI PT THANH TOÁN
+                </a>
+                <a href="/" class="w-full block bg-gray-100 hover:bg-gray-200 text-gray-700 py-3.5 rounded-xl font-bold transition-all active:scale-[0.98]">
+                    VỀ TRANG CHỦ
+                </a>
+            </div>
+        <% } %>
+    </div>
+</div>
+<script>
+    lucide.createIcons();
+</script>

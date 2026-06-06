@@ -1,0 +1,174 @@
+<header class="site-header">
+
+    <div class="container">
+
+        <div class="header-wrapper">
+
+            <!-- LOGO -->
+            <a
+                href="/"
+                class="brand-logo text-decoration-none"
+            >
+
+                <div class="brand-icon">
+                    <i class="bi bi-bag-heart-fill"></i>
+                </div>
+
+                <div class="brand-text">
+                    <h1>WinMart</h1>
+                </div>
+
+            </a>
+
+            <!-- HEADER ACTIONS -->
+            <div class="header-actions">
+
+                <!-- SEARCH -->
+                <div class="header-search d-none d-lg-flex">
+
+                    <form
+                        action="/products"
+                        method="GET"
+                    >
+
+                        <div class="search-box">
+
+                            <i class="bi bi-search"></i>
+
+                            <input
+                                type="text"
+                                name="keyword"
+                                placeholder="Tìm sản phẩm, khuyến mãi..."
+                                autocomplete="off"
+                            >
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+                <!-- DELIVERY ADDRESS -->
+                <div class="delivery-block d-none d-lg-flex">
+                    <i class="bi bi-geo-alt delivery-icon"></i>
+                    <div class="delivery-text">
+                        <strong>Giao Hàng</strong>
+                        <span>Chọn địa chỉ giao hàng</span>
+                    </div>
+                </div>
+
+                <!-- USER -->
+                <% if (typeof user !== 'undefined' && user) { %>
+
+                    <div class="dropdown">
+
+                        <button
+                            class="user-dropdown-btn"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                        >
+
+                            <div class="user-avatar">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+
+                            <div class="user-info d-none d-md-flex">
+
+                                <strong>
+                                    <%= user.HoTen || user.fullName || 'Người dùng' %>
+                                </strong>
+
+                                <span>
+                                    Xin chào trở lại
+                                </span>
+
+                            </div>
+
+                            <i class="bi bi-chevron-down small"></i>
+
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end modern-dropdown">
+
+                            <li>
+                                <a
+                                    class="dropdown-item"
+                                    href="/profile"
+                                >
+                                    <i class="bi bi-person-circle"></i>
+                                    Hồ sơ cá nhân
+                                </a>
+                            </li>
+
+                            <li>
+                                <a
+                                    class="dropdown-item"
+                                    href="/profile/orders"
+                                >
+                                    <i class="bi bi-receipt"></i>
+                                    Đơn hàng
+                                </a>
+                            </li>
+
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+
+                            <li>
+                                <a
+                                    class="dropdown-item text-danger"
+                                    href="/auth/logout"
+                                >
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    Đăng xuất
+                                </a>
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+                <% } else { %>
+
+                    <!-- GUEST -->
+                    <div class="guest-actions">
+
+                        <a
+                            href="/auth/login"
+                            class="btn-login"
+                        >
+                            Đăng nhập
+                        </a>
+
+                        <a
+                            href="/auth/register"
+                            class="btn-register"
+                        >
+                            Đăng ký
+                        </a>
+
+                    </div>
+
+                <% } %>
+
+                <!-- CART IN HEADER -->
+                <a href="/cart" class="cart-btn d-none d-md-flex" style="margin-left: 10px;">
+                    <div class="cart-icon">
+                        <i class="bi bi-cart3"></i>
+                        <% if (typeof cartCount !== 'undefined' && cartCount > 0) { %>
+                            <span class="cart-badge"><%= cartCount %></span>
+                        <% } %>
+                    </div>
+                    <div class="cart-text">
+                        <strong>Giỏ hàng</strong>
+                    </div>
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>

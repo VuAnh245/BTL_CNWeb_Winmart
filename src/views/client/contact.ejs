@@ -1,0 +1,127 @@
+<div class="bg-gray-50 min-h-screen pt-8 pb-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Breadcrumb -->
+        <nav class="flex items-center gap-2 text-xs font-semibold text-gray-500 mb-8">
+            <a href="/" class="hover:text-winmart-red transition-colors flex items-center gap-1.5"><i data-lucide="home" class="w-3.5 h-3.5"></i> Trang chủ</a>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            <span class="text-winmart-dark font-bold">Liên hệ</span>
+        </nav>
+
+        <div class="mb-10 text-center">
+            <h1 class="text-3xl font-black text-winmart-dark tracking-tight mb-2">Liên hệ với WinMart</h1>
+            <p class="text-gray-500 font-semibold max-w-lg mx-auto">Chúng tôi luôn sẵn sàng lắng nghe và giải đáp mọi thắc mắc của bạn về dịch vụ và sản phẩm.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
+            
+            <!-- Address -->
+            <div class="bento-card p-6 flex items-start gap-4 hover:-translate-y-1 transition-transform">
+                <div class="w-12 h-12 bg-winmart-red/10 text-winmart-red rounded-2xl flex items-center justify-center shrink-0">
+                    <i data-lucide="map-pin" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-winmart-dark mb-1">Trụ sở chính</h3>
+                    <p class="text-xs text-gray-500 font-semibold leading-relaxed"><%= storeInfo.DiaChi %></p>
+                </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="bento-card p-6 flex items-start gap-4 hover:-translate-y-1 transition-transform">
+                <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center shrink-0">
+                    <i data-lucide="phone-call" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-winmart-dark mb-1">Hotline CSKH</h3>
+                    <p class="text-lg font-black text-emerald-500 mb-0.5"><%= storeInfo.SoDienThoai %></p>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">8:00 - 22:00 Hàng ngày</p>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="bento-card p-6 flex items-start gap-4 hover:-translate-y-1 transition-transform">
+                <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center shrink-0">
+                    <i data-lucide="mail" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-winmart-dark mb-1">Email hỗ trợ</h3>
+                    <p class="text-sm font-bold text-gray-600 mb-0.5"><%= storeInfo.Email %></p>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Phản hồi trong 24h</p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Map -->
+            <div class="bento-card overflow-hidden h-[400px] lg:h-auto relative bg-gray-200">
+                <iframe 
+                    src="https://maps.google.com/maps?q=<%= storeInfo.Lat %>,<%= storeInfo.Lng %>&z=16&output=embed" 
+                    width="100%" 
+                    height="100%" 
+                    style="border:0; position: absolute; inset: 0;" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="bento-card p-8 lg:p-10">
+                <h3 class="text-lg font-black text-winmart-dark mb-6 flex items-center gap-2">
+                    <div class="w-1.5 h-5 bg-winmart-red rounded-full"></div>
+                    Gửi tin nhắn cho chúng tôi
+                </h3>
+
+                <form class="space-y-5" onsubmit="handleContactSubmit(event)">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Họ và tên *</label>
+                            <input type="text" id="contact-name" required placeholder="Nguyễn Văn A" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-winmart-red transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Số điện thoại *</label>
+                            <input type="tel" id="contact-phone" required placeholder="090123xxxx" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-winmart-red transition-all">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Chủ đề</label>
+                        <select id="contact-subject" class="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-600 focus:outline-none focus:border-winmart-red transition-all cursor-pointer">
+                            <option>Hỗ trợ đơn hàng</option>
+                            <option>Phản ánh chất lượng dịch vụ</option>
+                            <option>Hợp tác kinh doanh</option>
+                            <option>Khác</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Nội dung *</label>
+                        <textarea id="contact-message" required rows="4" placeholder="Nhập nội dung bạn muốn nhắn gửi..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-winmart-red transition-all resize-none"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-winmart-dark hover:bg-gray-800 text-white font-black px-6 py-3.5 rounded-xl transition-all shadow-lg shadow-gray-900/20 flex items-center justify-center gap-2">
+                        <i data-lucide="send" class="w-4 h-4"></i> GỬI YÊU CẦU
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function handleContactSubmit(e) {
+    e.preventDefault();
+    
+    // Thu thập dữ liệu nếu sau này cần gửi qua API
+    const name = document.getElementById('contact-name').value;
+    const phone = document.getElementById('contact-phone').value;
+    
+    // Hiển thị thông báo thành công
+    showWmToast(`Cảm ơn ${name}, chúng tôi sẽ sớm liên hệ lại qua SĐT ${phone}!`);
+    
+    // Reset form
+    e.target.reset();
+}
+</script>

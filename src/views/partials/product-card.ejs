@@ -1,0 +1,95 @@
+<%
+    const rawImg = product.HinhAnh || '';
+    const image = rawImg
+        ? (rawImg.startsWith('/') || rawImg.startsWith('http') ? rawImg : '/uploads/' + rawImg)
+        : '/images/products/placeholder.png';
+    const fallbackImage = rawImg ? '/images/products/' + rawImg : '/images/products/placeholder.png';
+
+    const name = product.TenSanPham || 'Sản phẩm WinMart';
+    const price = Number(product.GiaBan || 0).toLocaleString('vi-VN');
+    const productId = product.SanPhamId || '';
+    const discount = product.GiamGia || 0;
+    const oldPrice = product.GiaCu || null;
+    const stock = product.TongTonKho || 0;
+%>
+
+<div class="bento-card group relative flex flex-col h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+    
+    <!-- Product Image Wrapper -->
+    <div class="relative w-full pt-[100%] bg-white overflow-hidden rounded-t-2xl">
+        <!-- Discount Badge -->
+        <% if (discount > 0) { %>
+            <div class="absolute top-3 left-3 z-10 bg-winmart-red text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-sm">
+                -<%= discount %>%
+            </div>
+        <% } %>
+
+        <!-- Stock Badge -->
+        <% if (stock <= 0) { %>
+            <div class="absolute top-3 right-3 z-10 bg-gray-500 text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-sm">
+                Hết hàng
+            </div>
+        <% } else { %>
+            <div class="absolute top-3 right-3 z-10 bg-emerald-500 text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-sm">
+                Còn hàng
+            </div>
+        <% } %>
+
+        <!-- Image -->
+        <img src="<%= image %>" alt="<%= name %>" onerror="this.onerror=null; this.src='<%= fallbackImage %>';" class="absolute inset-0 w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110" loading="lazy">
+
+        <!-- Overlay Action -->
+        <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+            <a href="/products/<%= productId %>" class="bg-white/90 backdrop-blur-sm text-winmart-dark font-bold text-xs px-4 py-2 rounded-xl shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 flex items-center gap-1.5 hover:bg-winmart-red hover:text-white">
+                <i data-lucide="eye" class="w-4 h-4"></i> Xem nhanh
+            </a>
+        </div>
+    </div>
+
+    <!-- Product Info -->
+    <div class="p-4 flex flex-col flex-1 bg-gray-50/50">
+        <!-- Brand/Category -->
+        <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">WinMart Official</div>
+        
+        <!-- Name -->
+        <a href="/products/<%= productId %>" class="text-sm font-bold text-winmart-dark leading-tight mb-2 line-clamp-2 hover:text-winmart-red transition-colors flex-1">
+            <%= name %>
+        </a>
+
+        <!-- Rating -->
+        <div class="flex items-center gap-1 mb-3">
+            <div class="flex text-winmart-yellow">
+                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                <i data-lucide="star-half" class="w-3 h-3 fill-current"></i>
+            </div>
+            <span class="text-[10px] text-gray-400 font-semibold">(4.8)</span>
+        </div>
+
+        <!-- Price & Action -->
+        <div class="flex items-end justify-between mt-auto">
+            <div>
+                <% if (oldPrice) { %>
+                    <div class="text-xs text-gray-400 line-through font-semibold mb-0.5"><%= Number(oldPrice).toLocaleString('vi-VN') %>đ</div>
+                <% } %>
+                <div class="text-lg font-black text-winmart-red leading-none"><%= price %>đ</div>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button id="wishlist-btn-<%= productId %>" onclick="toggleWishlist('<%= productId %>')" class="w-9 h-9 rounded-xl border border-gray-100 bg-white text-gray-400 hover:text-winmart-red transition-colors shadow-sm flex items-center justify-center">
+                    <i data-lucide="heart" class="w-4 h-4"></i>
+                </button>
+                <% if (stock <= 0) { %>
+                    <button onclick="showWmToast('Sản phẩm đã hết hàng', 'error')" class="w-9 h-9 rounded-xl bg-gray-400 text-white flex items-center justify-center transition-colors shadow-md hover:bg-gray-500">
+                        <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                    </button>
+                <% } else { %>
+                    <button onclick="addToCart('<%= productId %>')" class="w-9 h-9 rounded-xl bg-winmart-dark text-white flex items-center justify-center hover:bg-winmart-red transition-colors shadow-md group-hover:shadow-lg">
+                        <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                    </button>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>

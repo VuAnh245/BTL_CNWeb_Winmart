@@ -1,0 +1,390 @@
+<div class="flex-1 flex flex-col lg:flex-row gap-6 h-full overflow-hidden">
+    <!-- Left: Product List & Filters -->
+    <div class="flex-1 flex flex-col gap-4 overflow-hidden h-full">
+        <!-- Search & Categories -->
+        <div class="flex flex-col sm:flex-row gap-4 items-center shrink-0 z-30">
+            <div class="relative w-full sm:w-96">
+                <input type="text" id="posSearch" placeholder="Quét mã vạch (F1) hoặc tìm tên..." class="w-full bg-white pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-winmart-red shadow-sm text-xs font-semibold">
+                <i data-lucide="search" class="absolute left-3.5 top-3 w-4 h-4 text-gray-400"></i>
+            </div>
+            
+            <!-- Categories Dropdown -->
+            <div class="relative group w-full sm:w-auto">
+                <button class="w-full sm:w-auto flex items-center justify-between gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:border-winmart-red focus:outline-none shadow-sm transition min-w-[180px]" id="categoryDropdownBtn">
+                    <span class="truncate">Danh mục: <span class="text-winmart-red" id="currentCategoryText">Tất cả</span></span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 group-hover:text-winmart-red transition-transform"></i>
+                </button>
+                
+                <div class="absolute left-0 top-full mt-2 w-full sm:w-56 bg-white border border-gray-100 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden transform translate-y-2 group-hover:translate-y-0 max-h-64 overflow-y-auto custom-scrollbar" id="posCategoryFilter">
+                    <button class="cat-btn active w-full text-left px-4 py-3 text-xs font-bold bg-winmart-red/10 text-winmart-red hover:bg-winmart-red/20 transition-colors border-l-2 border-winmart-red" data-id="">Tất cả sản phẩm</button>
+                    <% if (typeof categories !== 'undefined') { %>
+                        <% categories.forEach(cat => { %>
+                            <button class="cat-btn w-full text-left px-4 py-3 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-winmart-dark transition-colors border-l-2 border-transparent hover:border-gray-300 border-t border-gray-50" data-id="<%= cat.DanhMucId %>"><%= cat.TenDanhMuc %></button>
+                        <% }) %>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="flex-1 overflow-y-auto pr-1 pb-2 custom-scrollbar">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2 sm:gap-3" id="posProductGrid">
+                <% if (typeof products !== 'undefined' && products.length > 0) { %>
+                    <% products.forEach(p => { %>
+                        <% const isOutOfStock = p.TongTonKho <= 0; %>
+                        <div class="bg-white rounded-xl p-1.5 sm:p-2 border border-gray-100 shadow-sm h-full flex flex-col relative <%= isOutOfStock ? 'bg-gray-50/50 cursor-not-allowed' : 'cursor-pointer hover:-translate-y-0.5 hover:shadow hover:border-winmart-red/30 transition-all group' %>" 
+                             <%- isOutOfStock ? '' : `onclick="posApp.addToCart('${p.SanPhamId}', '${p.TenSanPham.replace(/'/g, '\\\'')}', ${p.GiaBan}, '${p.HinhAnh || ''}', ${p.ThueVAT !== null ? p.ThueVAT : 10}, ${p.TongTonKho})"` %>>
+
+                            <div class="aspect-square bg-white rounded-lg mb-1.5 overflow-hidden flex items-center justify-center relative border border-gray-100">
+                                <% if (isOutOfStock) { %>
+                                <!-- Ribbon Hết hàng (Nằm gọn trong khung ảnh) -->
+                                <div class="absolute top-2 -right-8 z-30 pointer-events-none transform rotate-45 w-32 text-center">
+                                    <div class="bg-red-500 text-white font-black text-[9px] py-0.5 uppercase tracking-widest shadow-sm">
+                                        HẾT HÀNG
+                                    </div>
+                                </div>
+                                <div class="absolute inset-0 z-20 bg-white/40 backdrop-blur-[1px] pointer-events-none"></div>
+                                <% } %>
+
+                                <!-- Tag Tồn kho góc trái -->
+                                <span id="product-stock-<%= p.SanPhamId %>" data-stock="<%= p.TongTonKho %>" class="absolute top-1.5 left-1.5 <%= isOutOfStock ? 'bg-gray-400' : 'bg-gray-900/80' %> backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10">Kho: <%= p.TongTonKho %></span>
+                                
+                                <% if (p.HinhAnh) { %>
+                                    <% const finalImgSrc = p.HinhAnh.startsWith('/') || p.HinhAnh.startsWith('http') ? p.HinhAnh : '/uploads/' + p.HinhAnh; %>
+                                    <img src="<%= finalImgSrc %>" alt="<%= p.TenSanPham %>" class="w-full h-full object-cover <%= isOutOfStock ? 'opacity-40 grayscale' : 'group-hover:scale-105 transition-transform duration-300' %>" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<%= encodeURIComponent(p.TenSanPham.charAt(0)) %>&background=f1f5f9&color=94a3b8&size=200&font-size=0.4';">
+                                <% } else { %>
+                                    <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(p.TenSanPham.charAt(0)) %>&background=f1f5f9&color=94a3b8&size=200&font-size=0.4" class="w-full h-full object-cover <%= isOutOfStock ? 'opacity-40 grayscale' : '' %>">
+                                <% } %>
+                            </div>
+                            <div class="flex-1 flex flex-col">
+                                <div class="text-[8px] text-gray-400 font-bold mb-0.5"><%= p.MaSanPham || 'SP00' + p.SanPhamId %></div>
+                                <h3 class="text-[10px] sm:text-[11px] font-bold <%= isOutOfStock ? 'text-gray-500' : 'text-gray-700' %> line-clamp-2 leading-tight mb-1 <%= isOutOfStock ? '' : 'group-hover:text-winmart-red transition-colors' %>"><%= p.TenSanPham %></h3>
+                                <div class="mt-auto flex items-center justify-between">
+                                    <span class="text-[11px] sm:text-xs font-black <%= isOutOfStock ? 'text-gray-400' : 'text-winmart-red' %>"><%= Number(p.GiaBan).toLocaleString('vi-VN') %>đ</span>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="col-span-full py-12 text-center text-gray-400">
+                        <i data-lucide="package-open" class="w-12 h-12 mx-auto mb-3 opacity-20"></i>
+                        <p class="text-sm font-semibold">Không tìm thấy sản phẩm nào</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Cart & Checkout -->
+    <div class="w-full lg:w-[360px] xl:w-[400px] shrink-0 flex flex-col gap-3 h-full">
+        <div class="bento-card flex-1 flex flex-col overflow-hidden h-full rounded-2xl">
+            <div class="p-3 border-b border-gray-100 flex items-center justify-between shrink-0 bg-gray-50/50">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-winmart-dark text-white flex items-center justify-center shadow-md">
+                        <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-sm font-black text-winmart-dark">Giỏ hàng</h2>
+                        <p class="text-[10px] font-bold text-gray-400" id="cartDateDisplay">Hôm nay</p>
+                    </div>
+                </div>
+                <button class="text-[10px] font-bold text-red-500 hover:bg-red-50 px-2 py-1.5 rounded-lg transition border border-transparent hover:border-red-100" onclick="posApp.clearCart()">
+                    Xóa tất cả <span class="bg-red-100 px-1 rounded text-red-600 ml-1">F3</span>
+                </button>
+            </div>
+
+            <!-- Cart Items -->
+            <div class="flex-1 overflow-y-auto p-3 custom-scrollbar" id="posCartItems">
+                <!-- JS will render items here -->
+                <div class="h-full flex flex-col items-center justify-center text-gray-400 opacity-50" id="emptyCartMessage">
+                    <i data-lucide="shopping-basket" class="w-16 h-16 mb-3"></i>
+                    <p class="text-xs font-bold">Giỏ hàng đang trống</p>
+                    <p class="text-[10px] mt-1">Quét mã vạch hoặc chọn sản phẩm để thêm</p>
+                </div>
+            </div>
+
+            <!-- Checkout Summary -->
+            <div class="p-5 bg-white border-t border-gray-100 shrink-0 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] relative z-10">
+                <!-- Customer Selection (Mock) -->
+                <div class="mb-4 flex items-center justify-between p-3.5 bg-blue-50/50 rounded-xl border border-blue-100 cursor-pointer hover:bg-blue-50 transition shadow-sm" onclick="posApp.showCustomerModal()">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shadow-sm">
+                            <i data-lucide="user" class="w-4.5 h-4.5"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-black text-winmart-dark" id="selectedCustomerName">Khách vãng lai</div>
+                            <div class="text-[10px] font-bold text-blue-500" id="selectedCustomerPhone">Không tích điểm</div>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-blue-300"></i>
+                </div>
+
+                <div class="space-y-2.5 mb-4">
+                    <div class="flex justify-between text-xs font-bold text-gray-500">
+                        <span>Tổng tiền (<span id="cartCount">0</span> SP)</span>
+                        <span id="cartSubtotal" class="text-gray-700">0đ</span>
+                    </div>
+                    <div class="flex justify-between text-xs font-bold text-gray-500">
+                        <span>Thuế VAT</span>
+                        <span id="cartVAT" class="text-gray-700">0đ</span>
+                    </div>
+                    <div class="flex justify-between text-xs font-bold text-emerald-600">
+                        <span class="flex items-center gap-1 cursor-pointer hover:underline" onclick="posApp.showDiscountModal()">Giảm giá/Điểm <i data-lucide="tag" class="w-3 h-3"></i></span>
+                        <span id="cartDiscount">-0đ</span>
+                    </div>
+                    <div class="flex justify-between items-end pt-2 border-t border-gray-200 mb-2">
+                        <span class="text-sm font-black text-winmart-dark">Khách phải trả</span>
+                        <span id="cartTotal" class="text-xl font-black text-winmart-red tracking-tight">0đ</span>
+                    </div>
+                    
+                    <!-- Cash / Change Calculator (Only for Tiền Mặt) -->
+                    <div id="cashCalculator" class="bg-gray-50 p-3 rounded-xl border border-gray-200 shadow-inner">
+                        <div class="flex items-center justify-between mb-2.5">
+                            <span class="text-[11px] font-bold text-gray-500">Tiền khách đưa:</span>
+                            <div class="relative w-32 sm:w-36">
+                                <input type="text" id="cashGiven" class="w-full bg-white border-2 border-gray-300 rounded-lg px-3 py-1.5 text-sm font-black text-right focus:outline-none focus:border-winmart-red focus:ring-2 focus:ring-winmart-red/20 transition shadow-sm" placeholder="0" oninput="posApp.calculateChange()">
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-gray-500">Tiền thừa trả khách:</span>
+                            <span id="cashChange" class="text-sm font-black text-winmart-dark">0đ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="grid grid-cols-3 gap-2 mb-4" id="paymentMethods">
+                    <button class="pay-method active flex flex-col items-center justify-center gap-1 py-2 rounded-xl border-2 border-winmart-dark bg-winmart-dark text-white transition shadow-sm" data-method="TienMat">
+                        <i data-lucide="banknote" class="w-4 h-4"></i>
+                        <span class="text-[9px] font-bold text-center leading-tight mt-1">Tiền mặt</span>
+                    </button>
+                    <button class="pay-method flex flex-col items-center justify-center gap-1 py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-600 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50 transition" data-method="ChuyenKhoan">
+                        <i data-lucide="qr-code" class="w-4 h-4"></i>
+                        <span class="text-[9px] font-bold text-center leading-tight mt-1">Chuyển<br>khoản / QR</span>
+                    </button>
+                    <button class="pay-method flex flex-col items-center justify-center gap-1 py-2 rounded-xl border-2 border-gray-200 bg-white text-gray-600 hover:border-pink-400 hover:text-pink-500 hover:bg-pink-50 transition" data-method="VNPayMoMo">
+                        <i data-lucide="smartphone-nfc" class="w-4 h-4"></i>
+                        <span class="text-[9px] font-bold text-center leading-tight mt-1">VNPay /<br>MoMo</span>
+                    </button>
+                </div>
+
+                <button class="w-full bg-winmart-red hover:bg-winmart-redHover text-white py-4 rounded-xl text-sm font-black shadow-lg shadow-winmart-red/30 flex items-center justify-center gap-2 transition transform active:scale-[0.98]" onclick="posApp.processCheckout()">
+                    <span>THANH TOÁN</span>
+                    <span class="bg-white/20 px-1.5 py-0.5 rounded text-[10px] ml-2 font-bold">F9</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Modal -->
+<div id="customerModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center opacity-0 transition-opacity duration-300" onclick="if(event.target === this) posApp.closeCustomerModal()">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl transform scale-95 transition-all duration-300" id="customerModalContent">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-black text-winmart-dark">Thông tin khách hàng</h3>
+            <button class="text-gray-400 hover:text-red-500 transition" onclick="posApp.closeCustomerModal()">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <!-- Search Phone -->
+        <div class="mb-4">
+            <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Tìm số điện thoại</label>
+            <div class="flex gap-2">
+                <input type="text" id="customerSearchPhone" placeholder="Nhập SĐT..." class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:border-winmart-red focus:bg-white transition text-sm font-semibold">
+                <button class="bg-winmart-dark text-white px-4 py-2 rounded-xl font-bold shadow-md hover:bg-black transition flex items-center gap-2" onclick="posApp.searchCustomer()">
+                    <i data-lucide="search" class="w-4 h-4"></i> Tìm
+                </button>
+            </div>
+            <div id="customerSearchMsg" class="text-[10px] text-red-500 font-bold mt-1 hidden">Không tìm thấy! Gợi ý đăng ký mới.</div>
+        </div>
+
+        <!-- Result area -->
+        <div id="customerResultArea" class="hidden bg-emerald-50 rounded-xl p-4 border border-emerald-100 mb-4 animate-fade-in">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-emerald-200 text-emerald-700 flex items-center justify-center font-black shrink-0">
+                    <i data-lucide="user-check" class="w-5 h-5"></i>
+                </div>
+                <div class="overflow-hidden">
+                    <div class="text-sm font-bold text-emerald-900 truncate" id="foundCustomerName">...</div>
+                    <div class="text-[10px] text-emerald-700 font-semibold">Điểm: <span id="foundCustomerPoints" class="font-black">0</span> | Hạng: <span id="foundCustomerTier">...</span></div>
+                </div>
+            </div>
+            <button class="w-full mt-3 bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-xl text-xs font-bold transition shadow-md shadow-emerald-500/20" onclick="posApp.selectFoundCustomer()">
+                Chọn khách hàng này
+            </button>
+        </div>
+
+        <!-- Registration Form -->
+        <div id="customerRegisterForm" class="hidden animate-fade-in">
+            <div class="relative flex py-3 items-center">
+                <div class="flex-grow border-t border-gray-200"></div>
+                <span class="flex-shrink-0 mx-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hoặc Đăng ký mới</span>
+                <div class="flex-grow border-t border-gray-200"></div>
+            </div>
+            
+            <div class="space-y-3 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Họ và Tên</label>
+                    <input type="text" id="regCustomerName" placeholder="Nguyễn Văn A" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:border-winmart-red transition text-sm font-semibold">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Số Điện Thoại</label>
+                    <input type="text" id="regCustomerPhone" placeholder="09xxxx..." class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:border-winmart-red transition text-sm font-semibold">
+                </div>
+                <button class="w-full bg-winmart-dark hover:bg-black text-white py-3 rounded-xl text-xs font-black shadow-lg shadow-black/20 transition mt-2 flex items-center justify-center gap-2" onclick="posApp.registerCustomer()">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i> ĐĂNG KÝ & CHỌN
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Discount Modal -->
+<div id="discountModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center opacity-0 transition-opacity duration-300" onclick="if(event.target === this) posApp.closeDiscountModal()">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl transform scale-95 transition-all duration-300" id="discountModalContent">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-black text-winmart-dark">Giảm giá & Tích điểm</h3>
+            <button class="text-gray-400 hover:text-red-500 transition" onclick="posApp.closeDiscountModal()">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <!-- Promo Code Section -->
+        <div class="mb-4">
+            <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Mã Giảm Giá</label>
+            <div class="flex gap-2">
+                <input type="text" id="promoCodeInput" placeholder="Nhập mã..." class="uppercase flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:border-winmart-red transition text-sm font-semibold">
+                <button class="bg-winmart-dark text-white px-4 py-2 rounded-xl font-bold shadow-md hover:bg-black transition flex items-center gap-2" onclick="posApp.applyPromoCode()">
+                    Áp dụng
+                </button>
+            </div>
+            <div id="promoCodeMsg" class="text-[10px] font-bold mt-1 hidden"></div>
+        </div>
+
+        <div class="relative flex py-2 items-center">
+            <div class="flex-grow border-t border-gray-200"></div>
+        </div>
+
+        <!-- Loyalty Points Section -->
+        <div class="mb-4">
+            <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Sử dụng điểm (Đang có: <span id="maxAvailablePoints" class="text-winmart-red">0</span>)</label>
+            <div class="flex gap-2">
+                <input type="number" id="pointsInput" min="0" placeholder="0" class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus:outline-none focus:border-winmart-red transition text-sm font-semibold">
+                <button class="bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold shadow-md hover:bg-emerald-600 transition flex items-center gap-2" onclick="posApp.applyPoints()">
+                    Dùng điểm
+                </button>
+            </div>
+            <div class="text-[10px] text-gray-500 mt-1">*Tối đa được thanh toán 50% đơn hàng.</div>
+        </div>
+
+        <button class="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2.5 rounded-xl text-sm font-bold transition shadow-sm" onclick="posApp.closeDiscountModal()">
+            Đóng
+        </button>
+    </div>
+</div>
+
+<!-- QR Payment Modal -->
+<div id="qrModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center opacity-0 transition-opacity duration-300" onclick="if(event.target === this) posApp.closeQRModal()">
+    <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl transform scale-95 transition-all duration-300" id="qrModalContent">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-black text-winmart-dark" id="qrModalTitle">Thanh toán VNPay / MoMo</h3>
+            <button class="text-gray-400 hover:text-red-500 transition" onclick="posApp.closeQRModal()">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        
+        <!-- Generator Buttons -->
+        <div class="grid grid-cols-2 gap-3 mb-5" id="qrGeneratorOptions">
+            <button class="flex flex-col items-center justify-center gap-2 p-3 border border-blue-200 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors" onclick="posApp.generateDynamicQR('VNPay')">
+                <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/6/0oxhzjmxbksr1686814746087.png" class="h-6 w-auto object-contain bg-white rounded p-1" alt="VNPay">
+                <span class="text-xs font-bold text-blue-700">Tạo QR VNPay</span>
+            </button>
+            <button class="flex flex-col items-center justify-center gap-2 p-3 border border-pink-200 bg-pink-50 rounded-xl hover:bg-pink-100 transition-colors" onclick="posApp.generateDynamicQR('MoMo')">
+                <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-MoMo-Square.png" class="h-6 w-6 object-contain bg-white rounded p-0.5" alt="MoMo">
+                <span class="text-xs font-bold text-pink-700">Tạo QR MoMo</span>
+            </button>
+        </div>
+
+        <div class="flex flex-col items-center bg-gray-50 rounded-xl p-4 border border-gray-100 mb-5" id="qrDisplayArea" style="display: none;">
+            <div class="text-xs font-bold text-gray-500 mb-1" id="qrProviderText">Mã quét QR Động</div>
+            <div class="w-48 h-48 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center p-2 mb-3 relative overflow-hidden group">
+                <!-- QR Image -->
+                <img id="qrImage" src="" class="w-full h-full object-contain hidden" alt="QR Code">
+                <!-- Skeleton Loader -->
+                <div id="qrSkeleton" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-50">
+                    <i data-lucide="loader-2" class="w-8 h-8 text-gray-400 animate-spin mb-2"></i>
+                    <span class="text-[10px] text-gray-400 font-bold">Đang tạo mã...</span>
+                </div>
+            </div>
+            <div class="text-center w-full">
+                <div class="text-[10px] font-bold text-gray-500 uppercase">Khách cần thanh toán</div>
+                <div class="text-2xl font-black text-winmart-red my-1" id="qrAmountDisplay">0đ</div>
+                <div class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 py-1.5 px-3 rounded-lg mx-auto inline-flex items-center gap-1.5 mt-1">
+                    <i data-lucide="wifi" class="w-3 h-3 animate-pulse"></i> Hệ thống đang chờ tiền về...
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirm button only shown for manual "ChuyenKhoan" -->
+        <button type="button" id="btnManualConfirmQR" class="hidden w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl text-sm font-black shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 transition transform active:scale-[0.98]" onclick="posApp.confirmQRPayment()">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i> ĐÃ NHẬN ĐƯỢC TIỀN
+        </button>
+    </div>
+</div>
+
+<style>
+    .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<!-- TOAST -->
+<div id="admin-toast" class="fixed bottom-5 right-5 z-[60] transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="flex items-center gap-3 bg-winmart-dark text-white px-5 py-4 rounded-2xl shadow-2xl border border-gray-800">
+        <div id="admin-toast-icon" class="p-1.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+        </div>
+        <p id="admin-toast-text" class="text-sm font-bold"></p>
+    </div>
+</div>
+
+<script>
+    function showAdminToast(text, type = 'success') {
+        const toast = document.getElementById('admin-toast');
+        const icon = document.getElementById('admin-toast-icon');
+        document.getElementById('admin-toast-text').innerText = text;
+        icon.innerHTML = type === 'success'
+            ? '<i data-lucide="check-circle" class="w-5 h-5"></i>'
+            : '<i data-lucide="alert-circle" class="w-5 h-5"></i>';
+        icon.className = `p-1.5 rounded-xl ${type === 'success' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`;
+        if (window.lucide) { lucide.createIcons(); }
+        toast.classList.remove('translate-y-24', 'opacity-0');
+        toast.classList.add('translate-y-0', 'opacity-100');
+        setTimeout(() => {
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('translate-y-24', 'opacity-0');
+        }, 3000);
+    }
+</script>
+
+<script>
+    document.getElementById('cartDateDisplay').textContent = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+    // Cập nhật text của dropdown khi chọn Danh mục
+    document.querySelectorAll('#posCategoryFilter .cat-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const catName = this.textContent.replace('sản phẩm', '').trim();
+            document.getElementById('currentCategoryText').textContent = catName || 'Tất cả';
+            
+            // Xóa style active cũ
+            document.querySelectorAll('#posCategoryFilter .cat-btn').forEach(b => {
+                b.classList.remove('bg-winmart-red/10', 'text-winmart-red', 'border-winmart-red');
+                b.classList.add('text-gray-600', 'border-transparent');
+            });
+            // Thêm style active mới
+            this.classList.remove('text-gray-600', 'border-transparent');
+            this.classList.add('bg-winmart-red/10', 'text-winmart-red', 'border-winmart-red');
+        });
+    });
+</script>
+<script src="/js/pos.js?v=<%= Date.now() %>"></script>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'Lỗi hệ thống' %> - WinMart</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
+  <div class="max-w-lg w-full bg-white rounded-xl shadow-lg p-8 text-center">
+    <div class="text-6xl mb-4">💥</div>
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">500 - Lỗi hệ thống</h1>
+    <p class="text-gray-600 mb-6">Xin lỗi, có lỗi xảy ra trên server. Vui lòng thử lại sau.</p>
+    
+    <% if (typeof message !== 'undefined' && message) { %>
+      <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded text-left mb-6">
+        <p class="font-medium">Chi tiết lỗi:</p>
+        <p class="text-sm mt-1"><%= message %></p>
+      </div>
+    <% } %>
+    
+    <% if (typeof stack !== 'undefined' && stack) { %>
+      <details class="text-left mb-6">
+        <summary class="cursor-pointer text-sm text-gray-500 hover:text-gray-700">Stack trace (dev mode)</summary>
+        <pre class="bg-gray-100 p-3 rounded text-xs overflow-auto mt-2 max-h-64"><%= stack %></pre>
+      </details>
+    <% } %>
+    
+    <div class="flex gap-3 justify-center">
+      <button onclick="window.location.href='/'" class="px-6 py-2 bg-winmart text-white rounded-lg hover:bg-winmart-dark transition">
+        Về trang chủ
+      </button>
+      <button onclick="window.location.reload()" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
+        Thử lại
+      </button>
+    </div>
+  </div>
+</body>
+</html>

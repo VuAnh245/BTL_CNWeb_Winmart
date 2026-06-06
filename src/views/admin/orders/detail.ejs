@@ -1,0 +1,534 @@
+<%
+  const noteLines = (order.GhiChu || '').split('\n').map(l => l.trim()).filter(l => l);
+  const timelineEvents = [];
+  const customNotes = [];
+  
+  const translateAction = (actionText) => {
+      return actionText
+          .replace(/\bPending\b/g, order.PhuongThucTT === 'TienMat' ? 'Chờ xử lý' : 'Chờ thanh toán')
+          .replace(/\bPaid\b/g, 'Đã thanh toán')
+          .replace(/\bDelivering\b/g, 'Đang giao hàng')
+          .replace(/\bCompleted\b/g, 'Hoàn thành')
+          .replace(/\bCancelled_Return\b/g, 'Hủy & Hoàn hàng')
+          .replace(/\bCancelled\b/g, 'Đã hủy')
+          .replace(/\bRefunded\b/g, 'Đã hoàn tiền')
+          .replace(/\bTest update status completed\b/g, 'Kiểm thử cập nhật trạng thái hoàn tất');
+  };
+
+  noteLines.forEach(line => {
+      const trimmed = line.trim();
+      // 1. Filter out weight and shipping fee log
+      if (trimmed.match(/^\[Trong\s+lượng|^\[Trọng\s+lượng/i)) {
+          return;
+      }
+      
+      // 2. Match standard timestamp prefixes (e.g. [2026-06-05 16:58] or [2026-06-05])
+      const timestampMatch = trimmed.match(/^\[(\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2}(?::\d{2})?)?)\]\s*(.*)$/);
+      if (timestampMatch) {
+          timelineEvents.push({ 
+              time: timestampMatch[1], 
+              action: translateAction(timestampMatch[2]) 
+          });
+          return;
+      }
+      
+      // 3. Fallback: check if the line starts with '[' and looks like a system log
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+          timelineEvents.push({
+              time: '',
+              action: translateAction(trimmed.slice(1, -1))
+          });
+          return;
+      }
+      
+      // 4. Otherwise it's a customer note
+      customNotes.push(trimmed);
+  });
+  
+  // Also add order creation event at the beginning
+  const createdDate = new Date(order.NgayLap);
+  timelineEvents.unshift({
+      time: createdDate.toLocaleString('vi-VN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+      action: 'Đơn hàng được tạo thành công'
+  });
+%>
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <div class="flex items-center gap-4">
+        <a href="/admin/orders" class="text-winmart-slate hover:bg-gray-100 p-2 rounded-xl transition">
+            <i data-lucide="arrow-left" class="w-6 h-6"></i>
+        </a>
+        <div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-black text-gray-400 uppercase tracking-wider">Chi Tiết Đơn Hàng</span>
+                <% 
+                    let statusBadge = '';
+                    if (order.TrangThai === 'Pending') {
+                        if (order.PhuongThucTT === 'TienMat') {
+                            statusBadge = '<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">Chờ xử lý</span>';
+                        } else {
+                            statusBadge = '<span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">Chờ thanh toán</span>';
+                        }
+                    }
+                    else if (order.TrangThai === 'Paid') statusBadge = '<span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">Đã thanh toán</span>';
+                    else if (order.TrangThai === 'Delivering') statusBadge = '<span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">Đang giao hàng</span>';
+                    else if (order.TrangThai === 'Completed') statusBadge = '<span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">Hoàn thành</span>';
+                    else if (order.TrangThai === 'Cancelled') statusBadge = '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">Đã hủy</span>';
+                    else if (order.TrangThai === 'Cancelled_Return') statusBadge = '<span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">Hủy & Hoàn hàng</span>';
+                    else if (order.TrangThai === 'Refunded') statusBadge = '<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest">Đã hoàn tiền</span>';
+                %>
+                <%- statusBadge %>
+            </div>
+            <h1 class="text-3xl font-black text-winmart-dark mt-1 tracking-tight">Đơn hàng: <%= order.MaHoaDon %></h1>
+        </div>
+    </div>
+    <div class="flex gap-3">
+        <a href="/admin/orders/<%= order.HoaDonId %>/print" target="_blank" class="px-5 py-2.5 bg-white border border-gray-200 text-winmart-dark rounded-xl font-bold hover:bg-gray-50 hover:shadow-sm transition-all text-sm flex items-center gap-2">
+            <i data-lucide="printer" class="w-4 h-4"></i> In Hóa Đơn
+        </a>
+        <% if (order.TrangThai === 'Pending') { %>
+            <% if (order.PhuongThucTT === 'TienMat') { %>
+                <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline">
+                    <input type="hidden" name="status" value="Delivering">
+                    <button type="submit" class="px-5 py-2.5 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all text-sm flex items-center gap-2">
+                        <i data-lucide="truck" class="w-4 h-4"></i> Giao cho ĐVVC
+                    </button>
+                </form>
+            <% } else { %>
+                <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline">
+                    <input type="hidden" name="status" value="Paid">
+                    <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all text-sm flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i> Xác nhận thanh toán
+                    </button>
+                </form>
+            <% } %>
+            <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
+                <input type="hidden" name="status" value="Cancelled">
+                <button type="submit" class="px-5 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold hover:bg-red-100 transition-all text-sm flex items-center gap-2">
+                    <i data-lucide="x-circle" class="w-4 h-4"></i> Hủy Đơn
+                </button>
+            </form>
+        <% } else if (order.TrangThai === 'Paid') { %>
+            <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline">
+                <input type="hidden" name="status" value="Delivering">
+                <button type="submit" class="px-5 py-2.5 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 shadow-lg shadow-purple-200 transition-all text-sm flex items-center gap-2">
+                    <i data-lucide="truck" class="w-4 h-4"></i> Giao cho ĐVVC
+                </button>
+            </form>
+            <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline" onsubmit="return confirm('Xác nhận hủy đơn hàng này?');">
+                <input type="hidden" name="status" value="Cancelled">
+                <button type="submit" class="px-5 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-xl font-bold hover:bg-red-100 transition-all text-sm flex items-center gap-2">
+                    <i data-lucide="x-circle" class="w-4 h-4"></i> Hủy Đơn
+                </button>
+            </form>
+        <% } else if (order.TrangThai === 'Delivering') { %>
+            <% if (order.GHNOrderCode) { %>
+                <form action="/admin/orders/<%= order.HoaDonId %>/ghn/sync" method="POST" class="inline">
+                    <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all text-sm flex items-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Đồng bộ trạng thái GHN
+                    </button>
+                </form>
+            <% } else { %>
+                <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline">
+                    <input type="hidden" name="status" value="Completed">
+                    <button type="submit" class="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all text-sm flex items-center gap-2">
+                        <i data-lucide="package-check" class="w-4 h-4"></i> Giao Thành Công
+                    </button>
+                </form>
+                <form action="/admin/orders/<%= order.HoaDonId %>/status" method="POST" class="inline" onsubmit="return confirm('Khách từ chối nhận hàng?');">
+                    <input type="hidden" name="status" value="Cancelled_Return">
+                    <button type="submit" class="px-5 py-2.5 bg-orange-100 text-orange-700 border border-orange-200 rounded-xl font-bold hover:bg-orange-200 transition-all text-sm flex items-center gap-2">
+                        <i data-lucide="corner-up-left" class="w-4 h-4"></i> Hoàn Hàng
+                    </button>
+                </form>
+            <% } %>
+        <% } else if (order.TrangThai === 'Cancelled' || order.TrangThai === 'Cancelled_Return') { %>
+            <% if (['VNPay', 'MoMo', 'ChuyenKhoan'].includes(order.PhuongThucTT)) { %>
+                <form action="/admin/orders/<%= order.HoaDonId %>/refund" method="POST" class="inline" onsubmit="return confirm('Hoàn tiền TỰ ĐỘNG qua cổng thanh toán?');">
+                    <input type="hidden" name="type" value="auto">
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all text-sm flex items-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Hoàn tiền tự động
+                    </button>
+                </form>
+                <form action="/admin/orders/<%= order.HoaDonId %>/refund" method="POST" class="inline" onsubmit="return confirm('Xác nhận ĐÃ hoàn tiền THỦ CÔNG cho khách?');">
+                    <input type="hidden" name="type" value="manual">
+                    <button type="submit" class="px-5 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-xl font-bold hover:bg-gray-50 shadow-sm transition-all text-sm flex items-center gap-2">
+                        <i data-lucide="check" class="w-4 h-4"></i> Đã hoàn thủ công
+                    </button>
+                </form>
+            <% } %>
+        <% } %>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- CỘT CHÍNH BÊN TRÁI (2/3 chiều rộng) -->
+    <div class="lg:col-span-2 space-y-8">
+        
+        <!-- Khối 1: Bảng Danh Sách Sản Phẩm -->
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 class="text-sm font-black text-winmart-dark uppercase tracking-wide flex items-center gap-2">
+                    <i data-lucide="shopping-bag" class="w-4 h-4 text-winmart-red"></i> Danh Sách Sản Phẩm
+                </h3>
+                <span class="bg-blue-50 text-blue-600 text-[10px] font-black uppercase px-3 py-1.5 rounded-full border border-blue-100"><%= order.items.length %> Mặt hàng</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-white border-b border-gray-100">
+                            <th class="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-wider">Sản Phẩm</th>
+                            <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Số Lượng</th>
+                            <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Đơn Giá</th>
+                            <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Giảm Giá</th>
+                            <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">VAT</th>
+                            <th class="py-4 px-6 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Thành Tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        <% order.items.forEach(item => { %>
+                        <tr class="hover:bg-gray-50/50 transition">
+                            <td class="py-4 px-6">
+                                <div class="flex items-center gap-3">
+                                    <img src="<%= item.HinhAnh || '/images/products/placeholder.png' %>" class="w-12 h-12 rounded-xl object-cover border border-gray-100 shadow-sm" onerror="this.onerror=null; this.src='https://placehold.co/100x100';">
+                                    <div>
+                                        <h4 class="font-bold text-winmart-dark text-sm"><%= item.TenSanPham %></h4>
+                                        <span class="text-[10px] font-mono text-gray-400 mt-0.5 block"><i data-lucide="barcode" class="w-3 h-3 inline"></i> <%= item.Barcode || 'N/A' %></span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-4 px-4 text-center">
+                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 text-xs font-black text-winmart-dark"><%= item.SoLuong %></span>
+                            </td>
+                            <td class="py-4 px-4 text-right">
+                                <span class="text-sm font-semibold text-gray-600"><%= Number(item.DonGiaGoc).toLocaleString('vi-VN') %>đ</span>
+                            </td>
+                            <td class="py-4 px-4 text-right">
+                                <% if (Number(item.PhanTramGiam) > 0) { %>
+                                    <span class="text-[10px] font-bold text-winmart-red bg-red-50 px-2 py-1 rounded border border-red-100">-<%= item.PhanTramGiam %>%</span>
+                                <% } else { %>
+                                    <span class="text-[10px] text-gray-400">-</span>
+                                <% } %>
+                            </td>
+                            <td class="py-4 px-4 text-right">
+                                <% if (Number(item.ThueVATApDung) > 0) { %>
+                                    <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100"><%= item.ThueVATApDung %>%</span>
+                                <% } else { %>
+                                    <span class="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded border border-gray-100">0%</span>
+                                <% } %>
+                            </td>
+                            <td class="py-4 px-6 text-right">
+                                <span class="text-base font-black text-winmart-dark"><%= Number(item.ThanhTienCuoi).toLocaleString('vi-VN') %>đ</span>
+                            </td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Summary Row -->
+            <div class="bg-gray-50/50 p-6 border-t border-gray-100 flex flex-col items-end gap-3">
+                <div class="w-full max-w-sm space-y-3">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="font-semibold text-gray-500">Tổng tiền hàng:</span>
+                        <span class="font-bold text-gray-700"><%= Number(order.TongTienTruocKM).toLocaleString('vi-VN') %>đ</span>
+                    </div>
+                    <% 
+                        let tongVAT = 0;
+                        order.items.forEach(item => {
+                            const tienGocSauGiam = item.SoLuong * item.DonGiaGoc * (1 - (item.PhanTramGiam || 0) / 100);
+                            const vatItem = tienGocSauGiam * ((item.ThueVATApDung || 0) / 100);
+                            tongVAT += vatItem;
+                        });
+                        const phiShip = Number(order.PhiShip || 0);
+                        
+                        // LOGIC CHUẨN ĐỒNG NHẤT: Tiền giảm = Tổng tiền hàng + VAT + Ship - Khách trả
+                        let tienGiam = Number(order.TongTienTruocKM) + tongVAT + phiShip - Number(order.TongTienSauKM); 
+                    %>
+                    
+                    <% if (tongVAT > 0) { %>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="font-semibold text-gray-500">Thuế GTGT (VAT):</span>
+                            <span class="font-bold text-blue-600"><%= Number(Math.round(tongVAT)).toLocaleString('vi-VN') %>đ</span>
+                        </div>
+                    <% } %>
+
+                    <% if (order.LoaiGiao === 'Ship') { %>
+                        <% if (typeof order.baseFee !== 'undefined') { %>
+                            <div class="flex justify-between items-center text-xs text-gray-500 ml-2">
+                                <span>+ Phí nền giao hàng GHN (<%= order.totalWeight %>g):</span>
+                                <span><%= order.baseFee.toLocaleString('vi-VN') %>đ</span>
+                            </div>
+                            <% if (order.freshFee > 0) { %>
+                                <div class="flex justify-between items-center text-xs text-gray-500 ml-2">
+                                    <span>+ Phụ phí hàng tươi sống:</span>
+                                    <span><%= order.freshFee.toLocaleString('vi-VN') %>đ</span>
+                                </div>
+                            <% } %>
+                            <% if (order.packagingFee > 0) { %>
+                                <div class="flex justify-between items-center text-xs text-gray-500 ml-2">
+                                    <span>+ Phụ phí đóng gói đặc biệt:</span>
+                                    <span><%= order.packagingFee.toLocaleString('vi-VN') %>đ</span>
+                                </div>
+                            <% } %>
+                            <% if (order.discount > 0) { %>
+                                <div class="flex justify-between items-center text-xs text-emerald-600 ml-2">
+                                    <span>- Miễn phí giao hàng:</span>
+                                    <span>-<%= order.discount.toLocaleString('vi-VN') %>đ</span>
+                                </div>
+                            <% } %>
+                        <% } %>
+                        <div class="flex justify-between items-center text-sm mt-1">
+                            <span class="font-semibold text-gray-500">Tổng phí giao hàng:</span>
+                            <span class="font-bold text-gray-700"><%= phiShip > 0 ? phiShip.toLocaleString('vi-VN') + 'đ' : 'Miễn phí' %></span>
+                        </div>
+                    <% } %>
+                    
+                    <% if (tienGiam > 0) { %>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="font-semibold text-gray-500">Chiết khấu / Giảm giá:</span>
+                            <span class="font-bold text-winmart-red">-<%= Math.round(Number(tienGiam)).toLocaleString('vi-VN') %>đ</span>
+                        </div>
+                    <% } %>
+
+                    
+                    <% if (order.DiemSuDung > 0) { %>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="font-semibold text-gray-500">Dùng điểm thưởng:</span>
+                            <span class="font-bold text-blue-600">-<%= order.DiemSuDung %> điểm</span>
+                        </div>
+                    <% } %>
+                    
+                    <div class="h-px w-full bg-gray-200 my-2"></div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="font-black text-gray-800 text-lg uppercase">Tổng Thanh Toán:</span>
+                        <span class="font-black text-winmart-red text-2xl"><%= Number(order.TongTienSauKM).toLocaleString('vi-VN') %>đ</span>
+                    </div>
+                    
+                    <% if (order.DiemThuoc > 0) { %>
+                        <div class="flex justify-end items-center mt-2">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 text-yellow-700 text-xs font-bold rounded-lg border border-yellow-200">
+                                <i data-lucide="star" class="w-3.5 h-3.5 text-yellow-500"></i>
+                                Tích lũy được: +<%= order.DiemThuoc %> điểm
+                            </span>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Khối 2: Lịch sử Đơn hàng (Timeline) -->
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-red-500"></div>
+            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                <i data-lucide="history" class="w-4 h-4 text-orange-500"></i> Lịch sử đơn hàng
+            </h3>
+            
+            <div class="relative border-l-2 border-gray-100 ml-3 space-y-6 pb-2 mt-4">
+                <% timelineEvents.forEach((event, idx) => { %>
+                    <div class="relative pl-6">
+                        <!-- Timeline Dot -->
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full border-4 border-white <%= idx === timelineEvents.length - 1 ? 'bg-orange-500' : 'bg-gray-300' %> shadow-sm"></div>
+                        <!-- Content -->
+                        <div class="text-xs font-bold text-gray-500 mb-0.5"><%= event.time %></div>
+                        <div class="text-sm font-semibold text-gray-800"><%= event.action %></div>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </div>
+
+    <!-- CỘT PHỤ BÊN PHẢI (1/3 chiều rộng) -->
+    <div class="space-y-6">
+        
+        <!-- Khối 3: Khách hàng -->
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
+            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                <i data-lucide="user" class="w-4 h-4 text-blue-500"></i> Khách Hàng
+            </h3>
+            
+            <% if (order.tenKhachHang) { %>
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-600 font-black text-xl shadow-inner border border-blue-200">
+                        <%= order.tenKhachHang.charAt(0).toUpperCase() %>
+                    </div>
+                    <div>
+                        <div class="font-bold text-winmart-dark text-base"><%= order.tenKhachHang %></div>
+                        <div class="text-xs text-gray-500 font-medium mt-0.5">Khách hàng thành viên</div>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-gray-50 rounded-lg text-gray-400"><i data-lucide="phone" class="w-4 h-4"></i></div>
+                        <div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Số điện thoại</div>
+                            <div class="text-sm font-semibold text-gray-700"><%= order.SoDienThoai || 'Chưa cập nhật' %></div>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-gray-50 rounded-lg text-gray-400"><i data-lucide="mail" class="w-4 h-4"></i></div>
+                        <div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Email</div>
+                            <div class="text-sm font-semibold text-gray-700"><%= order.Email || 'Chưa cập nhật' %></div>
+                        </div>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="text-center py-6">
+                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="user-minus" class="w-6 h-6 text-gray-300"></i>
+                    </div>
+                    <p class="text-sm font-bold text-gray-500">Khách lẻ (Khách vãng lai)</p>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Khối 4: Vận chuyển & Giao hàng -->
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-5 flex items-center gap-2">
+                <i data-lucide="truck" class="w-4 h-4 text-emerald-500"></i> Giao Hàng
+            </h3>
+            
+            <div class="space-y-5">
+                <div>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Loại Giao</div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold <%= order.LoaiGiao === 'Ship' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100' %>">
+                        <i data-lucide="<%= order.LoaiGiao === 'Ship' ? 'truck' : 'store' %>" class="w-3.5 h-3.5"></i>
+                        <%= order.LoaiGiao === 'Ship' ? 'Giao hàng tận nơi' : 'Nhận tại cửa hàng' %>
+                    </span>
+                </div>
+                
+                <% if (order.LoaiGiao === 'Ship' && order.DiaChiNhan) { %>
+                <div>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Địa chỉ nhận hàng</div>
+                    <p class="text-sm font-semibold text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-xl border border-gray-100 mb-3">
+                        <%= order.DiaChiNhan %>
+                    </p>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <% if (order.TenNguoiNhan) { %>
+                        <div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Người nhận</div>
+                            <div class="text-xs font-bold text-gray-700"><%= order.TenNguoiNhan %></div>
+                        </div>
+                        <% } %>
+                        <% if (order.SdtNguoiNhan) { %>
+                        <div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">SĐT nhận</div>
+                            <div class="text-xs font-bold text-gray-700"><%= order.SdtNguoiNhan %></div>
+                        </div>
+                        <% } %>
+                    </div>
+                    
+                    <% if (order.ToProvinceId || order.ToDistrictId || order.ToWardCode) { %>
+                    <div class="mb-3">
+                        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Mã khu vực GHN</div>
+                        <div class="text-[11px] font-mono text-gray-500 bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100 flex gap-4">
+                            <span>Tỉnh: <strong><%= order.ToProvinceId || 'N/A' %></strong></span>
+                            <span>Quận: <strong><%= order.ToDistrictId || 'N/A' %></strong></span>
+                            <span>Phường: <strong><%= order.ToWardCode || 'N/A' %></strong></span>
+                        </div>
+                    </div>
+                    <% } %>
+
+                    <!-- GHN Order Status and Trigger Actions -->
+                    <div class="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Vận đơn GHN (Giao Hàng Nhanh)</div>
+                        <% if (order.GHNOrderCode) { %>
+                            <div class="flex items-center justify-between">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg border border-blue-100">
+                                    <i data-lucide="tag" class="w-3.5 h-3.5"></i>
+                                    <%= order.GHNOrderCode %>
+                                </span>
+                                <a href="https://donhang.ghn.vn/?order_code=<%= order.GHNOrderCode %>" target="_blank" class="text-xs text-blue-600 font-bold hover:underline flex items-center gap-1">
+                                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Theo dõi vận đơn
+                                </a>
+                            </div>
+                            <div class="flex gap-2 mt-2">
+                                <form action="/admin/orders/<%= order.HoaDonId %>/ghn/sync" method="POST" class="flex-1">
+                                    <button type="submit" class="w-full py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
+                                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Đồng bộ trạng thái GHN
+                                    </button>
+                                </form>
+                                <% if (order.TrangThai !== 'Completed' && order.TrangThai !== 'Cancelled' && order.TrangThai !== 'Cancelled_Return') { %>
+                                <form action="/admin/orders/<%= order.HoaDonId %>/ghn/cancel" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng vận chuyển này trên GHN?');" class="flex-1">
+                                    <button type="submit" class="w-full py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hủy đơn GHN
+                                    </button>
+                                </form>
+                                <% } %>
+                            </div>
+                        <% } else { %>
+                            <div class="text-xs text-amber-600 bg-amber-50 border border-amber-100 p-3 rounded-xl flex items-center gap-2 font-medium">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i>
+                                Chưa tạo đơn vận chuyển trên GHN
+                            </div>
+                            <% if (order.ToDistrictId && order.ToWardCode && order.TrangThai !== 'Cancelled' && order.TrangThai !== 'Cancelled_Return' && order.TrangThai !== 'Completed') { %>
+                            <form action="/admin/orders/<%= order.HoaDonId %>/ghn/create" method="POST">
+                                <button type="submit" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center gap-1.5">
+                                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Tạo đơn vận chuyển GHN
+                                </button>
+                            </form>
+                            <% } %>
+                        <% } %>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Khối 5: Thanh Toán & Quản Lý -->
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-400 to-indigo-500"></div>
+            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-5 flex items-center gap-2">
+                <i data-lucide="credit-card" class="w-4 h-4 text-purple-500"></i> Thanh Toán & Khác
+            </h3>
+            
+            <div class="space-y-5">
+                <div>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Thời gian lập</div>
+                    <div class="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                        <i data-lucide="calendar" class="w-4 h-4 text-gray-400"></i>
+                        <%= new Date(order.NgayLap).toLocaleDateString('vi-VN') %> - <%= new Date(order.NgayLap).toLocaleTimeString('vi-VN') %>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Thanh toán bằng</div>
+                    <div class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                        <% if (order.PhuongThucTT === 'TienMat') { %>
+                            <div class="p-1.5 bg-emerald-50 rounded text-emerald-600"><i data-lucide="banknote" class="w-4 h-4"></i></div>
+                            Tiền mặt
+                        <% } else if (order.PhuongThucTT === 'ChuyenKhoan') { %>
+                            <div class="p-1.5 bg-blue-50 rounded text-blue-600"><i data-lucide="qr-code" class="w-4 h-4"></i></div>
+                            Chuyển khoản (QR)
+                        <% } else { %>
+                            <div class="p-1.5 bg-indigo-50 rounded text-indigo-600"><i data-lucide="credit-card" class="w-4 h-4"></i></div>
+                            Thẻ tín dụng / Khác
+                        <% } %>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Nhân viên phụ trách</div>
+                    <div class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-black"><i data-lucide="user-circle" class="w-4 h-4 text-gray-400"></i></div>
+                        <%= order.tenNhanVien || 'Hệ thống tự động' %>
+                    </div>
+                </div>
+
+                <% if (customNotes.length > 0) { %>
+                <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-100 mt-2">
+                    <div class="text-[10px] font-bold text-yellow-600 uppercase tracking-wider mb-1">Ghi chú từ khách hàng</div>
+                    <p class="text-xs font-medium text-yellow-800 italic whitespace-pre-line"><%= customNotes.join('\n') %></p>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+    </div>
+</div>

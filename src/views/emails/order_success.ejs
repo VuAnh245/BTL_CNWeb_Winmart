@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Xác nhận đơn hàng WinMart</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .header { background-color: #e0282e; color: #ffffff; padding: 25px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: bold; }
+        .content { padding: 30px; }
+        .greeting { font-size: 18px; margin-bottom: 20px; }
+        .order-box { border: 1px solid #eee; border-radius: 8px; padding: 20px; margin-bottom: 25px; background-color: #fafafa; }
+        .order-title { font-weight: bold; color: #e0282e; margin-top: 0; margin-bottom: 15px; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+        .label { color: #666; }
+        .value { font-weight: bold; }
+        .items-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .items-table th { text-align: left; padding: 10px; background-color: #f0f0f0; color: #555; font-size: 13px; }
+        .items-table td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .total-row { font-weight: bold; color: #e0282e; font-size: 16px; }
+        .loyalty-box { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); border-radius: 8px; padding: 20px; text-align: center; border: 1px dashed #ccc; margin-bottom: 25px; }
+        .points-number { font-size: 28px; font-weight: bold; color: #f59e0b; margin: 10px 0; }
+        .promo-box { background-color: #fff8f8; border: 1px solid #ffe4e4; border-radius: 8px; padding: 20px; text-align: center; }
+        .promo-title { color: #e0282e; font-weight: bold; font-size: 16px; margin-top: 0; }
+        .footer { background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #888; border-top: 1px solid #eee; }
+        .btn { display: inline-block; padding: 12px 25px; background-color: #e0282e; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CẢM ƠN BẠN ĐÃ MUA SẮM!</h1>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">Xin chào <%= order.hoTen %>,</div>
+            <p>WinMart đã nhận được đơn hàng của bạn và đang tiến hành xử lý. Dưới đây là thông tin chi tiết đơn hàng:</p>
+            
+            <div class="order-box">
+                <h3 class="order-title">THÔNG TIN ĐƠN HÀNG: #<%= order.maHoaDon %></h3>
+                <div class="info-row">
+                    <span class="label">Ngày đặt:</span>
+                    <span class="value"><%= order.ngayDat %></span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Trạng thái:</span>
+                    <span class="value" style="color: #10b981;">Chờ xác nhận</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Giao đến:</span>
+                    <span class="value"><%= order.diaChiNhan %></span>
+                </div>
+                
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th style="text-align: center;">SL</th>
+                            <th style="text-align: right;">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% order.items.forEach(function(item) { %>
+                        <tr>
+                            <td><%= item.ten %></td>
+                            <td style="text-align: center;"><%= item.qty %></td>
+                            <td style="text-align: right;"><%= item.priceFormatted %></td>
+                        </tr>
+                        <% }); %>
+                        <tr>
+                            <td colspan="2" style="text-align: right;" class="total-row">TỔNG CỘNG:</td>
+                            <td style="text-align: right;" class="total-row"><%= order.totalFormatted %></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <% if (order.pointsEarned > 0) { %>
+            <div class="loyalty-box">
+                <p style="margin: 0; color: #555;">Điểm thưởng nhận được từ đơn hàng này:</p>
+                <div class="points-number">+<%= order.pointsEarned %> Điểm</div>
+                <p style="margin: 0; font-size: 13px; color: #888;">Hãy tiếp tục mua sắm để nhận nhiều ưu đãi hấp dẫn!</p>
+            </div>
+            <% } %>
+
+            <div class="promo-box">
+                <h3 class="promo-title">🔥 ƯU ĐÃI ĐANG DIỄN RA</h3>
+                <p>Khám phá các sản phẩm giảm giá cực sốc tại WinMart Online.</p>
+                <a href="<%= order.storeUrl %>" class="btn">Mua sắm ngay</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Đây là email tự động, vui lòng không trả lời email này.</p>
+            <p>© 2026 WinMart Online. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

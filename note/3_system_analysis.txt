@@ -1,0 +1,100 @@
+HỆ THỐNG WEB BÁN HÀNG WINMART - PHÂN TÍCH HỆ THỐNG CHI TIẾT
+============================================================
+
+1. MÔ HÌNH NGHIỆP VỤ (DOMAIN MODEL)
+────────────────────────────────────────────────────────────────────────────
+Lớp: Sản Phẩm (Product)
+  • Thuộc tính: maSP, tenSP, giaNhap, giaBan, vat, tonKho, mucCanDat, barcode, expiryDate (nullable), trangThai
+  • Phương thức: tinhGiaTriTonKho(), kiemTraTonKho(), updateBatch(), isPerishable()
+  • Ràng buộc: giaBan > 0, tonKho >= 0, vat IN (0,8,10)
+
+Lớp: BatchInventory (Tồn kho theo lô)
+  • Thuộc tính: batchNo, expiryDate, quantity, productId, storeId, status
+  • Phương thức: getFEFO(), reserve(qty), release(qty), deduct(qty), checkExpiry()
+  • Ràng buộc: quantity >= 0, expiryDate >= CURRENT_DATE
+
+Lớp: Hóa Đơn Bán Hàng (Invoice/Order)
+  • Thuộc tính: maHD, khachHangId, nhanVienId, tongTruocKM, tongSauKM, phuongThucTT, trangThai, loaiKM, maKM
+  • Phương thức: apDungGiamGia(), tinhTong(), createInvoice(), syncStatus()
+  • Ràng buộc: trangThai IN ('Pending','Paid','Completed','Cancelled')
+
+Lớp: Khách Hàng & Điểm Tích Lũy (Loyalty)
+  • Thuộc tính: maKH, sdt, diemHienTai, capDoVIP, tongChiTieu
+  • Thuộc tính giao dịch: maGD, loaiGD (Tich/SuDung/DieuChinh), soDiemTich, soDiemSuDung, hoaDonId, ghiChu
+  • Phương thức: congDiem(), truDiem(), kiemTraVIP(), recalcBalance(), auditLog()
+
+Lớp: Nhân Viên & Phân Quyền
+  • Thuộc tính: maNV, username, passwordHash, vaiTro (CUSTOMER/STAFF/ADMIN), trangThai
+  • Phương thức: kiemTraMatKhau(), phanQuyen(), logAccess(), isOpenShift()
+
+2. LUỒNG NGHIỆP VỤ CỐT LÕI (SEQUENCE + TRANSACTION)
+────────────────────────────────────────────────────────────────────────────
+[Luồng Checkout / POS]
+1. Client/POS gửi `POST /api/v1/checkout` với cart, userId, paymentMethod, discount.
+2. Middleware: Auth → Role → Validate body (Joi/Zod).
+3. Controller gọi `CheckoutService.execute()`.
+4. Service: `pool.getConnection()` → `BEGIN TRANSACTION`.
+5. Kiểm tồn: `SELECT quantity FROM batch_inventory WHERE product_id=? ORDER BY expiry_date ASC` (FEFO).
+6. Nếu đủ: `UPDATE batch_inventory SET quantity=quantity-?` (trừ theo FEFO).
+7. Tính tiền: `total = cart.sum - discount - point_value`.
+8. Tạo Order: `INSERT INTO orders (...)`, `INSERT INTO order_items (...)`.
+9. Nếu có KH: `INSERT INTO diem_tich_luy (loaiGD='TichDiem', soDiem=?)`.
+10. Nếu thành công: `COMMIT`. Nếu lỗi: `ROLLBACK`, release reserve, trả lỗi 4xx/5xx.
+11. Trả kết quả, trigger async notification (nếu có).
+
+[Luồng Tích Lũy & Phân Hạng]
+- Trigger: Sau khi `COMMIT` hóa đơn `Paid`.
+- Tính điểm: `points = floor((totalAfterDiscount) * config.rate)`.
+- Bonus: Nếu `capDoVIP='VIP2'` → +10% điểm.
+- Insert log: `DiemTichLuy(loaiGD='TichDiem', soDiemTich=points, hoaDonId=hdId)`.
+- Recalc: `SUM(soDiemTich) - SUM(soDiemSuDung)`.
+- Check threshold: `0-99=Thuong, 100-499=VIP1, 500-999=VIP2, ≥1000=VIP3`.
+- Update: `UPDATE khach_hang SET capDoVIP=? WHERE id=?`.
+- Fallback: Nếu tính điểm lỗi → Log warn, không rollback đơn.
+
+[Luồng POS Offline → Online Sync]
+- Mất mạng: JS intercept `fetch` → Lưu payload vào IndexedDB queue (`status='pending'`).
+- Có mạng: `navigator.onLine === true` → `setInterval` poll → POST `/api/v1/pos/sync`.
+- Server: Validate tuần tự từng đơn → Nếu hợp lệ → Insert → Trả `200`. Nếu trùng/lỗi → Trả `409` + detail.
+- Client: Xóa khỏi local queue nếu `200`, giữ lại nếu `409`/`5xx` → Retry sau 5p.
+
+3. PHÂN TÍCH TẦNG KIẾN TRÚC (LAYERED)
+────────────────────────────────────────────────────────────────────────────
+Presentation (Views/JS)
+  • EJS render server-side, Bootstrap/Tailwind layout.
+  • Client JS: Validation, cart state, barcode scanner listener (`input` + `keydown Enter`), offline queue manager.
+  • In ấn: `@media print` CSS tối ưu 80mm, `window.print()`.
+
+Controller (Route Handlers)
+  • Nhận HTTP request, parse body/params/query.
+  • Gọi đúng Service method, không chứa logic nghiệp vụ.
+  • Render EJS hoặc `res.json()`, bắt lỗi, chuyển error middleware.
+
+Service (Business Logic)
+  • Chứa 100% rule: tính tiền, trừ tồn FEFO, loyalty calc, KM validation.
+  • Wraps transaction: `await conn.beginTransaction(); try { ... } catch { await conn.rollback(); } finally { await conn.release(); }`
+  • Tách biệt theo domain: `CheckoutService`, `LoyaltyService`, `InventoryService`.
+
+Repository/Model (Data Access)
+  • `mysql2/promise` query, prepared statements.
+  • Mapping DTO ↔ Row, handle `NULL`/`DEFAULT`, soft delete (`is_active=0`).
+  • Index strategy: `products(barcode)`, `invoices(status, created_at)`, `loyalty(khachHangId, ngayGiaoDich)`.
+
+Middleware (Cross-cutting)
+  • `auth.middleware`: Check session/token, redirect nếu chưa đăng nhập.
+  • `role.middleware`: `req.user.role === 'ADMIN' ? next() : res.status(403)`.
+  • `validate.middleware`: Joi schema validate, trả lỗi 400 chi tiết.
+  • `error.middleware`: Catch unhandled, log stack, render 500.ejs.
+
+4. TRẠNG THÁI & CHUYỂN ĐỔI (STATE MACHINE)
+  • Order: `Pending` → `Paid` → `Completed` | `Cancelled` (timeout/abort)
+  • Invoice: `Draft` → `Issued` → `Synced` (HDDT) | `Voided`
+  • Loyalty Tier: `Thuong` → `VIP1` → `VIP2` → `VIP3` (không tự hạ cấp trong phase 1)
+  • Batch: `Available` → `Reserved` → `Sold` | `Expired` (cron job daily)
+
+5. RÀNG BUỘC DỮ LIỆU & BẢO MẬT
+  • MySQL: `TINYINT(1)` cho boolean, `DECIMAL(18,2)` cho tiền, `utf8mb4_unicode_ci`.
+  • CHECK: `tonKho >= 0`, `giaBan > 0`, `vat IN (0,8,10)`. (MySQL 8.0.16+ hỗ trợ)
+  • Soft-delete: `is_active` thay `DELETE`. History giữ nguyên.
+  • Audit: Log admin action, timestamp, user_id, old_value → new_value.
+  • Session: `httpOnly: true`, `sameSite: 'strict'`, secret mạnh, rotate key định kỳ.

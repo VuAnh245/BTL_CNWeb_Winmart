@@ -1,0 +1,1 @@
+const db = require('./src/config/db'); async function fixPromoCount() { await db.pool.query("UPDATE MaGiamGia SET SoLanDaSuDung = (SELECT COUNT(*) FROM HoaDonBanHang WHERE HoaDonBanHang.MaGiamGiaId = MaGiamGia.MaGiamGiaId AND HoaDonBanHang.TrangThai != 'Cancelled')"); console.log('Fixed count'); process.exit(0); } fixPromoCount();

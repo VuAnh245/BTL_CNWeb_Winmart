@@ -1,0 +1,213 @@
+<%
+  layout = false;
+%>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký | WinMart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        winmart: { red: '#E21E26', yellow: '#FFC522', dark: '#111827', slate: '#6B7280' }
+                    },
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .btn-primary-wm { background: linear-gradient(135deg,#E21E26 0%,#B91319 100%); box-shadow: 0 10px 25px -5px rgba(226,30,38,0.3); transition: all .3s; }
+        .btn-primary-wm:hover { transform: translateY(-2px); box-shadow: 0 15px 35px -5px rgba(226,30,38,0.4); }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 flex items-center justify-center p-4 py-8">
+
+    <div class="w-full max-w-[900px] bg-white rounded-[2rem] shadow-2xl flex overflow-hidden">
+
+        <!-- Bên trái: Banner -->
+        <section class="hidden lg:flex w-5/12 relative bg-winmart-dark flex-col justify-between p-10 overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=800"
+                 alt="Supermarket" class="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-overlay">
+            <div class="absolute inset-0 bg-gradient-to-t from-winmart-dark via-winmart-dark/60 to-transparent"></div>
+
+            <a href="/" class="relative z-10 flex items-center gap-2 no-underline">
+                <div class="w-10 h-10 rounded-xl bg-winmart-red flex items-center justify-center text-white font-black text-lg">WM</div>
+                <span class="text-lg font-black text-white tracking-tight">WinMart</span>
+            </a>
+
+            <div class="relative z-10 space-y-4">
+                <h2 class="text-3xl font-black text-white leading-tight">Tạo tài khoản<br><span class="text-winmart-yellow">WinMart Plus</span></h2>
+                <p class="text-gray-300 text-xs font-medium leading-relaxed">
+                    Đăng ký để nhận ưu đãi độc quyền, tích điểm thành viên và trải nghiệm mua sắm tiện lợi hơn mỗi ngày.
+                </p>
+                <div class="space-y-2 pt-2">
+                    <div class="flex items-center gap-2 text-gray-300 text-xs font-semibold">
+                        <div class="w-5 h-5 rounded-full bg-winmart-yellow/20 text-winmart-yellow flex items-center justify-center"><i data-lucide="gift" class="w-3 h-3"></i></div>
+                        Voucher 50K khi đăng ký lần đầu
+                    </div>
+                    <div class="flex items-center gap-2 text-gray-300 text-xs font-semibold">
+                        <div class="w-5 h-5 rounded-full bg-winmart-yellow/20 text-winmart-yellow flex items-center justify-center"><i data-lucide="star" class="w-3 h-3"></i></div>
+                        Tích điểm WinMart Plus mỗi đơn hàng
+                    </div>
+                    <div class="flex items-center gap-2 text-gray-300 text-xs font-semibold">
+                        <div class="w-5 h-5 rounded-full bg-winmart-yellow/20 text-winmart-yellow flex items-center justify-center"><i data-lucide="truck" class="w-3 h-3"></i></div>
+                        Giao hàng nhanh tiện lợi
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bên phải: Form -->
+        <section class="w-full lg:w-7/12 p-8 sm:p-12 flex flex-col justify-center overflow-y-auto">
+
+            <!-- Back -->
+            <a href="/" class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-winmart-dark transition-colors mb-8 no-underline">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Về trang chủ
+            </a>
+
+            <div class="mb-6">
+                <h1 class="text-2xl font-black text-winmart-dark tracking-tight">Tạo tài khoản mới</h1>
+                <p class="text-sm text-gray-400 font-medium mt-1.5">Hoàn tất thông tin để bắt đầu mua sắm</p>
+            </div>
+
+            <!-- Flash messages -->
+            <% if (typeof success !== 'undefined' && success) { %>
+            <div class="flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-2xl text-sm font-bold mb-5">
+                <i data-lucide="check-circle" class="w-4 h-4 shrink-0"></i> <%= success %>
+            </div>
+            <% } %>
+            <% if (typeof error !== 'undefined' && error) { %>
+            <div class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl text-sm font-bold mb-5">
+                <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i> <%= error %>
+            </div>
+            <% } %>
+
+            <form action="/auth/register" method="POST" class="space-y-4">
+
+                <!-- Họ tên -->
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Họ và tên <span class="text-winmart-red">*</span></label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i data-lucide="user" class="w-5 h-5 text-gray-400"></i>
+                        </div>
+                        <input type="text" name="fullName" required placeholder="VD: Nguyễn Văn A"
+                               value="<%= typeof old !== 'undefined' ? (old.fullName || '') : '' %>"
+                               class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                    </div>
+                    <% if (typeof errors !== 'undefined' && errors?.fullName) { %>
+                        <p class="text-[11px] text-red-500 font-semibold mt-1.5 ml-1"><%= errors.fullName %></p>
+                    <% } %>
+                </div>
+
+                <!-- Số điện thoại + Email -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Số điện thoại <span class="text-winmart-red">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i data-lucide="phone" class="w-5 h-5 text-gray-400"></i>
+                            </div>
+                            <input type="tel" name="phone" required placeholder="0xxxxxxxxx"
+                                   value="<%= typeof old !== 'undefined' ? (old.phone || '') : '' %>"
+                                   class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                        </div>
+                        <% if (typeof errors !== 'undefined' && errors?.phone) { %>
+                            <p class="text-[11px] text-red-500 font-semibold mt-1.5 ml-1"><%= errors.phone %></p>
+                        <% } %>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Email</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i data-lucide="mail" class="w-5 h-5 text-gray-400"></i>
+                            </div>
+                            <input type="email" name="email" placeholder="email@example.com"
+                                   value="<%= typeof old !== 'undefined' ? (old.email || '') : '' %>"
+                                   class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                        </div>
+                        <% if (typeof errors !== 'undefined' && errors?.email) { %>
+                            <p class="text-[11px] text-red-500 font-semibold mt-1.5 ml-1"><%= errors.email %></p>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Mật khẩu + Xác nhận -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Mật khẩu <span class="text-winmart-red">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i data-lucide="lock" class="w-5 h-5 text-gray-400"></i>
+                            </div>
+                            <input type="password" id="reg-password" name="password" required placeholder="Ít nhất 6 ký tự"
+                                   class="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                            <button type="button" onclick="togglePwd('reg-password','eye-reg-pw')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-winmart-dark transition-colors">
+                                <i id="eye-reg-pw" data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <% if (typeof errors !== 'undefined' && errors?.password) { %>
+                            <p class="text-[11px] text-red-500 font-semibold mt-1.5 ml-1"><%= errors.password %></p>
+                        <% } %>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Xác nhận <span class="text-winmart-red">*</span></label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i data-lucide="shield-check" class="w-5 h-5 text-gray-400"></i>
+                            </div>
+                            <input type="password" id="reg-confirm" name="confirmPassword" required placeholder="Nhập lại mật khẩu"
+                                   class="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                            <button type="button" onclick="togglePwd('reg-confirm','eye-reg-cf')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-winmart-dark transition-colors">
+                                <i id="eye-reg-cf" data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <% if (typeof errors !== 'undefined' && errors?.confirmPassword) { %>
+                            <p class="text-[11px] text-red-500 font-semibold mt-1.5 ml-1"><%= errors.confirmPassword %></p>
+                        <% } %>
+                    </div>
+                </div>
+
+                <!-- Điều khoản -->
+                <div class="flex items-start gap-2 pt-1 ml-1">
+                    <input type="checkbox" required id="agree-terms" class="w-4 h-4 mt-0.5 accent-winmart-red cursor-pointer rounded">
+                    <label for="agree-terms" class="text-[11px] font-semibold text-gray-500 cursor-pointer leading-tight">
+                        Tôi đồng ý với <a href="#" class="text-winmart-red font-bold hover:underline no-underline">Điều khoản dịch vụ</a> và <a href="#" class="text-winmart-red font-bold hover:underline no-underline">Chính sách bảo mật</a>.
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary-wm w-full text-white font-bold py-3.5 rounded-2xl text-sm uppercase tracking-widest flex justify-center items-center gap-2 mt-2">
+                    Hoàn Tất Đăng Ký <i data-lucide="user-plus" class="w-4 h-4"></i>
+                </button>
+            </form>
+
+            <div class="mt-6 pt-6 border-t border-gray-100 text-center">
+                <p class="text-sm text-gray-400 font-medium">
+                    Đã có tài khoản?
+                    <a href="/auth/login" class="text-winmart-red font-bold hover:underline ml-1 no-underline">Đăng nhập ngay</a>
+                </p>
+            </div>
+
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
+        function togglePwd(id, eyeId) {
+            const el = document.getElementById(id);
+            const eye = document.getElementById(eyeId);
+            el.type = el.type === 'password' ? 'text' : 'password';
+            eye.setAttribute('data-lucide', el.type === 'password' ? 'eye' : 'eye-off');
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

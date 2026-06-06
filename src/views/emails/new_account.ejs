@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Chào mừng bạn đến với WinMart</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f9fafb; margin: 0; padding: 20px; }
+        .container { max-w-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .header { background-color: #dc2626; padding: 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: bold; }
+        .content { padding: 30px; color: #374151; line-height: 1.6; }
+        .password-box { background-color: #f3f4f6; border: 2px dashed #d1d5db; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; }
+        .password { font-family: monospace; font-size: 32px; font-weight: bold; color: #111827; letter-spacing: 4px; }
+        .footer { background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; border-top: 1px solid #e5e7eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Chào mừng Hội viên WinMart</h1>
+        </div>
+        <div class="content">
+            <p>Xin chào <strong><%= customer.HoTen %></strong>,</p>
+            <p>Tài khoản Hội viên WinMart của bạn đã được khởi tạo thành công tại hệ thống siêu thị / cửa hàng của chúng tôi.</p>
+            <p>Mật khẩu đăng nhập mặc định của bạn là:</p>
+            
+            <div class="password-box">
+                <div class="password"><%= password %></div>
+            </div>
+            
+            <p>Tên đăng nhập của bạn là: <strong><%= customer.SoDienThoai || customer.Email %></strong></p>
+            
+            <p>Bạn có thể sử dụng thông tin này để đăng nhập vào website WinMart, theo dõi tiến trình tích điểm, sử dụng mã giảm giá và mua sắm trực tuyến.</p>
+            <p>Vui lòng đăng nhập và vào mục <strong>Hồ sơ cá nhân > Đổi mật khẩu</strong> để thay đổi mật khẩu nhằm tăng tính bảo mật.</p>
+            
+            <p>Trân trọng,<br>Đội ngũ WinMart</p>
+        </div>
+        <div class="footer">
+            <p>© 2026 WinMart System. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

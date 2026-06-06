@@ -1,0 +1,120 @@
+<div class="bg-gray-50 min-h-screen pt-12 pb-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <nav class="flex items-center gap-2 text-xs font-semibold text-gray-500 mb-8">
+            <a href="/" class="hover:text-winmart-red transition-colors flex items-center gap-1.5"><i data-lucide="home" class="w-3.5 h-3.5"></i> Trang chủ</a>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            <a href="/profile" class="hover:text-winmart-red transition-colors font-bold text-winmart-dark">Hồ sơ cá nhân</a>
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            <span class="text-winmart-dark font-bold">Sổ địa chỉ</span>
+        </nav>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Sidebar -->
+            <aside class="w-full lg:w-72 shrink-0">
+                <div class="bento-card p-3">
+                    <nav class="flex flex-col gap-1.5">
+                        <a href="/profile" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-winmart-dark font-bold text-sm transition-all">
+                            <i data-lucide="user" class="w-4 h-4"></i> Thông tin tài khoản
+                        </a>
+                        <a href="/profile/orders" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-winmart-dark font-bold text-sm transition-all">
+                            <i data-lucide="package" class="w-4 h-4"></i> Đơn hàng của tôi
+                        </a>
+                        <a href="javascript:void(0)" onclick="goToWishlist()" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-winmart-dark font-bold text-sm transition-all">
+                            <i data-lucide="heart" class="w-4 h-4"></i> Sản phẩm yêu thích
+                        </a>
+                        <a href="/profile/address" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-winmart-red/10 text-winmart-red font-bold text-sm transition-all">
+                            <i data-lucide="map-pin" class="w-4 h-4"></i> Sổ địa chỉ
+                        </a>
+                        <a href="/profile/change-password" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-winmart-dark font-bold text-sm transition-all">
+                            <i data-lucide="key" class="w-4 h-4"></i> Đổi mật khẩu
+                        </a>
+                        <div class="my-2 border-t border-gray-100"></div>
+                        <a href="/auth/logout" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 font-bold text-sm transition-all">
+                            <i data-lucide="log-out" class="w-4 h-4"></i> Đăng xuất
+                        </a>
+                    </nav>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1">
+                <div class="mb-6 flex justify-between items-end">
+                    <div>
+                        <h1 class="text-2xl font-black text-winmart-dark tracking-tight">Sổ địa chỉ</h1>
+                        <p class="text-sm font-semibold text-gray-400 mt-1">Danh sách các địa chỉ bạn đã nhận hàng thành công</p>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 text-blue-800 text-sm font-semibold p-4 rounded-xl mb-6 flex items-start gap-3">
+                    <i data-lucide="info" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                    <div>
+                        Sổ địa chỉ được tự động cập nhật dựa trên các địa chỉ bạn đã dùng để đặt hàng thành công. Khi mua hàng lần tới, bạn có thể dễ dàng chọn lại từ danh sách này.
+                    </div>
+                </div>
+
+                <% if (addresses.length === 0) { %>
+                    <div class="bento-card p-12 flex flex-col items-center justify-center text-center">
+                        <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-6 border border-gray-100">
+                            <i data-lucide="map" class="w-12 h-12"></i>
+                        </div>
+                        <h3 class="text-lg font-black text-winmart-dark mb-2">Chưa có địa chỉ nào</h3>
+                        <p class="text-sm font-semibold text-gray-400 max-w-sm">Bạn chưa có đơn hàng nào giao thành công để lưu địa chỉ. Địa chỉ sẽ tự động lưu sau khi bạn hoàn tất đơn đặt hàng đầu tiên.</p>
+                    </div>
+                <% } else { %>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <% addresses.forEach((addr, idx) => { %>
+                            <div class="bento-card p-5 border border-gray-100 hover:border-emerald-200 transition-colors flex flex-col">
+                                <div class="flex items-start gap-3 mb-3">
+                                    <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center shrink-0">
+                                        <i data-lucide="map-pin" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-winmart-dark text-sm leading-tight">Địa chỉ #<%= idx + 1 %></h4>
+                                        <p class="text-xs text-gray-500 mt-0.5 font-medium leading-snug"><%= addr %></p>
+                                    </div>
+                                </div>
+                                <div class="mt-auto pt-4 flex gap-2">
+                                    <button onclick="setAsDeliveryAddress(`<%= addr %>`)" class="flex-1 bg-gray-50 hover:bg-emerald-50 text-gray-600 hover:text-emerald-600 font-bold text-xs py-2.5 rounded-lg transition-colors border border-gray-100 hover:border-emerald-200 flex justify-center items-center gap-1.5">
+                                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Chọn làm địa chỉ giao
+                                    </button>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } %>
+            </main>
+        </div>
+    </div>
+</div>
+
+<script>
+    function setAsDeliveryAddress(address) {
+        if (!address) return;
+        
+        // Lưu vào localStorage giống như định dạng ở header
+        const locationData = {
+            address: address,
+            detail: address,
+            lat: 21.0285, // Default/Dummy
+            lng: 105.8542 // Default/Dummy
+        };
+        
+        localStorage.setItem('winmart_location_json', JSON.stringify(locationData));
+        
+        // Cập nhật text trên header
+        const headerText = document.getElementById('header-location-text');
+        if (headerText) {
+            let shortName = address;
+            const parts = address.split(',');
+            if (parts.length >= 3) {
+                shortName = parts[parts.length - 3].trim() || parts[0];
+            } else if (parts.length > 0) {
+                shortName = parts[0];
+            }
+            headerText.innerText = shortName.substring(0, 15) + (shortName.length > 15 ? '...' : '');
+        }
+        
+        showWmToast('Đã thiết lập địa chỉ giao hàng thành công!');
+    }
+</script>

@@ -1,0 +1,353 @@
+<!-- Orders Index for Staff -->
+<%
+const getStaffStatusBadge = (status, paymentMethod = '') => {
+    switch(status) {
+        case 'Pending':
+            if (paymentMethod === 'TienMat') {
+                return '<span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-amber-100"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Chờ xử lý</span>';
+            }
+            return '<span class="inline-flex items-center gap-1.5 bg-yellow-50 text-yellow-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-yellow-100"><span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> Chờ thanh toán</span>';
+        case 'Paid':
+            return '<span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-blue-100"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Đã thanh toán</span>';
+        case 'Delivering':
+            return '<span class="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-purple-100"><span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Đang giao hàng</span>';
+        case 'Completed':
+            return '<span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-emerald-100"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Thành công</span>';
+        case 'Cancelled':
+            return '<span class="inline-flex items-center gap-1.5 bg-red-50 text-red-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-red-100"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Đã hủy</span>';
+        case 'Cancelled_Return':
+            return '<span class="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-orange-100"><span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Hủy & Hoàn hàng</span>';
+        case 'Refunded':
+            return '<span class="inline-flex items-center gap-1.5 bg-slate-50 text-slate-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-slate-100"><span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Đã hoàn tiền</span>';
+        default:
+            return '<span class="inline-flex items-center gap-1.5 bg-gray-50 text-gray-700 px-3 py-1.5 rounded-full text-[10px] font-black border border-gray-100"><span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span> Không xác định</span>';
+    }
+}
+%>
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-full flex flex-col">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h2 class="text-2xl font-black text-winmart-dark tracking-tight">Hóa đơn hôm nay</h2>
+            <p class="text-sm text-gray-500 font-medium mt-1">Danh sách các hóa đơn bán hàng tại quầy</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <form action="/staff/orders" method="GET" class="relative">
+                <i data-lucide="search" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input type="text" name="keyword" placeholder="Tìm theo mã HĐ, tên KH..." value="<%= typeof keyword !== 'undefined' ? keyword : '' %>"
+                       class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-winmart-red/20 focus:border-winmart-red transition-all w-64 font-medium">
+                <button type="submit" class="hidden"></button>
+            </form>
+            <a href="/staff/orders" class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Tải lại
+            </a>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="flex-1 overflow-auto rounded-xl border border-gray-100">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-100">
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Mã HĐ</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Thời gian</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Khách hàng</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Tổng tiền</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                    <th class="py-4 px-6 text-xs font-black text-gray-500 uppercase tracking-wider text-right">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                <% if (orders && orders.length > 0) { %>
+                    <% orders.forEach(order => { %>
+                        <tr class="hover:bg-gray-50/50 transition-colors bg-white">
+                            <td class="py-4 px-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                        <i data-lucide="receipt" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-extrabold text-winmart-dark text-sm flex items-center gap-2">
+                                            <%= order.HoaDonId %>
+                                            <% if (order.MaLoaiHinh === 'ONLINE' || order.MaLoaiHinh === 'WEB') { %>
+                                                <span class="bg-blue-50 text-blue-600 text-[9px] px-1.5 py-0.5 rounded font-black tracking-wider border border-blue-100">ONLINE</span>
+                                            <% } else { %>
+                                                <span class="bg-purple-50 text-purple-600 text-[9px] px-1.5 py-0.5 rounded font-black tracking-wider border border-purple-100"><%= order.MaLoaiHinh || 'POS' %></span>
+                                            <% } %>
+                                        </h4>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-4 px-6">
+                                <div class="text-xs font-semibold text-gray-600">
+                                    <%= new Date(order.NgayLap).toLocaleDateString('vi-VN') %>
+                                </div>
+                                <div class="text-[10px] text-gray-400 font-medium">
+                                    <%= new Date(order.NgayLap).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) %>
+                                </div>
+                            </td>
+                            <td class="py-4 px-6">
+                                <div class="font-bold text-sm text-winmart-dark"><%= order.tenKhachHang || 'Khách vãng lai' %></div>
+                                <% if (order.SoDienThoai) { %>
+                                    <div class="text-[10px] text-gray-400 font-semibold mt-0.5"><%= order.SoDienThoai %></div>
+                                <% } %>
+                            </td>
+                            <td class="py-4 px-6 font-black text-winmart-red"><%= Number(order.TongTienSauKM).toLocaleString('vi-VN') %>đ</td>
+                            <td class="py-4 px-6">
+                                <%- getStaffStatusBadge(order.TrangThai, order.PhuongThucTT) %>
+                            </td>
+                            <td class="py-4 px-6 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <button onclick="viewOrderDetails('<%= order.HoaDonId %>')" class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 font-bold text-xs hover:bg-blue-100 transition shadow-sm flex items-center gap-1">
+                                        <i data-lucide="eye" class="w-3.5 h-3.5"></i> Chi tiết
+                                    </button>
+                                    <a href="/staff/orders/<%= order.HoaDonId %>/print" target="_blank" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200 hover:text-winmart-dark transition shadow-sm" title="In hóa đơn">
+                                        <i data-lucide="printer" class="w-4 h-4"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-gray-500">
+                            <div class="flex flex-col items-center">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                                    <i data-lucide="receipt" class="w-8 h-8 text-gray-400"></i>
+                                </div>
+                                <p class="font-bold">Chưa có hóa đơn nào hôm nay.</p>
+                            </div>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div id="orderDetailModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden flex justify-end" onclick="if(event.target === this) closeOrderModal()">
+    <div class="bg-white w-full max-w-lg h-full shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300" id="orderDetailContent">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 shrink-0">
+            <h3 class="text-lg font-black text-winmart-dark">Chi tiết Hóa Đơn</h3>
+            <button onclick="closeOrderModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto p-6" id="orderDetailBody">
+            <div class="flex justify-center items-center h-32 text-gray-400">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-gray-100 bg-gray-50/50 shrink-0">
+            <a href="#" id="modalPrintBtn" target="_blank" class="w-full bg-winmart-dark text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-black transition shadow-lg">
+                <i data-lucide="printer" class="w-4 h-4"></i> IN LẠI HÓA ĐƠN NÀY
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getStatusBadgeHtml(status, paymentMethod) {
+        switch(status) {
+            case 'Pending':
+                if (paymentMethod === 'TienMat') {
+                    return '<span class="text-xs font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded">Chờ xử lý</span>';
+                }
+                return '<span class="text-xs font-black text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">Chờ thanh toán</span>';
+            case 'Paid':
+                return '<span class="text-xs font-black text-blue-700 bg-blue-100 px-2 py-0.5 rounded">Đã thanh toán</span>';
+            case 'Delivering':
+                return '<span class="text-xs font-black text-purple-700 bg-purple-100 px-2 py-0.5 rounded">Đang giao hàng</span>';
+            case 'Completed':
+                return '<span class="text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">Thành công</span>';
+            case 'Cancelled':
+                return '<span class="text-xs font-black text-red-700 bg-red-100 px-2 py-0.5 rounded">Đã hủy</span>';
+            case 'Cancelled_Return':
+                return '<span class="text-xs font-black text-orange-700 bg-orange-100 px-2 py-0.5 rounded">Hủy & Hoàn hàng</span>';
+            case 'Refunded':
+                return '<span class="text-xs font-black text-slate-700 bg-slate-100 px-2 py-0.5 rounded">Đã hoàn tiền</span>';
+            default:
+                return '<span class="text-xs font-black text-gray-700 bg-gray-100 px-2 py-0.5 rounded">Không xác định</span>';
+        }
+    }
+
+    async function viewOrderDetails(id) {
+        const modal = document.getElementById('orderDetailModal');
+        const content = document.getElementById('orderDetailContent');
+        const body = document.getElementById('orderDetailBody');
+        const printBtn = document.getElementById('modalPrintBtn');
+        
+        // Show modal and slide in
+        modal.classList.remove('hidden');
+        setTimeout(() => content.classList.remove('translate-x-full'), 10);
+        
+        // Setup print button
+        printBtn.href = `/staff/orders/${id}/print`;
+        
+        // Loading state
+        body.innerHTML = `
+            <div class="flex justify-center items-center h-32 text-gray-400">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+            </div>
+        `;
+        lucide.createIcons();
+        
+        try {
+            const res = await fetch(`/staff/api/orders/${id}`);
+            const data = await res.json();
+            
+            if (data.success && data.order) {
+                const order = data.order;
+                
+                let totalVAT = 0;
+                let itemsHtml = '';
+                order.items.forEach(item => {
+                    const itemTotal = item.SoLuong * item.DonGiaGoc;
+                    const discount = item.PhanTramGiam ? itemTotal * (item.PhanTramGiam / 100) : 0;
+                    const vatRate = item.ThueVATApDung || 0;
+                    totalVAT += (itemTotal - discount) * (vatRate / 100);
+                    
+                    itemsHtml += `
+                        <div class="flex justify-between items-start mb-3 border-b border-gray-50 pb-2 last:border-0 last:pb-0">
+                            <div>
+                                <div class="text-sm font-bold text-winmart-dark">${item.TenSanPham}</div>
+                                <div class="text-[11px] text-gray-500 mt-0.5">
+                                    ${item.SoLuong} x ${Number(item.DonGiaGoc).toLocaleString('vi-VN')}đ
+                                    ${item.PhanTramGiam > 0 ? `<span class="text-winmart-red border border-red-200 bg-red-50 px-1 rounded ml-1">-${item.PhanTramGiam}%</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="text-sm font-black text-gray-700 mt-0.5">${Number(item.ThanhTienCuoi).toLocaleString('vi-VN')}đ</div>
+                        </div>
+                    `;
+                });
+                
+                const phiShip = Number(order.PhiShip || 0);
+                const loaiHinh = (order.MaLoaiHinh || '').toUpperCase();
+                const isOnline = (loaiHinh === 'ONLINE' || loaiHinh === 'WEB');
+                
+                let tienGiam = 0;
+                if (isOnline) {
+                    tienGiam = Number(order.TongTienTruocKM) + phiShip - Number(order.TongTienSauKM);
+                } else {
+                    tienGiam = Number(order.TongTienTruocKM) + totalVAT + phiShip - Number(order.TongTienSauKM);
+                }
+                
+                let shippingHtml = '';
+                if (order.LoaiGiao === 'Ship') {
+                    if (order.baseFee !== undefined && (phiShip > 0 || order.discount > 0)) {
+                        shippingHtml += `
+                            <div class="flex justify-between text-xs text-gray-400 pl-4">
+                                <span>+ Phí nền GHN (${order.totalWeight}g):</span>
+                                <span>${Number(order.baseFee).toLocaleString('vi-VN')}đ</span>
+                            </div>
+                        `;
+                        if (order.freshFee > 0) {
+                            shippingHtml += `
+                                <div class="flex justify-between text-xs text-gray-400 pl-4">
+                                    <span>+ Phụ phí tươi sống:</span>
+                                    <span>${Number(order.freshFee).toLocaleString('vi-VN')}đ</span>
+                                </div>
+                            `;
+                        }
+                        if (order.packagingFee > 0) {
+                            shippingHtml += `
+                                <div class="flex justify-between text-xs text-gray-400 pl-4">
+                                    <span>+ Phụ phí đóng gói:</span>
+                                    <span>${Number(order.packagingFee).toLocaleString('vi-VN')}đ</span>
+                                </div>
+                            `;
+                        }
+                        if (order.discount > 0) {
+                            shippingHtml += `
+                                <div class="flex justify-between text-xs text-emerald-600 pl-4">
+                                    <span>- Miễn phí giao hàng:</span>
+                                    <span>-${Number(order.discount).toLocaleString('vi-VN')}đ</span>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    shippingHtml += `
+                        <div class="flex justify-between text-sm font-bold text-gray-500">
+                            <span>Phí giao hàng:</span>
+                            <span>${phiShip > 0 ? Number(phiShip).toLocaleString('vi-VN') + 'đ' : 'Miễn phí'}</span>
+                        </div>
+                    `;
+                }
+                
+                body.innerHTML = `
+                    <!-- Header Info -->
+                    <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-6">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-xs font-bold text-gray-500">Mã Hóa Đơn:</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-black text-winmart-dark">#${order.MaHoaDon}</span>
+                                ${isOnline ? 
+                                    `<span class="bg-blue-50 text-blue-600 text-[9px] px-1.5 py-0.5 rounded font-black tracking-wider border border-blue-100">ONLINE</span>` : 
+                                    `<span class="bg-purple-50 text-purple-600 text-[9px] px-1.5 py-0.5 rounded font-black tracking-wider border border-purple-100">${order.MaLoaiHinh || 'POS'}</span>`
+                                }
+                            </div>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-xs font-bold text-gray-500">Ngày lập:</span>
+                            <span class="text-xs font-bold text-gray-700">${new Date(order.NgayLap).toLocaleString('vi-VN')}</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-xs font-bold text-gray-500">Khách hàng:</span>
+                            <span class="text-xs font-bold text-gray-700">${order.tenKhachHang || 'Khách vãng lai'} ${order.SoDienThoai ? `(${order.SoDienThoai})` : ''}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-xs font-bold text-gray-500">Trạng thái:</span>
+                            ${getStatusBadgeHtml(order.TrangThai, order.PhuongThucTT)}
+                        </div>
+                    </div>
+                    
+                    <!-- Items -->
+                    <h4 class="text-xs font-black text-gray-500 uppercase tracking-wider mb-3">Sản phẩm đã mua (${order.items.length})</h4>
+                    <div class="bg-white border border-gray-100 rounded-xl p-4 mb-6 shadow-sm">
+                        ${itemsHtml}
+                    </div>
+                    
+                    <!-- Totals -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm font-bold text-gray-500">
+                            <span>Tổng tiền hàng:</span>
+                            <span>${Number(order.TongTienTruocKM).toLocaleString('vi-VN')}đ</span>
+                        </div>
+                        <div class="flex justify-between text-sm font-bold text-gray-500">
+                            <span>Thuế GTGT (VAT${isOnline ? ' đã gồm trong giá' : ''}):</span>
+                            <span>${Number(totalVAT).toLocaleString('vi-VN')}đ</span>
+                        </div>
+                        ${shippingHtml}
+                        ${tienGiam > 0 ? `
+                        <div class="flex justify-between text-sm font-bold text-red-500">
+                            <span>Khuyến mãi / Điểm:</span>
+                            <span>-${Math.round(Number(tienGiam)).toLocaleString('vi-VN')}đ</span>
+                        </div>
+                        ` : ''}
+                        <div class="flex justify-between text-lg font-black text-winmart-dark pt-3 border-t border-gray-200 mt-2">
+                            <span>Thanh toán:</span>
+                            <span class="text-winmart-red">${Number(order.TongTienSauKM).toLocaleString('vi-VN')}đ</span>
+                        </div>
+                        <div class="text-right text-[11px] font-bold text-gray-400 mt-1">
+                            Qua: ${order.PhuongThucTT === 'TienMat' ? 'Tiền mặt' : (order.PhuongThucTT === 'ChuyenKhoan' ? 'Chuyển khoản' : 'Thẻ/QR')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                body.innerHTML = `<div class="text-center text-red-500 font-bold p-6">Lỗi: ${data.message || 'Không thể tải chi tiết'}</div>`;
+            }
+        } catch (error) {
+            body.innerHTML = `<div class="text-center text-red-500 font-bold p-6">Lỗi kết nối máy chủ</div>`;
+        }
+    }
+    
+    function closeOrderModal() {
+        const modal = document.getElementById('orderDetailModal');
+        const content = document.getElementById('orderDetailContent');
+        content.classList.add('translate-x-full');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+</script>

@@ -1,0 +1,68 @@
+<div class="p-6 max-w-4xl mx-auto space-y-6 animate-fade-in-up">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-extrabold text-winmart-dark dark:text-white tracking-tight">Hồ sơ cá nhân</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Cập nhật thông tin tài khoản và bảo mật</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="bento-card overflow-hidden">
+        <form action="/admin/profile" method="POST" class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Left Sidebar: Avatar & Basic Info -->
+                <div class="col-span-1 flex flex-col items-center border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-700 pb-6 md:pb-0 md:pr-6">
+                    <div class="relative group">
+                        <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(userProfile.HoTen || 'Admin') %>&background=fee2e2&color=e21e26&rounded=true&size=128" alt="Avatar" class="w-32 h-32 rounded-full border-4 border-white shadow-xl dark:border-gray-800">
+                    </div>
+                    <h3 class="mt-4 text-xl font-bold text-winmart-dark dark:text-white"><%= userProfile.HoTen %></h3>
+                    <p class="text-sm font-semibold text-winmart-red mt-1"><%= userProfile.VaiTro %></p>
+                    <p class="text-xs text-gray-500 mt-1"><%= userProfile.Email %></p>
+                </div>
+
+                <!-- Right Side: Form Fields -->
+                <div class="col-span-1 md:col-span-2 space-y-6">
+                    <h4 class="text-lg font-bold text-winmart-dark dark:text-white border-b border-gray-100 dark:border-gray-700 pb-2">Thông tin liên hệ</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-bold text-winmart-dark dark:text-gray-300">Họ và tên</label>
+                            <input type="text" name="HoTen" value="<%= userProfile.HoTen %>" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-winmart-red/20 focus:border-winmart-red transition-all">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-bold text-winmart-dark dark:text-gray-300">Số điện thoại</label>
+                            <input type="text" name="SoDienThoai" value="<%= userProfile.SoDienThoai || '' %>" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-winmart-red/20 focus:border-winmart-red transition-all">
+                        </div>
+                    </div>
+
+                    <h4 class="text-lg font-bold text-winmart-dark dark:text-white border-b border-gray-100 dark:border-gray-700 pb-2 mt-8">Đổi mật khẩu</h4>
+                    <p class="text-xs text-gray-500 mb-4">Để nguyên nếu không muốn đổi mật khẩu</p>
+
+                    <div class="space-y-4">
+                        <div class="space-y-1.5">
+                            <label class="block text-sm font-bold text-winmart-dark dark:text-gray-300">Mật khẩu hiện tại</label>
+                            <input type="password" name="currentPassword" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-winmart-red/20 focus:border-winmart-red transition-all">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-bold text-winmart-dark dark:text-gray-300">Mật khẩu mới</label>
+                                <input type="password" name="newPassword" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-winmart-red/20 focus:border-winmart-red transition-all">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-sm font-bold text-winmart-dark dark:text-gray-300">Xác nhận mật khẩu mới</label>
+                                <input type="password" name="confirmPassword" class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-winmart-red/20 focus:border-winmart-red transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-6">
+                        <button type="submit" class="px-6 py-2.5 bg-winmart-red hover:bg-winmart-redHover text-white font-bold rounded-xl shadow-lg shadow-winmart-red/30 transition-all active:scale-95 flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> Cập nhật hồ sơ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

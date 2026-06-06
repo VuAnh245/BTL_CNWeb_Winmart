@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="WinMart - Hệ sinh thái bán lẻ hiện đại. Thực phẩm sạch, giao hàng siêu tốc, tích điểm thưởng hội viên.">
+    <title><%= typeof title !== 'undefined' ? `${title} | WinMart` : 'WinMart - Hệ Sinh Thái Bán Lẻ' %></title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/images/icons/favicon.png">
+
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Leaflet Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        winmart: {
+                            red: '#E21E26',
+                            redHover: '#BE1117',
+                            yellow: '#FFC522',
+                            dark: '#111827',
+                            slate: '#6B7280'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #F8F9FA;
+            scroll-behavior: smooth;
+        }
+
+        /* Glassmorphism Header */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(230, 230, 230, 0.5);
+        }
+
+        /* Hero Banner */
+        .hero-bg {
+            background: linear-gradient(135deg, #111827 0%, #1e293b 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(226,30,38,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        /* Nút chính */
+        .btn-primary-wm {
+            background: linear-gradient(135deg, #E21E26 0%, #B91319 100%);
+            box-shadow: 0 10px 25px -5px rgba(226, 30, 38, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-primary-wm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px -5px rgba(226, 30, 38, 0.4);
+        }
+
+        /* Modal Transitions */
+        #auth-modal, #location-modal { transition: opacity 0.3s ease, visibility 0.3s ease; }
+        #auth-modal.modal-hidden, #location-modal.modal-hidden { opacity: 0; visibility: hidden; pointer-events: none !important; }
+        #auth-modal.modal-active, #location-modal.modal-active { opacity: 1; visibility: visible; pointer-events: auto !important; }
+        #auth-content, #location-content { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        #auth-modal.modal-hidden #auth-content, #location-modal.modal-hidden #location-content { transform: scale(0.95) translateY(20px); }
+        #auth-modal.modal-active #auth-content, #location-modal.modal-active #location-content { transform: scale(1) translateY(0); }
+
+        /* Form Switching */
+        .form-panel { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .hidden-form { opacity: 0; transform: translateX(20px); pointer-events: none; position: absolute; visibility: hidden; }
+        .active-form { opacity: 1; transform: translateX(0); position: relative; visibility: visible; }
+
+        /* Input Glow */
+        .input-group-wm:focus-within i { color: #E21E26; }
+    </style>
+</head>
+<body class="text-gray-800 antialiased relative">
+
+    <!-- ====================================================== -->
+    <!-- LOCATION MODAL -->
+    <!-- ====================================================== -->
+    <div id="location-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-hidden pointer-events-none">
+        <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeLocationModal()"></div>
+        
+        <div id="location-content" class="relative bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 overflow-hidden transform transition-all">
+            <!-- Close btn -->
+            <button onclick="closeLocationModal()" class="absolute top-4 right-4 text-gray-400 hover:text-winmart-dark transition-colors bg-gray-50 hover:bg-gray-100 p-2 rounded-full z-10">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            
+            <!-- Header -->
+            <div class="text-center mb-6 mt-2">
+                <h2 class="text-xl font-black text-winmart-dark">Chọn địa chỉ giao hàng</h2>
+                <p class="text-gray-500 mt-1 text-[11px] font-semibold">Cắm ghim chính xác để được giao hàng nhanh nhất</p>
+            </div>
+
+            <!-- Form -->
+            <div class="space-y-4">
+                <!-- Khu vực chung -->
+                <div class="relative">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Khu vực / Tỉnh thành</label>
+                    <i data-lucide="search" class="absolute left-4 top-[30px] w-4 h-4 text-gray-400"></i>
+                    <input type="text" id="global-address-input" placeholder="Ví dụ: Mỹ Hào, Hưng Yên..." class="w-full bg-gray-50 border border-gray-200 text-winmart-dark text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 block p-3 pl-10 font-bold" autocomplete="off">
+                    
+                    <!-- Dropdown gợi ý -->
+                    <ul id="address-suggestions" class="absolute z-50 w-full bg-white border border-gray-100 rounded-xl shadow-2xl mt-1 hidden max-h-60 overflow-y-auto custom-scrollbar text-left">
+                    </ul>
+                </div>
+                
+                <!-- Bản đồ -->
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Chỉnh sửa vị trí chính xác trên bản đồ (*)</label>
+                    <div id="header-map" class="h-40 w-full bg-gray-100 rounded-xl border border-gray-200 z-10 relative"></div>
+                </div>
+
+                <!-- Chi tiết số nhà -->
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Số nhà, ngõ/hẻm, tên toà nhà (Không bắt buộc)</label>
+                    <input type="text" id="global-address-detail" placeholder="Ví dụ: Nhà trọ ABC, ngõ 123..." class="w-full bg-white border border-gray-200 text-winmart-dark text-sm rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 block p-3 font-bold" autocomplete="off">
+                </div>
+                
+                <!-- Lưu địa chỉ khi gõ tự do (phòng hờ không chọn từ list) -->
+                <button onclick="saveManualLocation()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl text-sm px-5 py-3.5 mt-2 transition-all shadow-lg shadow-emerald-500/30 flex justify-center items-center gap-2">
+                    XÁC NHẬN ĐỊA CHỈ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================== -->
+    <!-- NAVIGATION BAR -->
+    <!-- ====================================================== -->
+    <nav class="glass-nav fixed top-0 w-full z-40 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center h-20">
+
+                <!-- Left (Logo & Location) -->
+                <div class="flex items-center gap-6 flex-1">
+                    <!-- Logo -->
+                    <a href="/" class="flex items-center gap-3 cursor-pointer text-decoration-none">
+                        <div class="w-11 h-11 rounded-[14px] bg-winmart-red flex items-center justify-center text-white font-black text-lg shadow-lg shadow-winmart-red/30">
+                            WM
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-black text-winmart-dark tracking-tight leading-none">WinMart</h1>
+                            <span class="text-[10px] text-winmart-red font-bold uppercase tracking-widest">Premium Store</span>
+                        </div>
+                    </a>
+
+                    <!-- Location Selector -->
+                    <div onclick="openLocationModal()" class="hidden lg:flex items-center gap-2 cursor-pointer bg-gray-50 hover:bg-gray-100 rounded-xl px-3 py-2 transition-colors border border-gray-100">
+                        <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center">
+                            <i data-lucide="map-pin" class="w-4 h-4"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mb-1">Giao đến</span>
+                            <span id="header-location-text" class="text-xs font-black text-winmart-dark leading-none">Chọn địa chỉ...</span>
+                        </div>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-400 ml-1"></i>
+                    </div>
+                </div>
+
+                <!-- Center (Main Menu) -->
+                <div class="hidden md:flex items-center justify-center gap-8 text-sm font-bold text-gray-500 flex-none">
+                    <%
+                        const isActive = (p) => {
+                            if (p === '/' && currentPath === '/') return true;
+                            if (p !== '/' && currentPath.startsWith(p)) return true;
+                            return false;
+                        };
+                        const activeClass = "text-winmart-red border-b-2 border-winmart-red pb-1";
+                        const inactiveClass = "hover:text-winmart-dark transition-colors border-b-2 border-transparent pb-1";
+                    %>
+                    <a href="/" class="<%= isActive('/') ? activeClass : inactiveClass %>">Trang Chủ</a>
+                    <% if (!isMaintenance) { %>
+                    <a href="/products" class="<%= isActive('/products') ? activeClass : inactiveClass %>">Sản Phẩm</a>
+                    <% } %>
+                    <a href="/promotions" class="<%= isActive('/promotions') ? activeClass : inactiveClass %>">Khuyến Mãi</a>
+                    <a href="/contact" class="<%= isActive('/contact') ? activeClass : inactiveClass %>">Liên Hệ</a>
+                </div>
+
+                <!-- Right (Actions) -->
+                <div class="flex items-center justify-end gap-3 flex-1">
+                    <!-- Yêu thích -->
+                    <% if (!isMaintenance) { %>
+                        <a href="javascript:void(0)" onclick="goToWishlist()" class="relative p-2 text-gray-500 hover:text-winmart-dark transition-colors mr-1">
+                            <i data-lucide="heart" class="w-5 h-5"></i>
+                            <span id="header-wishlist-count" class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-winmart-red text-white text-[9px] font-black rounded-full flex items-center justify-center hidden">
+                                0
+                            </span>
+                        </a>
+                        
+                        <% if (typeof user !== 'undefined' && user) { %>
+                            <a href="/cart" class="relative p-2 text-gray-500 hover:text-winmart-dark transition-colors">
+                                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                                <span id="header-cart-count" class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-winmart-red text-white text-[9px] font-black rounded-full flex items-center justify-center <%= (typeof cartCount !== 'undefined' && cartCount > 0) ? '' : 'hidden' %>">
+                                    <%= typeof cartCount !== 'undefined' ? cartCount : 0 %>
+                                </span>
+                            </a>
+                        <% } else { %>
+                            <button onclick="openAuthModal('login')" class="relative p-2 text-gray-500 hover:text-winmart-dark transition-colors">
+                                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                                <span id="header-cart-count" class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-winmart-red text-white text-[9px] font-black rounded-full flex items-center justify-center <%= (typeof cartCount !== 'undefined' && cartCount > 0) ? '' : 'hidden' %>">
+                                    <%= typeof cartCount !== 'undefined' ? cartCount : 0 %>
+                                </span>
+                            </button>
+                        <% } %>
+                    <% } %>
+
+                    <% if (typeof user !== 'undefined' && user) { %>
+                        <!-- Đã đăng nhập -->
+                        <div class="relative group">
+                            <button class="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl px-3 py-2 transition-all">
+                                <div class="w-7 h-7 rounded-full bg-winmart-red flex items-center justify-center text-white font-black text-xs">
+                                    <%= (user.HoTen || user.fullName || 'U').charAt(0).toUpperCase() %>
+                                </div>
+                                <span class="text-sm font-bold text-winmart-dark hidden md:block"><%= user.HoTen || user.fullName || 'Người dùng' %></span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+                            </button>
+                            <div class="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all">
+                                <a href="/profile" class="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-600 hover:text-winmart-dark hover:bg-gray-50 rounded-xl transition-all">
+                                    <i data-lucide="user" class="w-4 h-4"></i> Hồ sơ cá nhân
+                                </a>
+                                <a href="/profile/orders" class="flex items-center gap-2 px-3 py-2 text-xs font-bold text-gray-600 hover:text-winmart-dark hover:bg-gray-50 rounded-xl transition-all">
+                                    <i data-lucide="receipt" class="w-4 h-4"></i> Đơn hàng của tôi
+                                </a>
+                                <hr class="border-gray-100 my-1">
+                                <a href="/auth/logout" class="flex items-center gap-2 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-xl transition-all">
+                                    <i data-lucide="log-out" class="w-4 h-4"></i> Đăng xuất
+                                </a>
+                            </div>
+                        </div>
+                    <% } else { %>
+                        <!-- Chưa đăng nhập -->
+                        <button onclick="openAuthModal('register')" class="hidden sm:block text-sm font-bold text-gray-500 hover:text-winmart-dark transition-colors px-3">
+                            Đăng ký
+                        </button>
+                        <button onclick="openAuthModal('login')" class="btn-primary-wm text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2">
+                            <i data-lucide="user" class="w-4 h-4"></i> Đăng Nhập
+                        </button>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ====================================================== -->
+    <!-- MAIN CONTENT (được inject bởi EJS layout) -->
+    <!-- ====================================================== -->
+    <main class="pt-20">
+        <% if (isMaintenance) { %>
+        <div class="bg-amber-50 border-b border-amber-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-center gap-3">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-500"></i>
+                <p class="text-sm font-bold text-amber-800">
+                    Tính năng mua sắm đang được bảo trì định kỳ. Bạn vẫn có thể xem các chương trình khuyến mãi và tin tức.
+                </p>
+            </div>
+        </div>
+        <% } %>
+        <%- include('../partials/flash-message') %>
+        <%- body %>
+    </main>
+
+    <!-- ====================================================== -->
+    <!-- FOOTER -->
+    <!-- ====================================================== -->
+    <footer class="bg-winmart-dark text-gray-400 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+                <!-- Brand -->
+                <div class="lg:col-span-1">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-11 h-11 rounded-[14px] bg-winmart-red flex items-center justify-center text-white font-black text-lg shadow-lg shadow-winmart-red/30">WM</div>
+                        <div>
+                            <div class="text-white font-black text-xl leading-none">WinMart</div>
+                            <div class="text-winmart-yellow text-[10px] font-bold uppercase tracking-widest">Premium Store</div>
+                        </div>
+                    </div>
+                    <p class="text-sm leading-relaxed mb-5">Hệ sinh thái bán lẻ WinMart cung cấp thực phẩm sạch, an toàn với quy trình kiểm định nghiêm ngặt từ nông trại đến tay người dùng.</p>
+                    <div class="flex gap-2 flex-wrap">
+                        <span class="bg-white/5 border border-white/10 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i> ISO 22000
+                        </span>
+                        <span class="bg-white/5 border border-white/10 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                            <i data-lucide="leaf" class="w-3.5 h-3.5 text-emerald-400"></i> WinEco Sạch
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Khám Phá -->
+                <div>
+                    <h4 class="text-white font-black text-sm mb-5 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-1 h-4 bg-winmart-red rounded-full"></span> Khám Phá
+                    </h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="/" class="hover:text-white transition-all inline-flex items-center gap-1.5"><i data-lucide="home" class="w-3 h-3 opacity-50"></i> Trang chủ</a></li>
+                        <li><a href="/products" class="hover:text-white transition-all inline-flex items-center gap-1.5"><i data-lucide="package" class="w-3 h-3 opacity-50"></i> Tất cả sản phẩm</a></li>
+                        <li><a href="/promotions" class="hover:text-white transition-all inline-flex items-center gap-1.5"><i data-lucide="tag" class="w-3 h-3 opacity-50"></i> Khuyến mãi & Ưu đãi</a></li>
+                        <li><a href="/products?sort=newest" class="hover:text-white transition-all inline-flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3 h-3 opacity-50"></i> Sản phẩm mới nhất</a></li>
+                        <li><a href="/contact" class="hover:text-white transition-all inline-flex items-center gap-1.5"><i data-lucide="headset" class="w-3 h-3 opacity-50"></i> Liên hệ & CSKH</a></li>
+                    </ul>
+                </div>
+
+                <!-- Hỗ Trợ -->
+                <div>
+                    <h4 class="text-white font-black text-sm mb-5 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-1 h-4 bg-winmart-yellow rounded-full"></span> Hỗ Trợ
+                    </h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="/about" class="hover:text-white transition-all inline-flex items-center gap-1.5"><i data-lucide="info" class="w-3 h-3 opacity-50"></i> Về WinMart</a></li>
+                        <li><a href="/cart" class="hover:text-white transition-all inline-flex items-center gap-1.5"><i data-lucide="shopping-cart" class="w-3 h-3 opacity-50"></i> Giỏ hàng</a></li>
+                        <li><a href="/profile/orders" class="hover:text-white transition-all inline-flex items-center gap-1.5"><i data-lucide="receipt" class="w-3 h-3 opacity-50"></i> Tra cứu đơn hàng</a></li>
+                        <li><a href="#" class="hover:text-white transition-all inline-flex items-center gap-1.5"><i data-lucide="shield" class="w-3 h-3 opacity-50"></i> Chính sách đổi trả</a></li>
+                        <li><a href="#" class="hover:text-white transition-all inline-flex items-center gap-1.5"><i data-lucide="lock" class="w-3 h-3 opacity-50"></i> Bảo mật & Quyền riêng tư</a></li>
+                    </ul>
+                </div>
+
+                <!-- Tài Khoản + Hotline -->
+                <div>
+                    <h4 class="text-white font-black text-sm mb-5 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-1 h-4 bg-blue-400 rounded-full"></span> Tài Khoản
+                    </h4>
+                    <ul class="space-y-3 text-sm mb-6">
+                        <li>
+                            <button onclick="openAuthModal('login')" class="hover:text-white transition-all inline-flex items-center gap-1.5 w-full text-left">
+                                <i data-lucide="log-in" class="w-3 h-3 opacity-50"></i> Đăng nhập
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="openAuthModal('register')" class="hover:text-white transition-all inline-flex items-center gap-1.5 w-full text-left">
+                                <i data-lucide="user-plus" class="w-3 h-3 opacity-50"></i> Đăng ký Hội viên
+                            </button>
+                        </li>
+                        <li><a href="/profile" class="hover:text-white transition-all inline-flex items-center gap-1.5"><i data-lucide="user" class="w-3 h-3 opacity-50"></i> Hồ sơ cá nhân</a></li>
+                        <li><a href="/profile/orders" class="hover:text-white transition-all inline-flex items-center gap-1.5"><i data-lucide="package-check" class="w-3 h-3 opacity-50"></i> Đơn hàng của tôi</a></li>
+                    </ul>
+                    <!-- Hotline -->
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Hotline hỗ trợ</p>
+                        <a href="tel:19006677" class="text-white font-black text-xl hover:text-winmart-yellow transition-colors">1900 6677</a>
+                        <p class="text-[10px] text-gray-500 mt-1">Thứ 2 – CN, 7:00 – 22:00</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+                <span>© 2025 WinMart Corporation. Bảo lưu mọi quyền.</span>
+                <div class="flex items-center gap-4 text-gray-500">
+                    <span class="flex items-center gap-1.5"><i data-lucide="map-pin" class="w-3 h-3"></i> TP. Hồ Chí Minh, Việt Nam</span>
+                    <span class="flex items-center gap-1.5"><i data-lucide="mail" class="w-3 h-3"></i> lienhe@winmart.vn</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ====================================================== -->
+    <!-- AUTHENTICATION MODAL -->
+    <!-- ====================================================== -->
+    <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center modal-hidden pointer-events-none">
+        <div class="absolute inset-0 bg-winmart-dark/60 backdrop-blur-sm" onclick="closeAuthModal()"></div>
+
+        <div id="auth-content" class="relative w-full max-w-[960px] max-h-[90vh] bg-white rounded-[2rem] shadow-2xl flex overflow-hidden mx-4 z-10">
+
+            <!-- Nút đóng -->
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 z-20 w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:text-winmart-dark transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Bên trái: Brand Banner -->
+            <section class="hidden lg:flex w-5/12 relative bg-winmart-dark overflow-hidden flex-col justify-between p-10">
+                <img src="https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&q=80&w=800" alt="Supermarket" class="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay">
+                <div class="absolute inset-0 bg-gradient-to-t from-winmart-dark via-winmart-dark/50 to-transparent"></div>
+
+                <div class="relative z-10 flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-xl bg-winmart-red flex items-center justify-center text-white font-black text-lg">WM</div>
+                    <span class="text-lg font-black text-white tracking-tight">WinMart</span>
+                </div>
+
+                <div class="relative z-10 mt-auto mb-4 space-y-4">
+                    <h2 class="text-3xl font-black text-white leading-tight">Mạng lưới <br><span class="text-winmart-yellow">Bán lẻ thông minh</span></h2>
+                    <p class="text-gray-300 text-xs font-medium leading-relaxed">
+                        Hệ thống định danh tự động. Tùy thuộc vào quyền hạn tài khoản, bạn sẽ được tự động chuyển hướng đến bảng điều khiển Admin, quầy POS hoặc trải nghiệm mua sắm Khách hàng.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Bên phải: Form -->
+            <section class="w-full lg:w-7/12 p-8 sm:p-12 flex flex-col justify-center relative overflow-y-auto bg-white">
+
+                <!-- Tab Đăng nhập / Đăng ký -->
+                <div class="bg-gray-50 p-1.5 rounded-2xl flex items-center w-full max-w-sm mx-auto mb-8 border border-gray-100 shadow-inner shrink-0">
+                    <button id="tab-login" onclick="switchTab('login')" class="flex-1 py-2.5 text-sm font-extrabold rounded-xl transition-all duration-300 bg-white text-winmart-dark shadow-sm">
+                        Đăng Nhập
+                    </button>
+                    <button id="tab-register" onclick="switchTab('register')" class="flex-1 py-2.5 text-sm font-extrabold rounded-xl transition-all duration-300 text-gray-400 hover:text-winmart-dark">
+                        Đăng Ký Mới
+                    </button>
+                </div>
+
+                <!-- FORM ĐĂNG NHẬP -->
+                <div id="form-login" class="form-panel active-form w-full max-w-sm mx-auto">
+                    <div class="mb-6 text-center">
+                        <h2 class="text-2xl font-black text-winmart-dark tracking-tight">Mừng bạn trở lại! 👋</h2>
+                        <p class="text-xs text-gray-400 font-medium mt-1.5">Vui lòng đăng nhập để truy cập hệ thống</p>
+                    </div>
+
+                    <form id="modal-login-form" novalidate class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Tên đăng nhập / Email / SĐT</label>
+                            <div class="relative input-group-wm">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i data-lucide="mail" class="w-5 h-5 text-gray-400 transition-colors"></i>
+                                </div>
+                                <input type="text" id="modal-identifier" name="identifier" list="savedAccountsList" autocomplete="off" placeholder="Nhập email, SĐT hoặc tên đăng nhập..." required class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                                <datalist id="savedAccountsList"></datalist>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1.5 ml-1 mr-1">
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Mật khẩu</label>
+                                <a href="javascript:void(0)" onclick="switchTab('forgot')" class="text-[10px] font-bold text-winmart-red hover:underline">Quên mật khẩu?</a>
+                            </div>
+                            <div class="relative input-group-wm">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i data-lucide="lock" class="w-5 h-5 text-gray-400 transition-colors"></i>
+                                </div>
+                                <input type="password" id="modal-login-password" name="password" autocomplete="off" placeholder="••••••••" required class="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                                <button type="button" onclick="togglePassword('modal-login-password', 'modal-login-eye')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-winmart-dark transition-colors">
+                                    <i id="modal-login-eye" data-lucide="eye" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 ml-1">
+                            <input type="checkbox" id="modal-remember-me" name="rememberMe" class="w-4 h-4 rounded-[4px] border-gray-300 text-winmart-red focus:ring-winmart-red cursor-pointer">
+                            <label for="modal-remember-me" class="text-xs font-bold text-gray-500 cursor-pointer select-none hover:text-winmart-dark">Ghi nhớ đăng nhập</label>
+                        </div>
+
+                        <button type="submit" class="btn-primary-wm w-full text-white font-bold py-3.5 rounded-2xl text-sm uppercase tracking-widest mt-6 flex justify-center items-center gap-2">
+                            Tiến Hành Đăng Nhập <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+
+                        <!-- Divider -->
+                        <div class="flex items-center gap-3 mt-5">
+                            <div class="flex-1 h-px bg-gray-200"></div>
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">hoặc</span>
+                            <div class="flex-1 h-px bg-gray-200"></div>
+                        </div>
+
+                        <!-- Google Login Button -->
+                        <a href="/auth/google" class="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 mt-3 group">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                            </svg>
+                            <span class="text-sm font-bold text-gray-600 group-hover:text-winmart-dark transition-colors">Đăng nhập bằng Google</span>
+                        </a>
+                    </form>
+                </div>
+
+                <!-- FORM ĐĂNG KÝ -->
+                <div id="form-register" class="form-panel hidden-form w-full max-w-sm mx-auto">
+                    <div class="mb-6 text-center">
+                        <h2 class="text-2xl font-black text-winmart-dark tracking-tight">Tạo tài khoản mới</h2>
+                        <p class="text-xs text-gray-400 font-medium mt-1.5">Đăng ký Hội viên, nhận ngay Voucher 50K</p>
+                    </div>
+
+                    <form id="modal-register-form" novalidate action="/auth/register" method="POST" class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Họ và Tên</label>
+                            <div class="relative input-group-wm">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i data-lucide="user" class="w-5 h-5 text-gray-400 transition-colors"></i>
+                                </div>
+                                <input type="text" name="fullName" placeholder="VD: Nguyễn Văn A" required class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Số điện thoại</label>
+                            <div class="relative input-group-wm">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i data-lucide="phone" class="w-5 h-5 text-gray-400 transition-colors"></i>
+                                </div>
+                                <input type="tel" name="phone" placeholder="0xxxxxxxxx" required class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Email (tuỳ chọn)</label>
+                            <div class="relative input-group-wm">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i data-lucide="mail" class="w-5 h-5 text-gray-400 transition-colors"></i>
+                                </div>
+                                <input type="email" name="email" placeholder="email@example.com" class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Mật khẩu</label>
+                                <div class="relative input-group-wm">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <i data-lucide="lock" class="w-5 h-5 text-gray-400 transition-colors"></i>
+                                    </div>
+                                    <input type="password" id="modal-register-password" name="password" placeholder="••••••" required class="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                                    <button type="button" onclick="togglePassword('modal-register-password', 'modal-register-eye')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-winmart-dark transition-colors">
+                                        <i id="modal-register-eye" data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Xác nhận</label>
+                                <div class="relative input-group-wm">
+                                    <div id="modal-confirm-shield-wrapper" class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 transition-colors">
+                                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                                    </div>
+                                    <input type="password" id="modal-confirm-password" name="confirmPassword" placeholder="••••••" required class="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                                    <button type="button" onclick="togglePassword('modal-confirm-password', 'modal-confirm-eye')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-winmart-dark transition-colors">
+                                        <i id="modal-confirm-eye" data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-2 pt-1 ml-1">
+                            <input type="checkbox" required id="modal-terms" class="w-4 h-4 mt-0.5 accent-winmart-red cursor-pointer">
+                            <label for="modal-terms" class="text-[11px] font-semibold text-gray-500 cursor-pointer leading-tight">
+                                Tôi đồng ý với <a href="#" class="text-winmart-red font-bold hover:underline">Điều khoản</a> và <a href="#" class="text-winmart-red font-bold hover:underline">Chính sách</a>.
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-primary-wm w-full text-white font-bold py-3.5 rounded-2xl text-sm uppercase tracking-widest mt-6 flex justify-center items-center gap-2">
+                            Hoàn Tất Đăng Ký <i data-lucide="user-plus" class="w-4 h-4"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- FORM QUÊN MẬT KHẨU -->
+                <div id="form-forgot" class="form-panel hidden-form w-full max-w-sm mx-auto">
+                    <div class="mb-6 text-center">
+                        <h2 class="text-2xl font-black text-winmart-dark tracking-tight">Quên mật khẩu? 🔒</h2>
+                        <p class="text-xs text-gray-400 font-medium mt-1.5">Nhập email hoặc SĐT để nhận mật khẩu mới</p>
+                    </div>
+
+                    <form id="modal-forgot-form" class="space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Email / Số điện thoại</label>
+                            <div class="relative input-group-wm">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i data-lucide="mail" class="w-5 h-5 text-gray-400 transition-colors"></i>
+                                </div>
+                                <input type="text" id="modal-forgot-identifier" name="identifier" required placeholder="Nhập email hoặc số điện thoại..." class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-bold text-winmart-dark focus:outline-none focus:border-winmart-red focus:bg-white transition-all">
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btn-forgot-submit" class="btn-primary-wm w-full text-white font-bold py-3.5 rounded-2xl text-sm uppercase tracking-widest mt-6 flex justify-center items-center gap-2">
+                            Gửi Yêu Cầu <i data-lucide="send" class="w-4 h-4"></i>
+                        </button>
+
+                        <div class="text-center mt-4">
+                            <a href="javascript:void(0)" onclick="switchTab('login')" class="text-xs font-bold text-gray-500 hover:text-winmart-dark transition-colors"><i data-lucide="arrow-left" class="w-3 h-3 inline mr-1"></i> Quay lại đăng nhập</a>
+                        </div>
+                    </form>
+                </div>
+
+            </section>
+        </div>
+    </div>
+
+    <!-- TOAST (MODERN STYLE) -->
+    <div class="fixed top-20 right-5 z-[1060] space-y-3 max-w-sm w-full pointer-events-none" style="top: 85px;">
+        <div id="wm-toast" class="flex items-center gap-3 bg-white border border-emerald-200 text-emerald-700 px-4 py-3.5 rounded-2xl shadow-xl pointer-events-auto transition-all duration-300 transform translate-x-full opacity-0" style="transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);">
+            <div id="wm-toast-icon-bg" class="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
+                <i id="wm-toast-icon" data-lucide="check-circle" class="w-5 h-5"></i>
+            </div>
+            <div class="flex-1">
+                <strong id="wm-toast-title" class="text-xs font-black block leading-tight">Thành công!</strong>
+                <span id="wm-toast-text" class="text-xs font-medium"></span>
+            </div>
+            <button onclick="hideWmToast()" class="text-gray-300 hover:text-gray-500 transition">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Lucide Error:", err);
+            }
+
+            // Mở modal từ flash message redirect (nếu có param ?modal=login)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('modal') === 'login') openAuthModal('login');
+            if (urlParams.get('modal') === 'register') openAuthModal('register');
+
+            // Khôi phục hiển thị địa chỉ trên thanh công cụ sau khi tải trang
+            const savedLocStr = localStorage.getItem('winmart_location_json');
+            const oldSavedLoc = localStorage.getItem('winmart_location');
+            const headerText = document.getElementById('header-location-text');
+            
+            if (headerText) {
+                if (savedLocStr) {
+                    try {
+                        const locData = JSON.parse(savedLocStr);
+                        let shortName = locData.detail || locData.address;
+                        const parts = locData.address.split(',');
+                        if (!locData.detail) {
+                            if (parts.length >= 3) {
+                                shortName = parts[parts.length - 3].trim() || parts[0];
+                            } else if (parts.length > 0) {
+                                shortName = parts[0];
+                            }
+                        }
+                        headerText.innerText = shortName.substring(0, 15) + (shortName.length > 15 ? '...' : '');
+                    } catch(e) {}
+                } else if (oldSavedLoc) {
+                    const parts = oldSavedLoc.split(',');
+                    let shortName = oldSavedLoc;
+                    if (parts.length >= 3) {
+                        shortName = parts[parts.length - 3].trim() || parts[0];
+                    } else if (parts.length > 0) {
+                        shortName = parts[0];
+                    }
+                    headerText.innerText = shortName.substring(0, 15) + (shortName.length > 15 ? '...' : '');
+                }
+            }
+
+            // Update wishlist count on load
+            const updateWishlistCount = () => {
+                const badge = document.getElementById('header-wishlist-count');
+                if (badge) {
+                    const list = JSON.parse(localStorage.getItem('wm_wishlist') || '[]');
+                    if (list.length > 0) {
+                        badge.innerText = list.length;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+            };
+            updateWishlistCount();
+            window.updateWishlistCount = updateWishlistCount;
+        });
+
+        // OpenStreetMap Nominatim Logic for Header
+        const globalInput = document.getElementById('global-address-input');
+        const globalDetailInput = document.getElementById('global-address-detail');
+        const headerSuggestions = document.getElementById('address-suggestions');
+        let headerSearchTimeout;
+        let headerMap = null;
+        let headerMarker = null;
+
+        function initHeaderMap() {
+            if (!headerMap && document.getElementById('header-map')) {
+                // Default center (Hanoi)
+                headerMap = L.map('header-map').setView([21.0285, 105.8542], 10);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OSM'
+                }).addTo(headerMap);
+
+                // Allow clicking to drop pin
+                headerMap.on('click', async function(e) {
+                    const lat = e.latlng.lat;
+                    const lng = e.latlng.lng;
+                    if (!headerMarker) {
+                        headerMarker = L.marker([lat, lng], {
+                            icon: L.divIcon({className: 'bg-winmart-red w-4 h-4 rounded-full border-2 border-white shadow-xl'})
+                        }).addTo(headerMap);
+                    } else {
+                        headerMarker.setLatLng([lat, lng]);
+                    }
+                    headerMap.setView([lat, lng], 16);
+
+                    // Reverse geocode to get area name
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`);
+                        const data = await res.json();
+                        if (data && data.display_name) {
+                            if (globalInput) globalInput.value = data.display_name;
+                        }
+                    } catch(err) {}
+                });
+            }
+        }
+
+        if (globalInput && headerSuggestions) {
+            globalInput.addEventListener('input', (e) => {
+                clearTimeout(headerSearchTimeout);
+                const query = e.target.value.trim();
+                if (query.length < 2) {
+                    headerSuggestions.classList.add('hidden');
+                    return;
+                }
+
+                headerSuggestions.innerHTML = '<li class="px-4 py-3 text-sm text-gray-500 text-center"><i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-2"></i>Đang tìm...</li>';
+                headerSuggestions.classList.remove('hidden');
+                lucide.createIcons();
+
+                headerSearchTimeout = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&countrycodes=vn&limit=5`);
+                        const data = await res.json();
+                        
+                        headerSuggestions.innerHTML = '';
+                        if (data.length > 0) {
+                            data.forEach(place => {
+                                const li = document.createElement('li');
+                                li.className = 'px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 text-sm font-bold text-winmart-dark';
+                                li.innerText = place.display_name;
+                                
+                                li.onclick = () => {
+                                    globalInput.value = place.display_name;
+                                    headerSuggestions.classList.add('hidden');
+                                    
+                                    const lat = parseFloat(place.lat);
+                                    const lng = parseFloat(place.lon);
+                                    
+                                    if (headerMap) {
+                                        headerMap.setView([lat, lng], 16);
+                                        if (!headerMarker) {
+                                            headerMarker = L.marker([lat, lng], {
+                                                icon: L.divIcon({className: 'bg-winmart-red w-4 h-4 rounded-full border-2 border-white shadow-xl'})
+                                            }).addTo(headerMap);
+                                        } else {
+                                            headerMarker.setLatLng([lat, lng]);
+                                        }
+                                    }
+                                };
+                                headerSuggestions.appendChild(li);
+                            });
+                        } else {
+                            headerSuggestions.innerHTML = '<li class="px-4 py-3 text-sm text-gray-500 text-center">Không tìm thấy địa chỉ</li>';
+                        }
+                    } catch (err) {}
+                }, 600);
+            });
+
+            // Hide when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!globalInput.contains(e.target) && !headerSuggestions.contains(e.target)) {
+                    headerSuggestions.classList.add('hidden');
+                }
+            });
+        }
+
+
+        function saveManualLocation() {
+            const input = globalInput ? globalInput.value : '';
+            const detailInput = globalDetailInput ? globalDetailInput.value : '';
+            
+            if (!input) {
+                showWmToast('Vui lòng chọn khu vực / tỉnh thành!');
+                return;
+            }
+            if (!headerMarker) {
+                showWmToast('Vui lòng cắm ghim trên bản đồ để xác định vị trí chính xác!');
+                return;
+            }
+            
+            const pos = headerMarker.getLatLng();
+            
+            const locationData = {
+                address: input,
+                detail: detailInput,
+                lat: pos.lat,
+                lng: pos.lng
+            };
+            
+            localStorage.setItem('winmart_location_json', JSON.stringify(locationData));
+            
+            // Extract short name for header
+            let shortName = detailInput || input;
+            const parts = input.split(',');
+            if (!detailInput) {
+                if (parts.length >= 3) {
+                    shortName = parts[parts.length - 3].trim() || parts[0];
+                } else if (parts.length > 0) {
+                    shortName = parts[0];
+                }
+            }
+            
+            const headerText = document.getElementById('header-location-text');
+            if (headerText) headerText.innerText = shortName.substring(0, 15) + (shortName.length > 15 ? '...' : '');
+            
+            closeLocationModal();
+            showWmToast('Đã cập nhật địa chỉ giao hàng');
+            
+            // Reload logic for checkout page to apply new location
+            if (window.location.pathname.includes('/checkout')) {
+                window.location.reload();
+            }
+        }
+
+        function openLocationModal() {
+            const modal = document.getElementById('location-modal');
+            if (modal) {
+                // Reset input to blank when opening modal as requested
+                if (globalInput) globalInput.value = '';
+                if (globalDetailInput) globalDetailInput.value = '';
+                
+                if (headerSuggestions) {
+                    headerSuggestions.innerHTML = '';
+                    headerSuggestions.classList.add('hidden');
+                }
+                
+                if (headerMarker && headerMap) {
+                    headerMap.removeLayer(headerMarker);
+                    headerMarker = null;
+                }
+                
+                modal.classList.remove('modal-hidden');
+                modal.classList.add('modal-active');
+                document.body.style.overflow = 'hidden';
+                
+                setTimeout(() => {
+                    initHeaderMap();
+                    if (headerMap) {
+                        headerMap.invalidateSize();
+                    }
+                }, 300);
+            }
+        }
+
+        function closeLocationModal() {
+            const modal = document.getElementById('location-modal');
+            if (modal) {
+                modal.classList.remove('modal-active');
+                modal.classList.add('modal-hidden');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function openAuthModal(tabName) {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.remove('modal-hidden');
+            modal.classList.add('modal-active');
+            document.body.style.overflow = 'hidden';
+            // Tự động xóa sạch form mỗi khi mở pop-up để tránh trình duyệt điền mặc định
+            // Dùng setTimeout để đè lên tính năng tự động điền (autofill) của Chrome
+            setTimeout(() => {
+                const identifierInput = document.getElementById('modal-identifier');
+                const passwordInput = document.getElementById('modal-login-password');
+                if (identifierInput) identifierInput.value = '';
+                if (passwordInput) passwordInput.value = '';
+            }, 50);
+            
+            switchTab(tabName || 'login');
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.remove('modal-active');
+            modal.classList.add('modal-hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Auto-open modal on error redirect and handle datalist
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('openModal') === 'login') {
+                openAuthModal('login');
+                // Remove the parameter from URL to avoid re-opening on reload
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({path: newUrl}, '', newUrl);
+            }
+            
+            // Handle Modal Login via AJAX
+            const modalLoginForm = document.getElementById('modal-login-form');
+            if (modalLoginForm) {
+                modalLoginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const btn = modalLoginForm.querySelector('button[type="submit"]');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Đang xử lý...';
+                    btn.disabled = true;
+                    lucide.createIcons();
+
+                    try {
+                        const formData = new URLSearchParams(new FormData(modalLoginForm));
+                        // Flag to tell server we want JSON response
+                        formData.append('isAjax', 'true');
+
+                        const res = await fetch('/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'Accept': 'application/json'
+                            },
+                            body: formData.toString()
+                        });
+                        
+                        const data = await res.json();
+                        
+                        if (data.success) {
+                            showWmToast('Đăng nhập thành công! Đang chuyển hướng...');
+                            
+                            // Lưu tài khoản vào danh sách gợi ý
+                            const enteredId = document.getElementById('modal-identifier').value.trim();
+                            if (enteredId) {
+                                let accounts = JSON.parse(localStorage.getItem('wm_saved_accounts') || '[]');
+                                if (!accounts.includes(enteredId)) {
+                                    accounts.push(enteredId);
+                                    localStorage.setItem('wm_saved_accounts', JSON.stringify(accounts));
+                                }
+                            }
+                            
+                            setTimeout(() => {
+                                window.location.href = data.redirectUrl || '/';
+                            }, 500);
+                        } else {
+                            showWmToast(data.message || 'Đăng nhập thất bại');
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            lucide.createIcons();
+                        }
+                    } catch (err) {
+                        showWmToast('Có lỗi xảy ra, vui lòng thử lại sau.');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        lucide.createIcons();
+                    }
+                });
+            }
+            
+            // Populate datalist
+            const dataList = document.getElementById('savedAccountsList');
+            if (dataList) {
+                let accounts = JSON.parse(localStorage.getItem('wm_saved_accounts') || '[]');
+                accounts.forEach(acc => {
+                    const option = document.createElement('option');
+                    option.value = acc;
+                    dataList.appendChild(option);
+                });
+            }
+
+            // Handle Modal Register via AJAX
+            const modalRegisterForm = document.getElementById('modal-register-form');
+            if (modalRegisterForm) {
+                modalRegisterForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const btn = modalRegisterForm.querySelector('button[type="submit"]');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Đang xử lý...';
+                    btn.disabled = true;
+                    lucide.createIcons();
+
+                    try {
+                        const formData = new URLSearchParams(new FormData(modalRegisterForm));
+
+                        const res = await fetch('/auth/register', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'Accept': 'application/json'
+                            },
+                            body: formData.toString()
+                        });
+                        
+                        const data = await res.json();
+                        
+                        if (data.success) {
+                            showWmToast('Đăng ký thành công! Vui lòng đăng nhập.');
+                            modalRegisterForm.reset();
+                            switchTab('login');
+                        } else {
+                            showWmToast(data.message || 'Đăng ký thất bại', 'error');
+                        }
+                    } catch (err) {
+                        showWmToast('Có lỗi xảy ra, vui lòng thử lại sau.', 'error');
+                    } finally {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        lucide.createIcons();
+                    }
+                });
+            }
+
+            const forgotForm = document.getElementById('modal-forgot-form');
+            if (forgotForm) {
+                forgotForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const btn = document.getElementById('btn-forgot-submit');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Đang xử lý...';
+                    btn.disabled = true;
+                    lucide.createIcons();
+
+                    try {
+                        const identifier = document.getElementById('modal-forgot-identifier').value;
+                        const res = await fetch('/auth/forgot-password', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ identifier })
+                        });
+                        const data = await res.json();
+                        
+                        if (data.success) {
+                            showWmToast(data.message || 'Mật khẩu mới đã được gửi vào email của bạn');
+                            switchTab('login');
+                        } else {
+                            showWmToast(data.message || 'Có lỗi xảy ra', 'error');
+                        }
+                    } catch (err) {
+                        showWmToast('Lỗi kết nối máy chủ', 'error');
+                    } finally {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        lucide.createIcons();
+                    }
+                });
+            }
+        });
+
+        // Escape key closes modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeAuthModal();
+                if (typeof closeLocationModal === 'function') closeLocationModal();
+            }
+        });
+
+        function switchTab(tab) {
+            const loginForm = document.getElementById('form-login');
+            const registerForm = document.getElementById('form-register');
+            const forgotForm = document.getElementById('form-forgot');
+            const tabLogin = document.getElementById('tab-login');
+            const tabRegister = document.getElementById('tab-register');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden-form'); loginForm.classList.add('active-form');
+                registerForm.classList.remove('active-form'); registerForm.classList.add('hidden-form');
+                if (forgotForm) { forgotForm.classList.remove('active-form'); forgotForm.classList.add('hidden-form'); }
+                tabLogin.className = "flex-1 py-2.5 text-sm font-extrabold rounded-xl transition-all duration-300 bg-white text-winmart-dark shadow-sm";
+                tabRegister.className = "flex-1 py-2.5 text-sm font-extrabold rounded-xl transition-all duration-300 text-gray-400 hover:text-winmart-dark";
+            } else if (tab === 'register') {
+                registerForm.classList.remove('hidden-form'); registerForm.classList.add('active-form');
+                loginForm.classList.remove('active-form'); loginForm.classList.add('hidden-form');
+                if (forgotForm) { forgotForm.classList.remove('active-form'); forgotForm.classList.add('hidden-form'); }
+                tabRegister.className = "flex-1 py-2.5 text-sm font-extrabold rounded-xl transition-all duration-300 bg-white text-winmart-dark shadow-sm";
+                tabLogin.className = "flex-1 py-2.5 text-sm font-extrabold rounded-xl transition-all duration-300 text-gray-400 hover:text-winmart-dark";
+            } else if (tab === 'forgot') {
+                if (forgotForm) { forgotForm.classList.remove('hidden-form'); forgotForm.classList.add('active-form'); }
+                loginForm.classList.remove('active-form'); loginForm.classList.add('hidden-form');
+                registerForm.classList.remove('active-form'); registerForm.classList.add('hidden-form');
+                tabLogin.className = "flex-1 py-2.5 text-sm font-extrabold rounded-xl transition-all duration-300 text-gray-400 hover:text-winmart-dark";
+                tabRegister.className = "flex-1 py-2.5 text-sm font-extrabold rounded-xl transition-all duration-300 text-gray-400 hover:text-winmart-dark";
+            }
+        }
+
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const pwd = document.getElementById('modal-register-password');
+            const confirmPwd = document.getElementById('modal-confirm-password');
+            const shield = document.getElementById('modal-confirm-shield-wrapper');
+
+            const validatePasswords = () => {
+                if (!pwd.value && !confirmPwd.value) {
+                    shield.classList.remove('text-emerald-500', 'text-red-500');
+                    shield.classList.add('text-gray-400');
+                    return;
+                }
+
+                if (pwd.value.length >= 6 && pwd.value === confirmPwd.value) {
+                    shield.classList.remove('text-gray-400', 'text-red-500');
+                    shield.classList.add('text-emerald-500');
+                } else if (confirmPwd.value.length > 0) {
+                    shield.classList.remove('text-gray-400', 'text-emerald-500');
+                    shield.classList.add('text-red-500');
+                } else {
+                    shield.classList.remove('text-emerald-500', 'text-red-500');
+                    shield.classList.add('text-gray-400');
+                }
+            };
+
+            if (pwd && confirmPwd) {
+                pwd.addEventListener('input', validatePasswords);
+                confirmPwd.addEventListener('input', validatePasswords);
+            }
+        });
+
+        let toastTimeout;
+        function showWmToast(text, type = 'success') {
+            const toast = document.getElementById('wm-toast');
+            const toastIcon = document.getElementById('wm-toast-icon');
+            const toastIconBg = document.getElementById('wm-toast-icon-bg');
+            const toastTitle = document.getElementById('wm-toast-title');
+            const toastText = document.getElementById('wm-toast-text');
+            
+            clearTimeout(toastTimeout);
+            
+            toastText.innerHTML = text;
+            
+            if (type === 'error') {
+                toast.className = 'flex items-center gap-3 bg-white border border-red-200 text-red-600 px-4 py-3.5 rounded-2xl shadow-xl pointer-events-auto transition-all duration-300 transform';
+                toastIconBg.className = 'w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center shrink-0 text-red-500';
+                toastIcon.setAttribute('data-lucide', 'alert-circle');
+                toastTitle.innerText = 'Có lỗi xảy ra!';
+            } else {
+                toast.className = 'flex items-center gap-3 bg-white border border-emerald-200 text-emerald-700 px-4 py-3.5 rounded-2xl shadow-xl pointer-events-auto transition-all duration-300 transform';
+                toastIconBg.className = 'w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0 text-emerald-500';
+                toastIcon.setAttribute('data-lucide', 'check-circle');
+                toastTitle.innerText = 'Thành công!';
+            }
+            
+            lucide.createIcons();
+            
+            // Show
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+            
+            toastTimeout = setTimeout(() => {
+                hideWmToast();
+            }, 3000);
+        }
+        
+        function hideWmToast() {
+            const toast = document.getElementById('wm-toast');
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+        }
+
+        async function addToCart(productId, quantity = 1) {
+            try {
+                const res = await fetch('/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId, quantity })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showWmToast(data.message || 'Đã thêm vào giỏ hàng');
+                    const badge = document.getElementById('header-cart-count');
+                    if (badge && data.cartCount !== undefined) {
+                        badge.innerText = data.cartCount;
+                        badge.classList.remove('hidden');
+                    }
+                } else {
+                    showWmToast(data.message || 'Có lỗi xảy ra', 'error');
+                }
+            } catch (err) {
+                showWmToast('Lỗi kết nối máy chủ', 'error');
+            }
+        }
+
+        function goToWishlist() {
+            const list = JSON.parse(localStorage.getItem('wm_wishlist') || '[]');
+            if (list.length === 0) {
+                showWmToast('Bạn chưa có sản phẩm yêu thích nào!', 'error');
+                return;
+            }
+            window.location.href = '/profile/wishlist?ids=' + encodeURIComponent(JSON.stringify(list));
+        }
+
+        function toggleWishlist(productId) {
+            let list = JSON.parse(localStorage.getItem('wm_wishlist') || '[]');
+            const index = list.indexOf(productId);
+            if (index > -1) {
+                list.splice(index, 1);
+                showWmToast('Đã bỏ sản phẩm khỏi danh sách yêu thích');
+            } else {
+                list.push(productId);
+                showWmToast('Đã thêm sản phẩm vào danh sách yêu thích');
+            }
+            localStorage.setItem('wm_wishlist', JSON.stringify(list));
+            if (window.updateWishlistCount) window.updateWishlistCount();
+            
+            // If on wishlist page, optionally remove the element or reload
+            if (window.location.pathname === '/profile/wishlist') {
+                const card = document.getElementById('wishlist-item-' + productId);
+                if (card) {
+                    card.style.opacity = '0';
+                    setTimeout(() => card.remove(), 300);
+                } else {
+                    setTimeout(() => window.location.reload(), 500);
+                }
+            }
+            
+            // Update heart icon states if on product list
+            const btn = document.getElementById('wishlist-btn-' + productId);
+            if (btn) {
+                if (index > -1) {
+                    btn.classList.remove('text-winmart-red', 'fill-winmart-red');
+                    btn.classList.add('text-gray-400');
+                } else {
+                    btn.classList.remove('text-gray-400');
+                    btn.classList.add('text-winmart-red', 'fill-winmart-red');
+                }
+            }
+        }
+    </script>
+
+
+</body>
+</html>

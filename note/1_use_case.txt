@@ -1,0 +1,97 @@
+HỆ THỐNG WEB BÁN HÀNG CỬA HÀNG TIỆN LỢI WINMART - SƠ ĐỒ USE CASE CHI TIẾT
+==========================================================================
+
+1. PHẠM VI HỆ THỐNG
+- Hệ thống website bán hàng + POS quầy thu ngân cho cửa hàng tiện lợi FMCG.
+- Hỗ trợ 3 vai trò: Khách hàng (Client), Nhân viên (Staff/POS), Quản trị viên (Admin).
+- Chạy trên nền tảng Web (Browser), tương thích Mobile/Desktop, database MySQL (XAMPP).
+
+2. TÁC NHÂN & MÔ TẢ
+[KHÁCH HÀNG] Người dùng cuối truy cập website để xem sản phẩm, đặt hàng, tích điểm.
+[NHÂN VIÊN] Người vận hành quầy thu ngân, xử lý đơn tại quầy, in hóa đơn, đồng bộ offline.
+[QUẢN TRỊ VIÊN] Người cấu hình hệ thống, quản lý kho, phân quyền, xem báo cáo toàn cục.
+
+3. USE CASE CHI TIẾT (THEO ACTOR)
+────────────────────────────────────────────────────────────────────────────
+3.1. KHÁCH HÀNG
+UC-C01 | Đăng ký tài khoản
+  • Điều kiện trước: Chưa có tài khoản hoặc chưa đăng nhập.
+  • Luồng chính: Nhập họ tên, SĐT, email, mật khẩu → Hệ thống validate unique → Hash pass → Lưu DB → Gửi thông báo thành công.
+  • Luồng rẽ: SĐT/Email đã tồn tại → Báo lỗi. Mật khẩu yếu → Từ chối.
+  • Điều kiện sau: Tài khoản `CUSTOMER` được tạo, sẵn sàng đăng nhập.
+
+UC-C02 | Xem & Tìm kiếm sản phẩm FMCG
+  • Điều kiện trước: Truy cập trang chủ hoặc danh mục.
+  • Luồng chính: Hiển thị danh sách SP theo danh mục → Lọc theo giá, trạng thái → Nhập từ khóa/barcode → Kết quả trả về có phân trang.
+  • Điều kiện sau: Khách chọn SP → Chuyển UC-C04.
+
+UC-C03 | Quản lý giỏ hàng
+  • Điều kiện trước: Có ít nhất 1 SP được chọn.
+  • Luồng chính: Thêm SP → Kiểm tồn kho → Lưu vào session/cart DB → Cập nhật số lượng/xóa → Hiển thị tạm tính.
+  • Điều kiện sau: Giỏ hàng sẵn sàng → Chuyển UC-C05.
+
+UC-C04 | Thanh toán / Đặt hàng
+  • Điều kiện trước: Giỏ hàng không rỗng, đã đăng nhập.
+  • Luồng chính: Nhập thông tin nhận hàng → Chọn phương thức (COD/QR) → Áp mã KM/điểm → Xác nhận → Hệ thống tạo Order (Pending) → Trừ tồn tạm → Gửi email/SMS.
+  • Quan hệ: <<include>> UC-C03, <<extend>> Áp dụng Loyalty/KM.
+  • Điều kiện sau: Order được ghi nhận, chờ xác nhận giao nhận.
+
+UC-C05 | Tra cứu điểm & Lịch sử đơn
+  • Điều kiện trước: Đã đăng nhập, có lịch sử giao dịch.
+  • Luồng chính: Vào hồ sơ → Xem tổng điểm, hạng VIP → Xem danh sách hóa đơn → Lọc theo trạng thái → Tải hóa đơn điện tử (PDF/HTML).
+  • Điều kiện sau: Khách nắm được quyền lợi & lịch sử mua hàng.
+
+────────────────────────────────────────────────────────────────────────────
+3.2. NHÂN VIÊN (POS)
+UC-S01 | Đăng nhập & Mở ca
+  • Điều kiện trước: Có tài khoản STAFF, hệ thống online.
+  • Luồng chính: Nhập username/pass → Xác thực → Chọn ca làm việc → Gán store_id → Vào giao diện POS.
+  • Điều kiện sau: Session nhân viên được kích hoạt, sẵn sàng bán hàng.
+
+UC-S02 | Bán hàng tại quầy (POS)
+  • Điều kiện trước: Đã mở ca, có SP trong kho.
+  • Luồng chính: Quét barcode/nhập mã → Hệ thống load SP → Thêm giỏ → Áp KM/điểm → Nhập tiền khách đưa → Tính tiền thừa → Xác nhận thanh toán → In hóa đơn nhiệt → Trừ tồn thực tế → Ghi log điểm.
+  • Quan hệ: <<include>> In hóa đơn, <<extend>> Offline Queue (khi mất mạng).
+  • Điều kiện sau: Hóa đơn hoàn tất, tồn kho cập nhật, ca ghi nhận doanh thu.
+
+UC-S03 | Tra cứu nhanh & Lịch sử hóa đơn
+  • Điều kiện trước: Đang ở giao diện Staff.
+  • Luồng chính: Tìm SP theo mã/tên → Xem tồn kho thực → Tìm KH theo SĐT → Xem điểm/hạng → Xem danh sách HĐ hôm nay → Lọc theo trạng thái.
+  • Điều kiện sau: Hỗ trợ quyết định bán hàng & chăm sóc KH nhanh.
+
+────────────────────────────────────────────────────────────────────────────
+3.3. QUẢN TRỊ VIÊN
+UC-A01 | Quản lý Sản phẩm & Danh mục
+  • Điều kiện trước: Đăng nhập ADMIN.
+  • Luồng chính: CRUD danh mục/SP → Upload ảnh → Gán barcode/VAT → Đặt trạng thái → Soft delete nếu ngừng kinh doanh.
+  • Điều kiện sau: Catalog cập nhật, sẵn sàng hiển thị client & POS.
+
+UC-A02 | Quản lý Nhập hàng & Tồn kho FEFO
+  • Điều kiện trước: Có phiếu nhập từ NCC.
+  • Luồng chính: Tạo phiếu nhập → Chọn SP, số lượng, giá nhập, lô, hạn sử dụng → Duyệt nhận → Cộng tồn theo batch → Cảnh báo cận date (<30 ngày).
+  • Điều kiện sau: Tồn kho tăng, batch được đánh dấu sẵn sàng bán.
+
+UC-A03 | Quản lý Khách hàng & Điều chỉnh điểm
+  • Điều kiện trước: Đăng nhập ADMIN.
+  • Luồng chính: Xem danh sách KH → Tìm theo SĐT → Xem lịch sử điểm → Điều chỉnh thủ công (tăng/giảm) → Ghi lý do → Cập hạng tự động nếu vượt ngưỡng.
+  • Quan hệ: <<extend>> Auto Upgrade/Downgrade VIP.
+  • Điều kiện sau: Điểm & hạng KH chính xác, audit trail đầy đủ.
+
+UC-A04 | Cấu hình hệ thống & Báo cáo
+  • Điều kiện trước: Đăng nhập ADMIN.
+  • Luồng chính: Cấu hình tỷ lệ tích điểm, VAT mặc định, ngưỡng VIP → Xem dashboard → Lọc báo cáo theo thời gian/danh mục → Xuất Excel/PDF.
+  • Điều kiện sau: Hệ thống vận hành theo rule mới, dữ liệu báo cáo sẵn sàng.
+
+4. QUAN HỆ USE CASE
+- UC-C04 (Thanh toán) <<include>> UC-C03 (Quản lý giỏ hàng)
+- UC-C04 <<extend>> Áp dụng Loyalty/Khuyến mãi
+- UC-S02 (Bán POS) <<include>> In hóa đơn nhiệt
+- UC-S02 <<extend>> Đồng bộ Offline (khi mất mạng)
+- UC-A02 (Nhập hàng) <<include>> Cộng tồn kho batch
+- UC-A03 (QL KH) <<extend>> Điều chỉnh điểm thủ công
+- UC-A01 (QL SP) <<include>> CRUD sản phẩm
+
+5. GHI CHÚ TRIỂN KHAI
+- Không nhồi toàn bộ UC vào 1 sơ đồ. Tách 3 sơ đồ nhỏ theo Actor để báo cáo sạch.
+- Dùng PlantUML/Draw.io: Actor trái → System box giữa → UC phải.
+- Quan hệ include vẽ nét liền, extend vẽ nét đứt có nhãn <<extend>>/<<include>>.

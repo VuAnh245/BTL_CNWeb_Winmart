@@ -1,0 +1,433 @@
+<!-- Page Header -->
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <p class="text-[11px] text-winmart-slate font-semibold tracking-wider uppercase mb-1">Hệ Thống</p>
+        <h1 class="text-2xl font-black tracking-tight text-winmart-dark">Quản Lý Mã Giảm Giá</h1>
+    </div>
+    <div class="flex items-center gap-4">
+        <!-- Email Queue Status Widget -->
+        <div id="email-queue-status" class="hidden items-center gap-3 bg-white px-4 py-2 rounded-[1rem] shadow-sm border border-gray-100">
+            <div class="flex items-center gap-2">
+                <i data-lucide="mail" class="w-4 h-4 text-winmart-dark animate-pulse"></i>
+                <span class="text-[11px] font-black text-gray-700 uppercase tracking-wider">Tiến độ gửi:</span>
+            </div>
+            <div class="flex gap-3 text-xs font-bold">
+                <span class="text-amber-500"><span id="q-pending">0</span> chờ</span>
+                <span class="text-emerald-500"><span id="q-sent">0</span> thành công</span>
+                <span class="text-red-500"><span id="q-failed">0</span> lỗi</span>
+            </div>
+        </div>
+        <button onclick="toggleSlideOver()" class="bg-winmart-dark hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-gray-900/20">
+            <i data-lucide="plus" class="w-4 h-4 text-winmart-yellow"></i> Tạo Mã Mới
+        </button>
+    </div>
+</div>
+
+<div class="bento-card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left min-w-[1000px]">
+            <thead>
+                <tr class="bg-white border-b border-gray-100">
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider">Thông Tin Mã</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Mức Giảm</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Điều Kiện</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider">Thời Gian</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Đã Dùng</th>
+                    <th class="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-wider text-center">Trạng Thái</th>
+                    <th class="py-4 px-5 text-[10px] font-black text-gray-400 uppercase tracking-wider text-right">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                <% if (promotions && promotions.length > 0) { %>
+                    <% promotions.forEach(p => { %>
+                    <tr class="hover:bg-gray-50/50 transition bg-white group">
+                        <td class="py-4 px-5">
+                            <h4 class="font-black text-winmart-red text-sm mb-1 font-mono tracking-wider"><%= p.MaCode %></h4>
+                            <span class="text-xs font-bold text-gray-700"><%= p.TenMaGiamGia %></span>
+                        </td>
+                        <td class="py-4 px-4">
+                            <% if (p.LoaiGiamGia === 'Percent') { %>
+                                <span class="text-sm font-black text-emerald-600"><%= p.GiaTri %>%</span>
+                                <% if (p.PhanTramToiDa > 0) { %>
+                                    <span class="block text-[10px] text-gray-400 font-bold">Tối đa: <%= Number(p.PhanTramToiDa).toLocaleString('vi-VN') %>đ</span>
+                                <% } %>
+                            <% } else { %>
+                                <span class="text-sm font-black text-emerald-600"><%= Number(p.GiaTri).toLocaleString('vi-VN') %>đ</span>
+                            <% } %>
+                        </td>
+                        <td class="py-4 px-4">
+                            <% if (p.GiaTriDonHangToiThieu > 0) { %>
+                                <span class="text-xs font-bold text-gray-600">Đơn từ <%= Number(p.GiaTriDonHangToiThieu).toLocaleString('vi-VN') %>đ</span>
+                            <% } else { %>
+                                <span class="text-xs font-bold text-gray-400">Mọi đơn hàng</span>
+                            <% } %>
+                        </td>
+                        <td class="py-4 px-4">
+                            <div class="text-[10px] font-bold text-gray-500 mb-1">
+                                Từ: <span class="text-gray-700"><%= new Date(p.NgayBatDau).toLocaleString('vi-VN') %></span>
+                            </div>
+                            <div class="text-[10px] font-bold text-gray-500">
+                                Đến: <span class="text-gray-700"><%= new Date(p.NgayKetThuc).toLocaleString('vi-VN') %></span>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                            <span class="text-xs font-black text-gray-700"><%= p.SoLanDaSuDung %></span>
+                            <span class="text-[10px] text-gray-400 font-bold block">/ <%= p.GioiHanSuDung > 0 ? p.GioiHanSuDung : '∞' %></span>
+                        </td>
+                        <td class="py-4 px-4 text-center">
+                            <span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase <%= p.StatusColor %>">
+                                <%= p.HienThiTrangThai %>
+                            </span>
+                        </td>
+                        <td class="py-4 px-5 text-right">
+                            <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <% if (p.HienThiTrangThai === 'Đang diễn ra' || p.HienThiTrangThai === 'Sắp diễn ra') { %>
+                                <button onclick="broadcastPromotion('<%= p.MaGiamGiaId %>', '<%= p.TenMaGiamGia %>')" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition" title="Gửi Email Khuyến Mãi">
+                                    <i data-lucide="send" class="w-4 h-4"></i>
+                                </button>
+                                <% } %>
+                                <a href="/admin/promotions/<%= p.MaGiamGiaId %>/edit" class="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition" title="Sửa mã">
+                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                </a>
+                                <button onclick="deletePromotion(<%= p.MaGiamGiaId %>)" class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition" title="Hủy mã">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-gray-400">
+                            <i data-lucide="ticket" class="w-12 h-12 mx-auto mb-3 opacity-20"></i>
+                            <p class="text-sm font-semibold">Chưa có mã giảm giá nào</p>
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- SLIDE-OVER: Form Thêm/Sửa Mã Giảm Giá (WIDE) -->
+<!-- ============================================== -->
+<% const isOpen = typeof openSlideOver !== 'undefined' && openSlideOver; %>
+<% const isEdit = typeof editPromotion !== 'undefined' && editPromotion; %>
+
+<div id="slide-over-backdrop" onclick="closeSlideOver()" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40 <%= isOpen ? '' : 'hidden opacity-0' %> transition-opacity"></div>
+
+<div id="slide-over" class="fixed inset-y-0 right-0 w-full xl:w-[960px] lg:w-[800px] bg-white shadow-2xl z-50 flex flex-col border-l border-gray-200 transition-transform duration-300 ease-in-out <%= isOpen ? 'translate-x-0' : 'translate-x-full' %>">
+
+    <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
+        <div>
+            <h3 class="text-base font-black text-winmart-dark flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-winmart-red rounded-full"></span> <%= isEdit ? 'Cập Nhật Mã Giảm Giá' : 'Tạo Mã Giảm Giá' %>
+            </h3>
+            <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5"><%= isEdit ? 'Chỉnh sửa chương trình khuyến mãi' : 'Khởi tạo chương trình khuyến mãi mới' %></p>
+        </div>
+        <button onclick="closeSlideOver()" class="p-2 bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-winmart-dark transition shadow-sm">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 bg-gray-50/30">
+        <form id="createPromoForm" action="<%= isEdit ? '/admin/promotions/' + editPromotion.MaGiamGiaId + '/edit' : '/admin/promotions/create' %>" class="space-y-8">
+            <!-- Nhóm 1: Nhận diện -->
+            <div class="bento-card p-6 rounded-3xl bg-white border border-gray-100 shadow-sm">
+                <h3 class="text-sm font-black text-winmart-dark uppercase tracking-wide mb-4 border-b border-gray-100 pb-3">1. Nhận diện mã</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Mã Code (Chữ in hoa viết liền)</label>
+                        <input type="text" name="MaCode" id="MaCode" value="<%= isEdit ? editPromotion.MaCode : '' %>" <%= isEdit ? 'readonly' : '' %> class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-black text-winmart-red uppercase focus:outline-none focus:border-winmart-red transition-all placeholder-gray-300 <%= isEdit ? 'opacity-70 cursor-not-allowed' : '' %>" placeholder="VD: TET2024" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Tên Chương Trình</label>
+                        <input type="text" name="TenMaGiamGia" id="TenMaGiamGia" value="<%= isEdit ? editPromotion.TenMaGiamGia : '' %>" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" placeholder="VD: Giảm 50K Mừng Năm Mới" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nhóm 2: Mức giảm -->
+            <div class="bento-card p-6 rounded-3xl bg-white border border-gray-100 shadow-sm">
+                <h3 class="text-sm font-black text-winmart-dark uppercase tracking-wide mb-4 border-b border-gray-100 pb-3">2. Mức giảm & Điều kiện</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="lg:col-span-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Loại Giảm Giá</label>
+                        <select name="LoaiGiamGia" id="LoaiGiamGia" <%= isEdit ? 'disabled' : '' %> class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all appearance-none <%= isEdit ? 'opacity-70 cursor-not-allowed' : '' %>" required>
+                            <option value="GiaTri" <%= isEdit && editPromotion.LoaiGiamGia === 'GiaTri' ? 'selected' : '' %>>Trừ Tiền Mặt (VNĐ)</option>
+                            <option value="PhanTram" <%= isEdit && editPromotion.LoaiGiamGia === 'PhanTram' ? 'selected' : '' %>>Chiết khấu (%)</option>
+                        </select>
+                        <% if (isEdit) { %>
+                            <input type="hidden" name="LoaiGiamGia" value="<%= editPromotion.LoaiGiamGia %>">
+                        <% } %>
+                    </div>
+                    <div class="lg:col-span-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Giá Trị Giảm</label>
+                        <input type="number" min="1" name="GiaTri" id="GiaTri" value="<%= isEdit ? editPromotion.GiaTri : '' %>" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" placeholder="VD: 50000" required>
+                    </div>
+                    <div class="lg:col-span-1" id="maxDiscountContainer" style="display: <%= isEdit && editPromotion.LoaiGiamGia === 'PhanTram' ? 'block' : 'none' %>;">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Giảm Tối Đa (VNĐ)</label>
+                        <input type="number" min="0" name="PhanTramToiDa" id="PhanTramToiDa" value="<%= isEdit ? editPromotion.PhanTramToiDa : '' %>" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" placeholder="Không giới hạn: để 0">
+                    </div>
+                    <div class="lg:col-span-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Đơn Tối Thiểu (VNĐ)</label>
+                        <input type="number" min="0" name="GiaTriDonHangToiThieu" id="GiaTriDonHangToiThieu" value="<%= isEdit ? editPromotion.GiaTriDonHangToiThieu : '' %>" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" placeholder="Không yêu cầu: để 0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nhóm 3: Thời hạn -->
+            <div class="bento-card p-6 rounded-3xl bg-white border border-gray-100 shadow-sm">
+                <h3 class="text-sm font-black text-winmart-dark uppercase tracking-wide mb-4 border-b border-gray-100 pb-3">3. Thời gian & Lượt dùng</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <%
+                        const fmtDate = (d) => {
+                            if(!d) return '';
+                            const dt = new Date(d);
+                            dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+                            return dt.toISOString().slice(0,16);
+                        }
+                    %>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Bắt Đầu</label>
+                        <input type="datetime-local" name="NgayBatDau" id="NgayBatDau" value="<%= isEdit ? fmtDate(editPromotion.NgayBatDau) : '' %>" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Kết Thúc</label>
+                        <input type="datetime-local" name="NgayKetThuc" id="NgayKetThuc" value="<%= isEdit ? fmtDate(editPromotion.NgayKetThuc) : '' %>" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Giới Hạn Lượt Dùng</label>
+                        <input type="number" min="0" name="GioiHanSuDung" id="GioiHanSuDung" value="<%= isEdit ? editPromotion.GioiHanSuDung : '' %>" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:border-winmart-red transition-all" placeholder="Vô hạn: để 0">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="p-5 border-t border-gray-100 bg-white flex justify-end gap-3 shrink-0">
+        <button onclick="closeSlideOver()" class="px-8 py-3.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-2xl text-sm font-bold text-gray-600 transition shadow-sm">Thoát</button>
+        <button type="submit" form="createPromoForm" id="submitBtn" class="px-8 py-3.5 bg-winmart-dark hover:bg-black text-white rounded-2xl text-sm font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-gray-900/20">
+            <i data-lucide="check-circle" class="w-4 h-4 text-winmart-yellow"></i> <%= isEdit ? 'Lưu Cập Nhật' : 'Xác Nhận Tạo Mã' %>
+        </button>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function toggleSlideOver() {
+        document.getElementById('createPromoForm').reset();
+        document.getElementById('createPromoForm').action = '/admin/promotions/create';
+        
+        document.getElementById('MaCode').readOnly = false;
+        document.getElementById('MaCode').classList.remove('opacity-70', 'cursor-not-allowed');
+        document.getElementById('LoaiGiamGia').disabled = false;
+        document.getElementById('LoaiGiamGia').classList.remove('opacity-70', 'cursor-not-allowed');
+        
+        // Remove hidden LoaiGiamGia input if exists
+        const hiddenInput = document.querySelector('input[type="hidden"][name="LoaiGiamGia"]');
+        if(hiddenInput) hiddenInput.remove();
+
+        // Reset defaults
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('NgayBatDau').value = now.toISOString().slice(0,16);
+        now.setDate(now.getDate() + 7);
+        document.getElementById('NgayKetThuc').value = now.toISOString().slice(0,16);
+        document.getElementById('maxDiscountContainer').style.display = 'none';
+
+        const panel = document.getElementById('slide-over');
+        const backdrop = document.getElementById('slide-over-backdrop');
+        
+        backdrop.classList.remove('hidden');
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            panel.classList.remove('translate-x-full');
+            panel.classList.add('translate-x-0');
+        }, 10);
+    }
+    
+    function closeSlideOver() {
+        const panel = document.getElementById('slide-over');
+        const backdrop = document.getElementById('slide-over-backdrop');
+        
+        panel.classList.remove('translate-x-0');
+        panel.classList.add('translate-x-full');
+        backdrop.classList.add('opacity-0');
+        setTimeout(() => {
+            backdrop.classList.add('hidden');
+            if (window.location.pathname.includes('/create') || window.location.pathname.includes('/edit')) {
+                window.history.pushState({}, document.title, '/admin/promotions');
+            }
+        }, 300);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeSelect = document.getElementById('LoaiGiamGia');
+        const maxDiv = document.getElementById('maxDiscountContainer');
+        const inputGiaTri = document.getElementById('GiaTri');
+
+        typeSelect.addEventListener('change', (e) => {
+            if(e.target.value === 'PhanTram') {
+                maxDiv.style.display = 'block';
+                inputGiaTri.placeholder = 'VD: 10 (Nghĩa là giảm 10%)';
+            } else {
+                maxDiv.style.display = 'none';
+                inputGiaTri.placeholder = 'VD: 50000 (Giảm 50k)';
+                document.getElementById('PhanTramToiDa').value = '';
+            }
+        });
+
+        document.getElementById('createPromoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const data = {
+                MaCode: document.getElementById('MaCode').value,
+                TenMaGiamGia: document.getElementById('TenMaGiamGia').value,
+                LoaiGiamGia: document.getElementById('LoaiGiamGia').value,
+                GiaTri: document.getElementById('GiaTri').value,
+                PhanTramToiDa: document.getElementById('PhanTramToiDa').value || 0,
+                GiaTriDonHangToiThieu: document.getElementById('GiaTriDonHangToiThieu').value || 0,
+                NgayBatDau: document.getElementById('NgayBatDau').value,
+                NgayKetThuc: document.getElementById('NgayKetThuc').value,
+                GioiHanSuDung: document.getElementById('GioiHanSuDung').value || 0
+            };
+
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-winmart-yellow"></i> Đang xử lý...';
+            lucide.createIcons();
+
+            try {
+                const formAction = document.getElementById('createPromoForm').action;
+                const res = await fetch(formAction, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                
+                if (result.success) {
+                    closeSlideOver();
+                    Swal.fire('Thành công', result.message, 'success').then(() => {
+                        window.location.href = result.redirectUrl || '/admin/promotions';
+                    });
+                } else {
+                    Swal.fire('Lỗi', result.message, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-winmart-yellow"></i> Xác Nhận Tạo Mã';
+                    lucide.createIcons();
+                }
+            } catch (err) {
+                Swal.fire('Lỗi', 'Lỗi kết nối server', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-winmart-yellow"></i> Xác Nhận Tạo Mã';
+                lucide.createIcons();
+            }
+        });
+    });
+
+    function deletePromotion(id) {
+        Swal.fire({
+            title: 'Hủy mã giảm giá?',
+            text: "Mã giảm giá này sẽ không thể sử dụng được nữa!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#9ca3af',
+            confirmButtonText: 'Đồng ý, hủy ngay!',
+            cancelButtonText: 'Đóng'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const res = await fetch(`/admin/promotions/${id}/toggle`, { method: 'POST' });
+                    const data = await res.json();
+                    if(data.success) {
+                        window.location.reload();
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                    }
+                } catch(err) {
+                    Swal.fire('Lỗi', 'Lỗi kết nối server', 'error');
+                }
+            }
+        });
+    }
+
+    function broadcastPromotion(id, name) {
+        Swal.fire({
+            title: 'Gửi Mã Khuyến Mãi',
+            html: `Gửi mã <b>${name}</b> cho khách hàng qua Email:`,
+            icon: 'question',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonColor: '#10b981', 
+            denyButtonColor: '#f59e0b', 
+            cancelButtonColor: '#9ca3af',
+            confirmButtonText: 'Tất cả KH',
+            denyButtonText: 'Khách VIP',
+            cancelButtonText: 'Hủy'
+        }).then(async (result) => {
+            if (result.isConfirmed || result.isDenied) {
+                const targetAudience = result.isConfirmed ? 'all' : 'vip';
+                try {
+                    Swal.fire({
+                        title: 'Đang xử lý...',
+                        text: 'Đang nạp danh sách vào hàng đợi...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    const res = await fetch(`/admin/promotions/${id}/broadcast`, { 
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ targetAudience })
+                    });
+                    const data = await res.json();
+                    
+                    if(data.success) {
+                        Swal.fire('Thành công!', data.message, 'success').then(() => lucide.createIcons());
+                    } else {
+                        Swal.fire('Lỗi', data.message, 'error');
+                    }
+                } catch(err) {
+                    Swal.fire('Lỗi', 'Lỗi kết nối server', 'error');
+                }
+            }
+        });
+    }
+
+    // Polling Queue Status
+    let queuePollInterval = null;
+    function pollQueueStatus() {
+        fetch('/admin/promotions/queue-status')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const statusWidget = document.getElementById('email-queue-status');
+                    document.getElementById('q-pending').textContent = data.pending;
+                    document.getElementById('q-sent').textContent = data.stats.totalSent;
+                    document.getElementById('q-failed').textContent = data.stats.totalFailed;
+                    
+                    if (data.pending > 0 || data.stats.totalSent > 0 || data.stats.totalFailed > 0) {
+                        statusWidget.classList.remove('hidden');
+                        statusWidget.classList.add('flex');
+                    } else {
+                        statusWidget.classList.add('hidden');
+                        statusWidget.classList.remove('flex');
+                    }
+                }
+            })
+            .catch(err => console.error("Error polling queue status:", err));
+    }
+
+    // Poll every 3 seconds
+    queuePollInterval = setInterval(pollQueueStatus, 3000);
+    // Initial poll
+    pollQueueStatus();
+
+</script>
